@@ -39,7 +39,7 @@ class GameP2FileSystemAdapter {
     }
 
     /**
-     * Elimina el archivo de juego correspondiente en el sistema de archivos (pendiente de implementar).
+     * Elimina el archivo de juego correspondiente en el sistema de archivos (soporta Windows y Linux).
      *
      * @param id Identificador único del juego a eliminar.
      * @return True si el archivo se eliminó con éxito, false en caso contrario.
@@ -48,6 +48,67 @@ class GameP2FileSystemAdapter {
      * @since 2026-08-02
      */
     fun deleteGameInFile(id: String): Boolean {
-        return false
+        if (ROUTE_PCSX2_GAMES.isNullOrBlank()) {
+            println("Games directory route is null or blank.")
+            return false
+        }
+
+        val os = System.getProperty("os.name").lowercase()
+
+        return if (os.contains("linux") || os.contains("windows")) {
+            deleteGameForSupportedOs(id)
+        } else {
+            println("Unsupported operating system for file deletion: $os")
+            false
+        }
+    }
+
+    /**
+     * Auxiliar para buscar y eliminar el juego en sistemas operativos soportados.
+     *
+     * @param id Identificador único del juego.
+     * @return True si el archivo fue encontrado y eliminado con éxito.
+     *
+     * @author Daniel Figueroa Vidal
+     * @since 2026-08-02
+     */
+    private fun deleteGameForSupportedOs(id: String): Boolean {
+        val path = ROUTE_PCSX2_GAMES ?: return false
+        val pcsxFolder = File(path)
+        var currentId = 0
+        var fileToDelete: File? = null
+
+        if (pcsxFolder.exists() && pcsxFolder.isDirectory) {
+            pcsxFolder.walkTopDown().forEach { file ->
+                if (file.isFile && file.extension.equals("iso", ignoreCase = true)) {
+                    currentId++
+                    if ("pcsx2$currentId" == id) {
+                        fileToDelete = file
+                        return@forEach
+                    }
+                }
+            }
+        }
+
+        return fileToDelete?.let { file ->
+            try {
+                if (file.exists()) {
+                    val deleted = file.delete()
+                    if (deleted) {
+                        println("Deleted game file successfully: ${file.absolutePath}")
+                    } else {
+                        println("Failed to delete game file: ${file.absolutePath}")
+                    }
+                    deleted
+                } else {
+                    println("Game file does not exist: ${file.absolutePath}")
+                    false
+                }
+            } catch (e: Exception) {
+                System.err.println("Error deleting game file: ${e.message}")
+                e.printStackTrace()
+                false
+            }
+        } ?: false
     }
 }
