@@ -9,7 +9,7 @@ Este documento actúa como memoria continua y estado del proyecto para las sesio
 ### Implementado
 - **Estructura del Proyecto:** Módulo multiplataforma `shared` y ejecutable JVM de escritorio `desktopApp`.
 - **Lanzador PCSX2 (Capa de Datos):**
-  - `GameP2FileSystemAdapter`: Escaneo local de ISOs de PS2 en base a un directorio raíz.
+  - `GameP2FileSystemAdapter`: Escaneo local de ISOs de PS2 en base a un directorio raíz y eliminación física de archivos en Windows y Linux.
   - `GamePCSX2Adapter`: Lanzamiento del comando nativo a pantalla completa y sin interfaz gráfica (`-fullscreen` y `-nogui`) en Windows y Linux (mediante Flatpak).
   - `GameP2Repository` e implementación `GameP2RepositoryImpl`: Repositorio con sistema de caché en memoria y mapeo a entidades de dominio.
 - **Entidades de Dominio:** `Game`, `Platforms` (enum) y `GameP2`.
