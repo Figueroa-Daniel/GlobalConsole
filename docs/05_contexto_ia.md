@@ -13,6 +13,9 @@ Este documento actúa como memoria continua y estado del proyecto para las sesio
   - `GamePCSX2Adapter`: Lanzamiento del comando nativo a pantalla completa y sin interfaz gráfica (`-fullscreen` y `-nogui`) en Windows y Linux (mediante Flatpak).
   - `GameP2Repository` e implementación `GameP2RepositoryImpl`: Repositorio con sistema de caché en memoria y mapeo a entidades de dominio.
 - **Entidades de Dominio:** `Game`, `Platforms` (enum) y `GameP2`.
+- **Casos de Uso del Dominio (PCSX2):**
+  - Implementación de `GetGamesP2UseCase`, `ExecuteGameP2UseCase`, `DeleteGameP2UseCase` y `SearchGamesP2UseCase` bajo `domain.usecase`.
+  - Pruebas unitarias completas bajo TDD.
 - **Estructura de Reglas de Agente:** Configuración unificada bajo la carpeta `.agents/AGENTS.md`.
 
 ---
@@ -28,9 +31,6 @@ Este documento actúa como memoria continua y estado del proyecto para las sesio
 3. **Navegación y Foco de UI:**
    - Crear una interfaz gráfica Compose de pantalla completa tipo "10-foot UI".
    - Implementar control de foco nativo de Compose para manejar la rejilla de juegos únicamente con botones del mando (D-Pad, sticks, A/B).
-4. **Desarrollo de Casos de Uso (UseCases) y TDD:**
-   - Crear `GetGamesUseCase` y `ExecuteGameUseCase` bajo la arquitectura Clean Architecture.
-   - Escribir tests unitarios con `kotlin.test` antes de codificar la lógica de producción.
 
 ---
 
@@ -38,3 +38,4 @@ Este documento actúa como memoria continua y estado del proyecto para las sesio
 - Arquitectura Clean: [01_arquitectura.md](01_arquitectura.md).
 - Tecnologías: [02_tecnologias.md](02_tecnologias.md).
 - Módulos del proyecto: [03_modulos.md](03_modulos.md).
+- Errores de Datos: [06_analisis_errores_data.md](06_analisis_errores_data.md).
