@@ -50,7 +50,8 @@ class GameP2RepositoryImpl(
      * @since 2026-08-02
      */
     override suspend fun deleteGameP2(id: String): Boolean {
-        return dataSourceFile.deleteGameInFile(id)
+        val nameOfGameIso: String = getGameP2ById(id)?.name ?: return false
+        return dataSourceFile.deleteGameInFile(nameOfGameIso)
     }
 
     /**
