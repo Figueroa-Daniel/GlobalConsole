@@ -1,6 +1,10 @@
 # ──────────────────────────────────────────
-# Kotlin / JVM
+# Documentos locales de sugerencias (no versionados)
 # ──────────────────────────────────────────
+docs/sugestiones/
+
+# ──────────────────────────────────────────
+
 *.class
 *.jar
 *.war
