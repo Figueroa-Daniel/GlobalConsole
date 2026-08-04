@@ -1,0 +1,57 @@
+# ──────────────────────────────────────────
+# Kotlin / JVM
+# ──────────────────────────────────────────
+*.class
+*.jar
+*.war
+*.ear
+*.kotlin_module
+
+# Directorios de índice del compilador de Kotlin
+.kotlin/
+
+# ──────────────────────────────────────────
+# Gradle
+# ──────────────────────────────────────────
+.gradle/
+**/build/
+!src/**/build/
+gradle-app.setting
+*.iws
+local.properties
+
+# ──────────────────────────────────────────
+# IntelliJ IDEA / Android Studio
+# ──────────────────────────────────────────
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# ──────────────────────────────────────────
+# macOS
+# ──────────────────────────────────────────
+.DS_Store
+
+# ──────────────────────────────────────────
+# Xcode (por si se añade soporte iOS en el futuro)
+# ──────────────────────────────────────────
+xcuserdata/
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcodeproj/project.xcworkspace/
+!*.xcworkspace/contents.xcworkspacedata
+**/xcshareddata/WorkspaceSettings.xcsettings
+
+# ──────────────────────────────────────────
+# Android / NDK
+# ──────────────────────────────────────────
+captures/
+.externalNativeBuild/
+.cxx/
+
+# ──────────────────────────────────────────
+# Node (por si hay scripts de herramientas)
+# ──────────────────────────────────────────
+node_modules/
