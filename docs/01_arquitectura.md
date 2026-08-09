@@ -29,7 +29,8 @@ graph TD
 
 3. **Presentation Layer (Capa de Presentación)**
    - Contiene las pantallas escritas en Compose Multiplatform y los `ViewModels` correspondientes.
-   - Se enfoca de forma exclusiva en la navegación mediante mando/gamepad (10-foot UI), controlando el foco (Focus Management) sin punteros de ratón.
+   - Se enfoca de forma exclusiva en la experiencia "10-foot UI" de consola (televisión a distancia).
+   - **Regla de Interfaz Interactiva:** Todo elemento que sea accionable o clicable (`clickable`) en la aplicación DEBE tener implementado un estado visual `hoverable` y reaccionar a él (invirtiendo colores o destacándose). Esto es debido a que el usuario puede interactuar tanto a través del movimiento tradicional de foco por cruceta (D-Pad) como mediante el ratón virtual movido con el stick derecho del gamepad. Nunca se deben usar componentes clicables ciegos.
 
 ---
 
