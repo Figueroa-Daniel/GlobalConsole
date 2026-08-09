@@ -20,6 +20,18 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
 
+    // LWJGL 3 - Entrada de Mandos (GLFW)
+    implementation(libs.lwjgl)
+    implementation(libs.lwjgl.glfw)
+    val osName = System.getProperty("os.name").lowercase()
+    val lwjglNatives = when {
+        osName.contains("win") -> "natives-windows"
+        osName.contains("mac") -> "natives-macos"
+        else -> "natives-linux"
+    }
+    runtimeOnly("org.lwjgl:lwjgl::${lwjglNatives}")
+    runtimeOnly("org.lwjgl:lwjgl-glfw::${lwjglNatives}")
+
     testImplementation(libs.kotlin.test)
     testImplementation(libs.kotlinx.coroutinesTest)
 }
