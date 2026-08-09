@@ -27,8 +27,14 @@ Este documento actúa como memoria continua y estado del proyecto para las sesio
   - `AppRoutes.kt`: Rutas type-safe con `@Serializable`.
   - `AppNavHost.kt`: Grafo de navegación con `NavHost`.
   - `main.kt`: Inyección manual de dependencias + `rememberNavController()` + `AppNavHost`.
+- **Soporte de Gamepad Nativo (LWJGL 3 - GLFW):**
+  - `GamepadEvent.kt`: Eventos de botones y direcciones de crucetas o sticks analógicos.
+  - `GamepadManager.kt`: Ciclo de consulta activa (polling) a través de coroutines que publica eventos de entrada nativos filtrados.
+  - `GamepadFocusNavigator.kt`: Traductor e inyector de comandos del gamepad al árbol de foco espacial nativo de Compose Desktop.
+  - Integrado de forma reactiva en `HomeScreen.kt` y `GameTile.kt`.
 - **Tests:**
   - `HomeViewModelTest.kt`: 6 pruebas de integración del ViewModel con Fakes.
+  - `GamepadFocusNavigatorTest.kt`: Test de integración y comportamiento espacial de los botones y direcciones del gamepad.
   - `FakeGetGamesP2UseCase.kt` + `FakeGameP2Repository.kt` para aislar la capa de datos.
 - **Estructura de Reglas de Agente:** Configuración bajo la carpeta `.agents/AGENTS.md`.
 
@@ -42,14 +48,11 @@ Este documento actúa como memoria continua y estado del proyecto para las sesio
 2. **Persistencia de Rutas:**
    - La ruta de ISOs (`ROUTE_PCSX2_GAMES` en `SettingsPlatforms.kt`) actualmente se guarda en RAM (variable global `var`).
    - Implementar persistencia real (archivo de configuración en disco o preferencias del sistema).
-3. **Soporte de Gamepad Nativo (Jamepad):**
-   - Añadir la librería Jamepad.
-   - Desarrollar un lector de gamepad que emita eventos o flujos asíncronos (`Flow`) de los botones pulsados.
-4. **Nuevas Pantallas de Navegación:**
+3. **Nuevas Pantallas de Navegación:**
    - Pantalla de detalle de juego (`GameDetailRoute(gameId: String)`).
    - Pantalla de configuración (`SettingsRoute`).
    - Añadir las rutas en `AppRoutes.kt` y los composables en `AppNavHost.kt`.
-5. **Corrección del Bug de Borrado (ver `06_analisis_errores_data.md`):**
+4. **Corrección del Bug de Borrado (ver `06_analisis_errores_data.md`):**
    - En `GameP2RepositoryImpl.deleteGameP2()`, pasar directamente el `id` al adaptador en lugar del nombre.
 
 ---

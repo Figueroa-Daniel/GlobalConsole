@@ -41,6 +41,11 @@ Este documento describe el stack tecnológico utilizado en GlobalConsole y justi
 - **Por qué:** Requerimiento del sistema de navegación type-safe. Los objetos de ruta (`AppRoutes.Home`, `AppRoutes.GameDetail`, etc.) se anotan con `@Serializable` para que la librería de navegación pueda crear y resolver rutas de forma segura en tiempo de compilación.
 - **Impacto:** Elimina el uso de cadenas de texto como rutas de navegación, evitando errores en tiempo de ejecución.
 
+### LWJGL 3 GLFW (versión 3.3.4)
+- **Módulos:** `org.lwjgl:lwjgl` y `org.lwjgl:lwjgl-glfw` (con empaquetado nativo para Windows/Linux/macOS).
+- **Por qué:** Proporciona acceso directo y de bajo nivel a los drivers del sistema operativo para leer gamepads físicos de forma nativa e independiente, utilizando la base de datos oficial de mapeos SDL. Es sumamente ligera, estable y su empaquetado con Gradle no interfiere con el renderizado nativo de Compose Multiplatform.
+- **Impacto:** Permite implementar un bucle de polling en coroutines independientes para leer sticks, D-Pad y botones, abstrayendo el hardware del ciclo de renderizado.
+
 ---
 
 ## 🛠️ 2. Propuestas Pendientes
@@ -48,10 +53,6 @@ Este documento describe el stack tecnológico utilizado en GlobalConsole y justi
 ### Koin
 - **Por qué:** Para resolver la inyección de dependencias (DI) de forma ligera e idiomática en Kotlin Multiplatform.
 - **Estado:** Pendiente de resolver coordenadas en Gradle para añadir la dependencia correcta al build.
-
-### Jamepad
-- **Por qué:** Para la lectura de entrada de gamepad de forma nativa y evitar la emulación de eventos de ratón. Clave para la interfaz 10-foot UI.
-- **Estado:** Pendiente de resolver coordenadas de Gradle.
 
 ---
 

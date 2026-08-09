@@ -40,6 +40,10 @@ El proyecto de GlobalConsole está dividido en dos módulos de Gradle principale
       - `navigation/`: Grafo de navegación de la aplicación.
         - `AppRoutes.kt`: Define los destinos de navegación como objetos `@Serializable` (type-safe).
         - `AppNavHost.kt`: Composable `NavHost` que conecta rutas con pantallas.
+      - `input/`: Gestión de periféricos nativos (gamepads).
+        - `GamepadEvent.kt`: Eventos unificados de botones y direcciones.
+        - `GamepadManager.kt`: Motor de lectura activa (polling) usando LWJGL 3 (GLFW).
+        - `GamepadFocusNavigator.kt`: Traductor de eventos de mando al FocusManager de Compose.
       - `viewModel/`: Carpeta raíz de ViewModels, organizada por pantalla.
         - `home/`: ViewModel y estado UI de la pantalla principal.
           - `HomeViewModel.kt`: ViewModel de la pantalla de biblioteca de juegos.
@@ -61,6 +65,8 @@ Los tests siguen la misma estructura de paquetes que el código de producción p
 ```
 src/test/kotlin/org/example/globalconsole/
   └── presesentation/
+      ├── input/
+      │   └── GamepadFocusNavigatorTest.kt
       └── viewModel/
           └── home/
               ├── HomeViewModelTest.kt
@@ -69,7 +75,7 @@ src/test/kotlin/org/example/globalconsole/
                   └── FakeGameP2Repository.kt
 ```
 
-> **Norma:** Los tests automáticos se limitan a `UseCases` y `ViewModels` (que los orquestan). Los Fakes sustituyen la capa de datos para aislar la lógica de negocio.
+> **Norma:** Los tests automáticos se limitan a `UseCases` y `ViewModels` (que los orquestan) e integraciones de input nativo aisladas. Los Fakes sustituyen la capa de datos para aislar la lógica de negocio.
 
 ---
 
@@ -77,3 +83,4 @@ src/test/kotlin/org/example/globalconsole/
 - Consultar los detalles de Clean Architecture en [01_arquitectura.md](01_arquitectura.md).
 - Ver la tecnología empleada en los módulos en [02_tecnologias.md](02_tecnologias.md).
 - Entender la ejecución del emulador en [04_pcsx2.md](04_pcsx2.md).
+
