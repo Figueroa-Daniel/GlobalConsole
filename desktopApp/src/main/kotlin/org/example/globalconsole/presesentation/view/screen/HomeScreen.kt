@@ -14,10 +14,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.flow.collectLatest
+import org.example.globalconsole.generalDomain.entititys.Game
+import org.example.globalconsole.presesentation.input.GamepadFocusNavigator
+import org.example.globalconsole.presesentation.input.GamepadManager
 import org.example.globalconsole.presesentation.viewModel.home.HomeUiState
 import org.example.globalconsole.presesentation.viewModel.home.HomeViewModel
 import org.example.globalconsole.presesentation.view.components.GameTile
@@ -28,18 +33,52 @@ import org.example.globalconsole.settings.ROUTE_PCSX2_GAMES
 /**
  * Pantalla principal orquestadora de la interfaz de GlobalConsole.
  * Renderiza el estado del [HomeViewModel] utilizando una cuadrícula de estilo Metro.
+ * Soporta de forma nativa la navegación mediante teclado o gamepad usando [GamepadManager].
  *
  * @param viewModel ViewModel principal de la aplicación.
+ * @param gamepadManager Gestor opcional de gamepad físico para control mediante mando.
  *
  * @author Daniel Figueroa Vidal
  * @since 2026-08-09
  */
 @Composable
-fun HomeScreen(viewModel: HomeViewModel) {
+fun HomeScreen(
+    viewModel: HomeViewModel,
+    gamepadManager: GamepadManager? = null
+) {
     val uiState by viewModel.uiState.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
 
     var showPathDialog by remember { mutableStateOf(false) }
+    var focusedGame by remember { mutableStateOf<Game?>(null) }
+
+    val focusManager = LocalFocusManager.current
+
+    // Inicializamos el navegador de foco para gamepad
+    val focusNavigator = remember(focusManager, focusedGame, showPathDialog) {
+        GamepadFocusNavigator(
+            focusManager = focusManager,
+            onConfirmPressed = {
+                if (showPathDialog) {
+                    // Si el diálogo de ruta está abierto, no lanzamos juegos
+                } else {
+                    focusedGame?.let { viewModel.onGameSelected(it) }
+                }
+            },
+            onBackPressed = {
+                if (showPathDialog) {
+                    showPathDialog = false
+                }
+            }
+        )
+    }
+
+    // Escuchar eventos del mando
+    LaunchedEffect(gamepadManager) {
+        gamepadManager?.events?.collectLatest { event ->
+            focusNavigator.onGamepadEvent(event)
+        }
+    }
 
     // Al iniciar, si no hay ruta configurada en RAM, mostramos el diálogo
     LaunchedEffect(Unit) {
@@ -95,7 +134,8 @@ fun HomeScreen(viewModel: HomeViewModel) {
                             items(state.filteredGames) { game ->
                                 GameTile(
                                     game = game,
-                                    onClick = { viewModel.onGameSelected(game) }
+                                    onClick = { viewModel.onGameSelected(game) },
+                                    onFocus = { focusedGame = game }
                                 )
                             }
                         }
@@ -192,3 +232,4 @@ fun HomeScreen(viewModel: HomeViewModel) {
         }
     }
 }
+

@@ -6,8 +6,10 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
@@ -15,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
@@ -27,10 +30,13 @@ import org.example.globalconsole.generalDomain.entititys.Game
 
 /**
  * Representa una tarjeta (Tile) estilo Metro de un juego.
- * Muestra el nombre del juego, plataforma y reacciona al hover con efectos visuales premium (glow y escala).
+ * Muestra el nombre del juego, plataforma y reacciona de forma dinámica con efectos visuales premium
+ * (glow, color e incrementos de escala) tanto al posicionar el ratón encima (hover) como al
+ * enfocarlo mediante teclado o gamepad.
  *
  * @param game Datos del juego a renderizar.
  * @param onClick Acción ejecutada al seleccionar el juego.
+ * @param onFocus Acción ejecutada al recibir el foco del teclado o gamepad.
  *
  * @author Daniel Figueroa Vidal
  * @since 2026-08-09
@@ -38,20 +44,32 @@ import org.example.globalconsole.generalDomain.entititys.Game
 @Composable
 fun GameTile(
     game: Game,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onFocus: () -> Unit = {}
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
+    val isFocused by interactionSource.collectIsFocusedAsState()
+    
+    // Activo si está bajo el cursor o enfocado por gamepad/teclado
+    val isActive = isHovered || isFocused
 
-    // Animación de escala suave en hover
+    // Notificar al componente madre cuando este juego obtenga el foco
+    LaunchedEffect(isFocused) {
+        if (isFocused) {
+            onFocus()
+        }
+    }
+
+    // Animación de escala suave
     val scaleFactor by animateFloatAsState(
-        targetValue = if (isHovered) 1.03f else 1.0f,
+        targetValue = if (isActive) 1.03f else 1.0f,
         animationSpec = tween(durationMillis = 200)
     )
 
-    // Animación de brillo/glow del borde blanco
+    // Animación de brillo/glow del borde blanco Metro
     val borderColor by animateColorAsState(
-        targetValue = if (isHovered) Color.White else Color(0xFF222222),
+        targetValue = if (isActive) Color.White else Color(0xFF222222),
         animationSpec = tween(durationMillis = 200)
     )
 
@@ -62,6 +80,7 @@ fun GameTile(
             .background(Color(0xFF111111))
             .border(1.dp, borderColor, RectangleShape)
             .hoverable(interactionSource)
+            .focusable(interactionSource = interactionSource)
             .clickable(
                 interactionSource = interactionSource,
                 indication = null, // Elimina el ripple nativo para mantener estética minimalista
@@ -116,8 +135,8 @@ fun GameTile(
 
             // Subtexto / Acción interactiva
             Text(
-                text = if (isHovered) "EJECUTAR >" else "PCSX2 SYSTEM",
-                color = if (isHovered) Color.White else Color.Gray,
+                text = if (isActive) "EJECUTAR >" else "PCSX2 SYSTEM",
+                color = if (isActive) Color.White else Color.Gray,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily.Monospace
@@ -125,3 +144,4 @@ fun GameTile(
         }
     }
 }
+

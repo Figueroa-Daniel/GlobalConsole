@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import org.example.globalconsole.presesentation.input.GamepadManager
 import org.example.globalconsole.presesentation.view.screen.HomeScreen
 import org.example.globalconsole.presesentation.viewModel.home.HomeViewModel
 
@@ -18,6 +19,7 @@ import org.example.globalconsole.presesentation.viewModel.home.HomeViewModel
  *
  * @param navController Controlador de navegación que gestiona la pila de destinos.
  * @param viewModel ViewModel de la pantalla principal, inyectado desde [main.kt].
+ * @param gamepadManager Gestor de gamepad físico opcional para navegación por hardware.
  *
  * @author Daniel Figueroa Vidal
  * @since 2026-08-09
@@ -25,14 +27,18 @@ import org.example.globalconsole.presesentation.viewModel.home.HomeViewModel
 @Composable
 fun AppNavHost(
     navController: NavHostController,
-    viewModel: HomeViewModel
+    viewModel: HomeViewModel,
+    gamepadManager: GamepadManager? = null
 ) {
     NavHost(
         navController = navController,
         startDestination = AppRoutes.Home
     ) {
         composable<AppRoutes.Home> {
-            HomeScreen(viewModel = viewModel)
+            HomeScreen(
+                viewModel = viewModel,
+                gamepadManager = gamepadManager
+            )
         }
 
         // TODO: Añadir nuevas pantallas conforme se creen:
@@ -45,3 +51,4 @@ fun AppNavHost(
         // }
     }
 }
+
