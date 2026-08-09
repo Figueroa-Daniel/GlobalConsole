@@ -6,15 +6,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.navigation.compose.rememberNavController
-import org.example.globalconsole.juegosPcsx2.data.database.GameP2FileSystemAdapter
-import org.example.globalconsole.juegosPcsx2.data.database.GamePCSX2Adapter
-import org.example.globalconsole.juegosPcsx2.data.repositoryImpl.GameP2RepositoryImpl
-import org.example.globalconsole.juegosPcsx2.domain.usecase.DeleteGameP2UseCase
-import org.example.globalconsole.juegosPcsx2.domain.usecase.ExecuteGameP2UseCase
-import org.example.globalconsole.juegosPcsx2.domain.usecase.GetGamesP2UseCase
 import org.example.globalconsole.presesentation.input.GamepadManager
 import org.example.globalconsole.presesentation.navigation.AppNavHost
 import org.example.globalconsole.presesentation.viewModel.home.HomeViewModel
+import org.example.globalconsole.di.dataModule
+import org.example.globalconsole.di.domainModule
+import org.example.globalconsole.di.presentationModule
+import org.koin.core.context.startKoin
+import org.koin.java.KoinJavaComponent.getKoin
 
 /**
  * Punto de entrada principal para la aplicación de escritorio GlobalConsole.
@@ -25,20 +24,17 @@ import org.example.globalconsole.presesentation.viewModel.home.HomeViewModel
  * @since 2026-08-09
  */
 fun main() = application {
-    // Inyección manual de dependencias de PCSX2
-    val fileSystemAdapter = GameP2FileSystemAdapter()
-    val pcsx2Adapter = GamePCSX2Adapter()
-    val repository = GameP2RepositoryImpl(fileSystemAdapter, pcsx2Adapter)
+    // Inicialización de Koin
+    startKoin {
+        modules(
+            dataModule,
+            domainModule,
+            presentationModule
+        )
+    }
 
-    val getGamesP2UseCase = GetGamesP2UseCase(repository)
-    val executeGameP2UseCase = ExecuteGameP2UseCase(repository)
-    val deleteGameP2UseCase = DeleteGameP2UseCase(repository)
-
-    val viewModel = HomeViewModel(
-        getGamesP2UseCase = getGamesP2UseCase,
-        executeGameP2UseCase = executeGameP2UseCase,
-        deleteGameP2UseCase = deleteGameP2UseCase
-    )
+    // Resolver dependencias desde el contenedor
+    val viewModel = getKoin().get<HomeViewModel>()
 
     // El gestor es único para la aplicación
     val gamepadManager = remember { GamepadManager() }

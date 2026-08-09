@@ -19,6 +19,9 @@ dependencies {
     implementation(libs.compose.uiToolingPreview)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
+    
+    // Koin - Inyección de dependencias
+    implementation(libs.koin.core)
 
     // LWJGL 3 - Entrada de Mandos (GLFW)
     implementation(libs.lwjgl)
