@@ -17,6 +17,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -44,6 +46,7 @@ import org.example.globalconsole.generalDomain.entititys.Game
 @Composable
 fun GameTile(
     game: Game,
+    focusRequester: FocusRequester = remember { FocusRequester() },
     onClick: () -> Unit,
     onFocus: () -> Unit = {}
 ) {
@@ -80,6 +83,7 @@ fun GameTile(
             .background(Color(0xFF111111))
             .border(1.dp, borderColor, RectangleShape)
             .hoverable(interactionSource)
+            .focusRequester(focusRequester)
             .focusable(interactionSource = interactionSource)
             .clickable(
                 interactionSource = interactionSource,

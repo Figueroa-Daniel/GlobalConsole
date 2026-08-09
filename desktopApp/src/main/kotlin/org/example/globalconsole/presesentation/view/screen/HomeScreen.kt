@@ -6,22 +6,23 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.flow.collectLatest
-import org.example.globalconsole.generalDomain.entititys.Game
-import org.example.globalconsole.presesentation.input.GamepadFocusNavigator
+import org.example.globalconsole.presesentation.input.GamepadEvent
 import org.example.globalconsole.presesentation.input.GamepadManager
 import org.example.globalconsole.presesentation.viewModel.home.HomeUiState
 import org.example.globalconsole.presesentation.viewModel.home.HomeViewModel
@@ -33,7 +34,9 @@ import org.example.globalconsole.settings.ROUTE_PCSX2_GAMES
 /**
  * Pantalla principal orquestadora de la interfaz de GlobalConsole.
  * Renderiza el estado del [HomeViewModel] utilizando una cuadrícula de estilo Metro.
- * Soporta de forma nativa la navegación mediante teclado o gamepad usando [GamepadManager].
+ *
+ * La navegación por gamepad está confinada al grid mediante [FocusRequester] por índice,
+ * evitando que el foco se escape hacia la barra superior u otros elementos de la interfaz.
  *
  * @param viewModel ViewModel principal de la aplicación.
  * @param gamepadManager Gestor opcional de gamepad físico para control mediante mando.
@@ -50,35 +53,13 @@ fun HomeScreen(
     val searchQuery by viewModel.searchQuery.collectAsState()
 
     var showPathDialog by remember { mutableStateOf(false) }
-    var focusedGame by remember { mutableStateOf<Game?>(null) }
 
-    val focusManager = LocalFocusManager.current
+    // Índice del tile actualmente enfocado por el mando
+    var focusedGameIndex by remember { mutableStateOf(0) }
 
-    // Inicializamos el navegador de foco para gamepad
-    val focusNavigator = remember(focusManager, focusedGame, showPathDialog) {
-        GamepadFocusNavigator(
-            focusManager = focusManager,
-            onConfirmPressed = {
-                if (showPathDialog) {
-                    // Si el diálogo de ruta está abierto, no lanzamos juegos
-                } else {
-                    focusedGame?.let { viewModel.onGameSelected(it) }
-                }
-            },
-            onBackPressed = {
-                if (showPathDialog) {
-                    showPathDialog = false
-                }
-            }
-        )
-    }
-
-    // Escuchar eventos del mando
-    LaunchedEffect(gamepadManager) {
-        gamepadManager?.events?.collectLatest { event ->
-            focusNavigator.onGamepadEvent(event)
-        }
-    }
+    // Número de columnas del grid, calculado dinámicamente a partir del ancho del contenedor
+    var gridColumns by remember { mutableStateOf(4) }
+    val density = LocalDensity.current
 
     // Al iniciar, si no hay ruta configurada en RAM, mostramos el diálogo
     LaunchedEffect(Unit) {
@@ -96,7 +77,6 @@ fun HomeScreen(
             .background(Color(0xFF0A0A0A))
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // Barra superior Metro
             MetroTopBar(
                 searchQuery = searchQuery,
                 onSearchChanged = { viewModel.onSearchQueryChanged(it) },
@@ -104,7 +84,6 @@ fun HomeScreen(
                 onSettingsClick = { showPathDialog = true }
             )
 
-            // Contenedor Principal
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -125,18 +104,104 @@ fun HomeScreen(
                     }
 
                     is HomeUiState.Success -> {
-                        LazyVerticalGrid(
-                            columns = GridCells.Adaptive(minSize = 180.dp),
-                            horizontalArrangement = Arrangement.spacedBy(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                            modifier = Modifier.fillMaxSize()
+                        val games = state.filteredGames
+
+                        // Un FocusRequester por cada tile del grid
+                        val focusRequesters = remember(games.size) {
+                            List(games.size) { FocusRequester() }
+                        }
+
+                        // Ajustar índice si la lista se reduce (ej: búsqueda filtra juegos)
+                        LaunchedEffect(games.size) {
+                            if (focusedGameIndex >= games.size && games.isNotEmpty()) {
+                                focusedGameIndex = games.size - 1
+                            }
+                        }
+
+                        // Navegación por gamepad confinada al grid por índice
+                        LaunchedEffect(gamepadManager, games.size, gridColumns) {
+                            gamepadManager?.events?.collectLatest { event ->
+                                when (event) {
+                                    is GamepadEvent.DirectionPressed -> {
+                                        if (games.isEmpty()) return@collectLatest
+
+                                        val current = focusedGameIndex.coerceIn(0, games.size - 1)
+                                        val newIndex = when (event.direction) {
+                                            GamepadEvent.Direction.UP -> {
+                                                val candidate = current - gridColumns
+                                                if (candidate >= 0) candidate else current // No escapa hacia arriba
+                                            }
+                                            GamepadEvent.Direction.DOWN -> {
+                                                val candidate = current + gridColumns
+                                                if (candidate < games.size) candidate else current
+                                            }
+                                            GamepadEvent.Direction.LEFT -> {
+                                                val candidate = current - 1
+                                                // No cruza a la fila anterior
+                                                if (candidate >= 0 && candidate / gridColumns == current / gridColumns) {
+                                                    candidate
+                                                } else current
+                                            }
+                                            GamepadEvent.Direction.RIGHT -> {
+                                                val candidate = current + 1
+                                                // No cruza a la fila siguiente
+                                                if (candidate < games.size && candidate / gridColumns == current / gridColumns) {
+                                                    candidate
+                                                } else current
+                                            }
+                                        }
+
+                                        if (newIndex != current && newIndex < focusRequesters.size) {
+                                            focusedGameIndex = newIndex
+                                            focusRequesters[newIndex].requestFocus()
+                                        }
+                                    }
+
+                                    is GamepadEvent.ButtonPressed -> {
+                                        when (event.button) {
+                                            GamepadEvent.Button.CONFIRM -> {
+                                                if (!showPathDialog && games.isNotEmpty()) {
+                                                    val idx = focusedGameIndex.coerceIn(0, games.size - 1)
+                                                    viewModel.onGameSelected(games[idx])
+                                                }
+                                            }
+                                            GamepadEvent.Button.BACK -> {
+                                                if (showPathDialog) showPathDialog = false
+                                            }
+                                            else -> {}
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Medir el ancho del grid para calcular columnas y confinar la navegación
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .onSizeChanged { size ->
+                                    with(density) {
+                                        val newCols = (size.width / 180.dp.toPx())
+                                            .toInt()
+                                            .coerceAtLeast(1)
+                                        if (newCols != gridColumns) gridColumns = newCols
+                                    }
+                                }
                         ) {
-                            items(state.filteredGames) { game ->
-                                GameTile(
-                                    game = game,
-                                    onClick = { viewModel.onGameSelected(game) },
-                                    onFocus = { focusedGame = game }
-                                )
+                            LazyVerticalGrid(
+                                columns = GridCells.Adaptive(minSize = 180.dp),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(16.dp),
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                itemsIndexed(games) { index, game ->
+                                    GameTile(
+                                        game = game,
+                                        focusRequester = focusRequesters[index],
+                                        onClick = { viewModel.onGameSelected(game) },
+                                        onFocus = { focusedGameIndex = index }
+                                    )
+                                }
                             }
                         }
                     }
@@ -220,7 +285,6 @@ fun HomeScreen(
             }
         }
 
-        // Mostrar diálogo modal para configurar ruta
         if (showPathDialog) {
             SetupPathDialog(
                 onDismiss = { showPathDialog = false },
@@ -232,4 +296,3 @@ fun HomeScreen(
         }
     }
 }
-

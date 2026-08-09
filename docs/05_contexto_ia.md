@@ -29,12 +29,10 @@ Este documento actúa como memoria continua y estado del proyecto para las sesio
   - `main.kt`: Inyección manual de dependencias + `rememberNavController()` + `AppNavHost`.
 - **Soporte de Gamepad Nativo (LWJGL 3 - GLFW):**
   - `GamepadEvent.kt`: Eventos de botones y direcciones de crucetas o sticks analógicos.
-  - `GamepadManager.kt`: Ciclo de consulta activa (polling) a través de coroutines que publica eventos de entrada nativos filtrados.
-  - `GamepadFocusNavigator.kt`: Traductor e inyector de comandos del gamepad al árbol de foco espacial nativo de Compose Desktop.
-  - Integrado de forma reactiva en `HomeScreen.kt` y `GameTile.kt`.
+  - `GamepadManager.kt`: Ciclo de consulta activa (polling) a través de coroutines que publica eventos de entrada nativos filtrados. Incluye control de ratón nativo (stick derecho).
+  - Integrado de forma reactiva en `HomeScreen.kt` y `GameTile.kt`. La navegación es por índices para confinar el foco a la cuadrícula.
 - **Tests:**
   - `HomeViewModelTest.kt`: 6 pruebas de integración del ViewModel con Fakes.
-  - `GamepadFocusNavigatorTest.kt`: Test de integración y comportamiento espacial de los botones y direcciones del gamepad.
   - `FakeGetGamesP2UseCase.kt` + `FakeGameP2Repository.kt` para aislar la capa de datos.
 - **Estructura de Reglas de Agente:** Configuración bajo la carpeta `.agents/AGENTS.md`.
 
