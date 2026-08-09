@@ -28,6 +28,19 @@ Este documento describe el stack tecnológico utilizado en GlobalConsole y justi
 ### kotlin.test
 - **Por qué:** Librería de pruebas unificada y estándar de JetBrains para Kotlin Multiplatform. Permite escribir aserciones y tests en el código común (`commonTest`) que se compilan y ejecutan de manera idéntica en JVM/escritorio y otros destinos, sin atarse a APIs dependientes del sistema operativo como JUnit plano en código común.
 
+### kotlinx-coroutines-test (versión 1.11.0)
+- **Por qué:** Extensión de Kotlinx Coroutines para entornos de prueba. Proporciona `StandardTestDispatcher`, `runTest` y `advanceUntilIdle`, permitiendo el testeo de código asíncrono con coroutines de forma determinista y sin bloqueos en los `UseCases` y `ViewModels`.
+- **Impacto:** Garantiza la reproducibilidad total de los tests y el cumplimiento de la metodología TDD.
+
+### Navigation Compose KMP (versión 2.9.2)
+- **Librería:** `org.jetbrains.androidx.navigation:navigation-compose`
+- **Por qué:** Fork oficial de JetBrains de la librería Jetpack Navigation, adaptado para Compose Multiplatform. Permite definir un grafo de navegación con rutas type-safe mediante `@Serializable` (Kotlin Serialization), gestionando la pila de pantallas (`back stack`) de forma idiomática en KMP. Compatible con escritorio (JVM), Android e iOS sin bifurcación de código.
+- **Impacto:** Centraliza toda la lógica de navegación en `AppNavHost` y `AppRoutes`, eliminando el acoplamiento directo entre pantallas y facilitando la extensión futura del número de destinos.
+
+### Kotlinx Serialization (versión 1.7.3)
+- **Por qué:** Requerimiento del sistema de navegación type-safe. Los objetos de ruta (`AppRoutes.Home`, `AppRoutes.GameDetail`, etc.) se anotan con `@Serializable` para que la librería de navegación pueda crear y resolver rutas de forma segura en tiempo de compilación.
+- **Impacto:** Elimina el uso de cadenas de texto como rutas de navegación, evitando errores en tiempo de ejecución.
+
 ---
 
 ## 🛠️ 2. Propuestas Pendientes

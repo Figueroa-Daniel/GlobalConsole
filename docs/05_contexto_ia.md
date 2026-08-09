@@ -15,8 +15,22 @@ Este documento actúa como memoria continua y estado del proyecto para las sesio
 - **Entidades de Dominio:** `Game`, `Platforms` (enum) y `GameP2`.
 - **Casos de Uso del Dominio (PCSX2):**
   - Implementación de `GetGamesP2UseCase`, `ExecuteGameP2UseCase`, `DeleteGameP2UseCase` y `SearchGamesP2UseCase` bajo `domain.usecase`.
+  - `GetGamesP2UseCase` declarada `open` para permitir Fakes en tests.
   - Pruebas unitarias completas bajo TDD.
-- **Estructura de Reglas de Agente:** Configuración unificada bajo la carpeta `.agents/AGENTS.md`.
+- **Capa de Presentación (Completa):**
+  - `HomeScreen.kt`: Pantalla principal de biblioteca de juegos con estética Metro Noir (oscura, blanco/negro, brillos).
+  - `MetroTopBar.kt`: Barra superior con logo y búsqueda integrada.
+  - `GameTile.kt`: Tarjeta de juego para la cuadrícula.
+  - `SetupPathDialog.kt`: Diálogo para configurar la ruta de la carpeta de ISOs (ruta guardada en RAM mientras dure la sesión).
+  - `HomeViewModel.kt` con estados `Loading`, `Success`, `Empty`, `Error` en `HomeUiState`.
+- **Navegación (Compose Multiplatform Navigation):**
+  - `AppRoutes.kt`: Rutas type-safe con `@Serializable`.
+  - `AppNavHost.kt`: Grafo de navegación con `NavHost`.
+  - `main.kt`: Inyección manual de dependencias + `rememberNavController()` + `AppNavHost`.
+- **Tests:**
+  - `HomeViewModelTest.kt`: 6 pruebas de integración del ViewModel con Fakes.
+  - `FakeGetGamesP2UseCase.kt` + `FakeGameP2Repository.kt` para aislar la capa de datos.
+- **Estructura de Reglas de Agente:** Configuración bajo la carpeta `.agents/AGENTS.md`.
 
 ---
 
@@ -25,12 +39,18 @@ Este documento actúa como memoria continua y estado del proyecto para las sesio
 1. **Inyección de Dependencias (Koin):**
    - Configurar Koin Multiplatform en `shared` y `desktopApp`.
    - Registrar `GameP2FileSystemAdapter`, `GamePCSX2Adapter` y `GameP2RepositoryImpl`.
-2. **Soporte de Gamepad Nativo (Jamepad):**
+2. **Persistencia de Rutas:**
+   - La ruta de ISOs (`ROUTE_PCSX2_GAMES` en `SettingsPlatforms.kt`) actualmente se guarda en RAM (variable global `var`).
+   - Implementar persistencia real (archivo de configuración en disco o preferencias del sistema).
+3. **Soporte de Gamepad Nativo (Jamepad):**
    - Añadir la librería Jamepad.
    - Desarrollar un lector de gamepad que emita eventos o flujos asíncronos (`Flow`) de los botones pulsados.
-3. **Navegación y Foco de UI:**
-   - Crear una interfaz gráfica Compose de pantalla completa tipo "10-foot UI".
-   - Implementar control de foco nativo de Compose para manejar la rejilla de juegos únicamente con botones del mando (D-Pad, sticks, A/B).
+4. **Nuevas Pantallas de Navegación:**
+   - Pantalla de detalle de juego (`GameDetailRoute(gameId: String)`).
+   - Pantalla de configuración (`SettingsRoute`).
+   - Añadir las rutas en `AppRoutes.kt` y los composables en `AppNavHost.kt`.
+5. **Corrección del Bug de Borrado (ver `06_analisis_errores_data.md`):**
+   - En `GameP2RepositoryImpl.deleteGameP2()`, pasar directamente el `id` al adaptador en lugar del nombre.
 
 ---
 
