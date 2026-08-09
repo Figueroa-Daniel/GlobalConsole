@@ -57,10 +57,19 @@ fun GameTile(
     // Activo si está bajo el cursor o enfocado por gamepad/teclado
     val isActive = isHovered || isFocused
 
-    // Notificar al componente madre cuando este juego obtenga el foco
+    // Notificar al componente madre cuando este juego obtenga el foco por cualquier medio
     LaunchedEffect(isFocused) {
         if (isFocused) {
             onFocus()
+        }
+    }
+
+    // Sincronizar el ratón con el sistema de foco: al pasar por encima, solicitamos foco
+    // de forma que si el usuario presiona "Confirmar" con el mando, lance este juego.
+    LaunchedEffect(isHovered) {
+        if (isHovered && !isFocused) {
+            onFocus()
+            focusRequester.requestFocus()
         }
     }
 
