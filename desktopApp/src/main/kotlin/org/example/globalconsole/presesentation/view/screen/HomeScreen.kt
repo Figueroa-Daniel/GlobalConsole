@@ -71,6 +71,11 @@ fun HomeScreen(
         }
     }
 
+    // Suspender la lectura del gamepad si un juego está corriendo
+    LaunchedEffect(uiState) {
+        gamepadManager?.isSuspended = (uiState is HomeUiState.GameRunning)
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -273,6 +278,51 @@ fun HomeScreen(
                             ) {
                                 Text(
                                     text = "REINTENTAR",
+                                    color = Color.White,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = FontFamily.SansSerif
+                                )
+                            }
+                        }
+                    }
+
+                    is HomeUiState.GameRunning -> {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "JUEGO EN EJECUCIÓN",
+                                color = Color(0xFF00FFCC),
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Monospace
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "Ejecutando: ${state.game.name}",
+                                color = Color.White,
+                                fontSize = 14.sp,
+                                fontFamily = FontFamily.SansSerif
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "El entorno está suspendido. Se reactivará al cerrar el emulador.",
+                                color = Color.Gray,
+                                fontSize = 12.sp,
+                                fontFamily = FontFamily.SansSerif
+                            )
+                            Spacer(modifier = Modifier.height(32.dp))
+                            Box(
+                                modifier = Modifier
+                                    .border(1.dp, Color.White, RectangleShape)
+                                    .clickable { viewModel.loadGames() }
+                                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                            ) {
+                                Text(
+                                    text = "FORZAR REACTIVACIÓN",
                                     color = Color.White,
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,

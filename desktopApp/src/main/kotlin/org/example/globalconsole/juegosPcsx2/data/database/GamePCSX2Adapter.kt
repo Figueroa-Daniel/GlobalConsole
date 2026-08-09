@@ -62,8 +62,11 @@ class GamePCSX2Adapter {
         return try {
             val processBuilder = ProcessBuilder(command)
             processBuilder.inheritIO() // This will make the launched process use the same stdin/stdout/stderr as the current process
-            processBuilder.start()
+            val process = processBuilder.start()
             println("Launched PCSX2 with command: ${command.joinToString(" ")}")
+            
+            // Bloquea el hilo actual hasta que el emulador se cierre
+            process.waitFor()
             true
         } catch (e: Exception) {
             System.err.println("Error launching PCSX2 on Windows: ${e.message}")
@@ -98,8 +101,11 @@ class GamePCSX2Adapter {
         return try {
             val processBuilder = ProcessBuilder(command)
             processBuilder.inheritIO() // This will make the launched process use the same stdin/stdout/stderr as the current process
-            processBuilder.start()
+            val process = processBuilder.start()
             println("Launched PCSX2 with command: ${command.joinToString(" ")}")
+            
+            // Bloquea el hilo actual hasta que el emulador se cierre
+            process.waitFor()
             true
         } catch (e: Exception) {
             System.err.println("Error launching PCSX2: ${e.message}")

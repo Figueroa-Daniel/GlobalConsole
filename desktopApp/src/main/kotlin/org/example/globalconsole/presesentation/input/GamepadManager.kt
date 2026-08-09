@@ -51,6 +51,16 @@ class GamepadManager {
     private val awtRobot: Robot? = try { Robot() } catch (e: Exception) { null }
 
     /**
+     * Referencia a la ventana de la aplicación para confinar el movimiento del ratón.
+     */
+    var appWindow: java.awt.Window? = null
+
+    /**
+     * Indica si la lectura del mando está suspendida (ej. durante la ejecución de un juego).
+     */
+    var isSuspended: Boolean = false
+
+    /**
      * Inicializa GLFW en segundo plano y comienza a escuchar eventos de gamepad.
      *
      * @param scope [CoroutineScope] en el que se ejecutará el bucle de polling.
@@ -77,7 +87,7 @@ class GamepadManager {
                         detectActiveGamepad()
                     }
 
-                    if (selectedGamepadId != -1) {
+                    if (selectedGamepadId != -1 && !isSuspended) {
                         if (glfwGetGamepadState(selectedGamepadId, state)) {
                             processGamepadState(state)
                         }
@@ -207,13 +217,15 @@ class GamepadManager {
         val scaledY = rightY * abs(rightY) * speed
 
         val loc = MouseInfo.getPointerInfo()?.location ?: return
-        val screenBounds = GraphicsEnvironment
+        
+        // Usar los límites de la ventana si está disponible, sino los del monitor principal
+        val bounds = appWindow?.bounds ?: GraphicsEnvironment
             .getLocalGraphicsEnvironment()
             .defaultScreenDevice.defaultConfiguration.bounds
 
         awtRobot?.mouseMove(
-            (loc.x + scaledX).toInt().coerceIn(screenBounds.x, screenBounds.x + screenBounds.width - 1),
-            (loc.y + scaledY).toInt().coerceIn(screenBounds.y, screenBounds.y + screenBounds.height - 1)
+            (loc.x + scaledX).toInt().coerceIn(bounds.x, bounds.x + bounds.width - 1),
+            (loc.y + scaledY).toInt().coerceIn(bounds.y, bounds.y + bounds.height - 1)
         )
     }
 

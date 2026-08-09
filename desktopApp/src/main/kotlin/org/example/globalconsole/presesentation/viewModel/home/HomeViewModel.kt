@@ -131,13 +131,20 @@ class HomeViewModel(
      */
     fun onGameSelected(game: Game) {
         viewModelScope.launch {
-            when (game.platform) {
-                Platforms.PCSX2 -> executeGameP2UseCase?.invoke(game.id)
+            // Entramos en estado de suspensión
+            _uiState.value = HomeUiState.GameRunning(game)
+            
+            val success = when (game.platform) {
+                Platforms.PCSX2 -> executeGameP2UseCase?.invoke(game.id) ?: false
                 Platforms.LOCALGAME -> {
                     // TODO: Implementar lanzamiento de juego local nativo
+                    false
                 }
                 // TODO: Añadir aquí el caso de Heroic Games Launcher cuando esté disponible
             }
+            
+            // Al terminar la ejecución, volvemos a cargar la vista
+            loadGames()
         }
     }
 

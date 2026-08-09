@@ -1,5 +1,7 @@
 package org.example.globalconsole.juegosPcsx2.domain.usecase
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.example.globalconsole.juegosPcsx2.data.repository.GameP2Repository
 
 /**
@@ -21,7 +23,7 @@ class ExecuteGameP2UseCase(
      * @author Daniel Figueroa Vidal
      * @since 2026-08-03
      */
-    suspend operator fun invoke(id: String): Boolean {
-        return repository.executeGameP2(id)
+    suspend operator fun invoke(id: String): Boolean = withContext(Dispatchers.IO) {
+        return@withContext repository.executeGameP2(id)
     }
 }

@@ -49,6 +49,9 @@ fun main() = application {
     ) {
         val coroutineScope = rememberCoroutineScope()
         
+        // Inyectar referencia a la ventana AWT para confinar el ratón virtual
+        gamepadManager.appWindow = this.window
+        
         // Ciclo de vida del gamepad acoplado a la ventana
         DisposableEffect(Unit) {
             gamepadManager.start(coroutineScope)

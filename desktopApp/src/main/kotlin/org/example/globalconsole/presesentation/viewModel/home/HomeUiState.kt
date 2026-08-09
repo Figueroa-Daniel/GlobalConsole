@@ -51,4 +51,14 @@ sealed interface HomeUiState {
      * @since 2026-08-05
      */
     data class Error(val message: String) : HomeUiState
+
+    /**
+     * Estado en ejecución: un juego se está ejecutando y la interfaz entra en suspensión.
+     *
+     * @property game Juego actualmente en ejecución.
+     *
+     * @author Daniel Figueroa Vidal
+     * @since 2026-08-09
+     */
+    data class GameRunning(val game: Game) : HomeUiState
 }
