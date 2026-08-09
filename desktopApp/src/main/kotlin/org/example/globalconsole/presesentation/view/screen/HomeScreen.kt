@@ -28,6 +28,7 @@ import org.example.globalconsole.presesentation.viewModel.home.HomeUiState
 import org.example.globalconsole.presesentation.viewModel.home.HomeViewModel
 import org.example.globalconsole.presesentation.view.components.GameTile
 import org.example.globalconsole.presesentation.view.components.MetroTopBar
+import org.example.globalconsole.presesentation.view.components.MetroButton
 import org.example.globalconsole.presesentation.view.components.SetupPathDialog
 import org.example.globalconsole.settings.ROUTE_PCSX2_GAMES
 
@@ -232,20 +233,11 @@ fun HomeScreen(
                                 fontFamily = FontFamily.SansSerif
                             )
                             Spacer(modifier = Modifier.height(16.dp))
-                            Box(
-                                modifier = Modifier
-                                    .background(Color.White)
-                                    .clickable { showPathDialog = true }
-                                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                            ) {
-                                Text(
-                                    text = "CAMBIAR RUTA",
-                                    color = Color.Black,
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    fontFamily = FontFamily.SansSerif
-                                )
-                            }
+                            MetroButton(
+                                text = "CAMBIAR RUTA",
+                                onClick = { showPathDialog = true },
+                                isPrimary = true
+                            )
                         }
                     }
 
@@ -270,20 +262,10 @@ fun HomeScreen(
                                 fontFamily = FontFamily.SansSerif
                             )
                             Spacer(modifier = Modifier.height(16.dp))
-                            Box(
-                                modifier = Modifier
-                                    .border(1.dp, Color.White, RectangleShape)
-                                    .clickable { viewModel.loadGames() }
-                                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                            ) {
-                                Text(
-                                    text = "REINTENTAR",
-                                    color = Color.White,
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    fontFamily = FontFamily.SansSerif
-                                )
-                            }
+                            MetroButton(
+                                text = "REINTENTAR",
+                                onClick = { viewModel.loadGames() }
+                            )
                         }
                     }
 
@@ -315,20 +297,10 @@ fun HomeScreen(
                                 fontFamily = FontFamily.SansSerif
                             )
                             Spacer(modifier = Modifier.height(32.dp))
-                            Box(
-                                modifier = Modifier
-                                    .border(1.dp, Color.White, RectangleShape)
-                                    .clickable { viewModel.loadGames() }
-                                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                            ) {
-                                Text(
-                                    text = "FORZAR REACTIVACIÓN",
-                                    color = Color.White,
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    fontFamily = FontFamily.SansSerif
-                                )
-                            }
+                            MetroButton(
+                                text = "FORZAR REACTIVACIÓN",
+                                onClick = { viewModel.loadGames() }
+                            )
                         }
                     }
                 }

@@ -18,6 +18,9 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
+import androidx.compose.foundation.hoverable
 
 /**
  * Barra de navegación superior estilo Metro.
@@ -101,41 +104,17 @@ fun MetroTopBar(
         Spacer(modifier = Modifier.width(16.dp))
 
         // Botón Actualizar
-        Box(
-            modifier = Modifier
-                .background(Color(0xFF161616))
-                .border(1.dp, Color(0xFF444444), RectangleShape)
-                .clickable { onRefreshClick() }
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "RECARGAR",
-                color = Color.White,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = FontFamily.SansSerif
-            )
-        }
+        MetroButton(
+            text = "RECARGAR",
+            onClick = onRefreshClick
+        )
 
         Spacer(modifier = Modifier.width(8.dp))
 
         // Botón Ajustes
-        Box(
-            modifier = Modifier
-                .background(Color(0xFF161616))
-                .border(1.dp, Color(0xFF444444), RectangleShape)
-                .clickable { onSettingsClick() }
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "AJUSTES RUTA",
-                color = Color.White,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = FontFamily.SansSerif
-            )
-        }
+        MetroButton(
+            text = "AJUSTES RUTA",
+            onClick = onSettingsClick
+        )
     }
 }

@@ -100,7 +100,9 @@ fun SetupPathDialog(
 
                     Spacer(modifier = Modifier.width(8.dp))
 
-                    Button(
+                    MetroButton(
+                        text = "EXAMINAR",
+                        isPrimary = true,
                         onClick = {
                             val chooser = JFileChooser().apply {
                                 fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
@@ -110,16 +112,8 @@ fun SetupPathDialog(
                             if (result == JFileChooser.APPROVE_OPTION) {
                                 pathText = chooser.selectedFile.absolutePath
                             }
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.White,
-                            contentColor = Color.Black
-                        ),
-                        shape = RectangleShape,
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
-                    ) {
-                        Text("EXAMINAR", fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                    }
+                        }
+                    )
                 }
 
                 if (errorMessage.isNotEmpty()) {
@@ -137,16 +131,16 @@ fun SetupPathDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    TextButton(
-                        onClick = onDismiss,
-                        shape = RectangleShape
-                    ) {
-                        Text("CANCELAR", color = Color.Gray, fontWeight = FontWeight.Bold)
-                    }
+                    MetroButton(
+                        text = "CANCELAR",
+                        onClick = onDismiss
+                    )
 
                     Spacer(modifier = Modifier.width(16.dp))
 
-                    Button(
+                    MetroButton(
+                        text = "GUARDAR",
+                        isPrimary = true,
                         onClick = {
                             if (pathText.isBlank()) {
                                 errorMessage = "La ruta no puede estar vacía"
@@ -159,15 +153,8 @@ fun SetupPathDialog(
                                     errorMessage = "La ruta no es un directorio válido"
                                 }
                             }
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.White,
-                            contentColor = Color.Black
-                        ),
-                        shape = RectangleShape
-                    ) {
-                        Text("GUARDAR", fontWeight = FontWeight.Bold)
-                    }
+                        }
+                    )
                 }
             }
         }
