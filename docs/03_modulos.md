@@ -46,7 +46,7 @@ El proyecto de GlobalConsole está dividido en dos módulos de Gradle principale
       - `viewModel/`: Carpeta raíz de ViewModels, organizada por pantalla.
         - `home/`: ViewModel y estado UI de la pantalla principal.
           - `HomeViewModel.kt`: ViewModel de la pantalla de biblioteca de juegos.
-          - `HomeUiState.kt`: Estado de UI (`Loading`, `Success`, `Empty`, `Error`).
+          - `HomeUiState.kt`: Estado de UI (`Loading`, `Success`, `Empty`, `Error`, `GameRunning`).
       - `view/`: Vistas y componentes UI de Compose.
         - `screen/`: Pantallas completas de la aplicación.
           - `HomeScreen.kt`: Pantalla principal de la biblioteca de juegos de PS2.

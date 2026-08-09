@@ -22,15 +22,15 @@ Este documento actúa como memoria continua y estado del proyecto para las sesio
   - `MetroTopBar.kt`: Barra superior con logo y búsqueda integrada.
   - `GameTile.kt`: Tarjeta de juego para la cuadrícula.
   - `SetupPathDialog.kt`: Diálogo para configurar la ruta de la carpeta de ISOs (ruta guardada en RAM mientras dure la sesión).
-  - `HomeViewModel.kt` con estados `Loading`, `Success`, `Empty`, `Error` en `HomeUiState`.
+  - `HomeViewModel.kt` con estados `Loading`, `Success`, `Empty`, `Error` y `GameRunning` en `HomeUiState`.
 - **Navegación (Compose Multiplatform Navigation):**
   - `AppRoutes.kt`: Rutas type-safe con `@Serializable`.
   - `AppNavHost.kt`: Grafo de navegación con `NavHost`.
   - `main.kt`: Inyección manual de dependencias + `rememberNavController()` + `AppNavHost`.
 - **Soporte de Gamepad Nativo (LWJGL 3 - GLFW):**
   - `GamepadEvent.kt`: Eventos de botones y direcciones de crucetas o sticks analógicos.
-  - `GamepadManager.kt`: Ciclo de consulta activa (polling) a través de coroutines que publica eventos de entrada nativos filtrados. Incluye control de ratón nativo (stick derecho).
-  - Integrado de forma reactiva en `HomeScreen.kt` y `GameTile.kt`. La navegación es por índices para confinar el foco a la cuadrícula.
+  - `GamepadManager.kt`: Ciclo de consulta activa (polling) a través de coroutines que publica eventos de entrada nativos filtrados. Incluye control de ratón nativo (stick derecho) confinado estrictamente a los límites de la ventana de Compose, e implementa un sistema de suspensión reactiva.
+  - Integrado de forma reactiva en `HomeScreen.kt` y `GameTile.kt`. La navegación es por índices para confinar el foco a la cuadrícula, y el movimiento libre del ratón (hover) se sincroniza en tiempo real con el foco interno de Compose.
 - **Tests:**
   - `HomeViewModelTest.kt`: 6 pruebas de integración del ViewModel con Fakes.
   - `FakeGetGamesP2UseCase.kt` + `FakeGameP2Repository.kt` para aislar la capa de datos.

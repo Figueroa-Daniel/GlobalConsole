@@ -39,7 +39,7 @@ El adaptador `GamePCSX2Adapter` detecta automáticamente el sistema operativo y 
 ## 🗄️ 3. Adaptadores de Datos de PCSX2
 
 - **GameP2FileSystemAdapter:** Escanea recursivamente el directorio de juegos configurado buscando archivos con extensión `.iso` de PS2 y generando dinámicamente los objetos `GameP2Dto`.
-- **GamePCSX2Adapter:** Responsable del lanzamiento asíncrono y control de excepciones del proceso de ejecución nativo.
+- **GamePCSX2Adapter:** Responsable del lanzamiento y control de excepciones del proceso de ejecución nativo. Bloquea el hilo de ejecución mediante `waitFor()` hasta que el emulador se cierra.
 
 ---
 
