@@ -1,4 +1,4 @@
-package org.example.globalconsole.generalDomain.presentation.fakes
+package org.example.globalconsole.presesentation.viewModel.home.fakes
 
 import org.example.globalconsole.juegosPcsx2.domain.entitys.GameP2
 import org.example.globalconsole.juegosPcsx2.domain.usecase.GetGamesP2UseCase
@@ -10,7 +10,7 @@ import org.example.globalconsole.juegosPcsx2.domain.usecase.GetGamesP2UseCase
  * @author Daniel Figueroa Vidal
  * @since 2026-08-05
  */
-class FakeGetGamesP2UseCase : GetGamesP2UseCase(repository = TODO("not needed in fake")) {
+class FakeGetGamesP2UseCase : GetGamesP2UseCase(repository = FakeGameP2Repository()) {
 
     /** Lista de juegos que devolverá la invocación del UseCase. */
     var games: MutableList<GameP2> = mutableListOf()

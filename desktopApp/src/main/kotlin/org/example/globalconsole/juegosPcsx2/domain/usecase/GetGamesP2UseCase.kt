@@ -11,7 +11,7 @@ import org.example.globalconsole.juegosPcsx2.domain.entitys.GameP2
  * @author Daniel Figueroa Vidal
  * @since 2026-08-03
  */
-class GetGamesP2UseCase(
+open class GetGamesP2UseCase(
     private val repository: GameP2Repository
 ) {
     /**
@@ -21,7 +21,7 @@ class GetGamesP2UseCase(
      * @author Daniel Figueroa Vidal
      * @since 2026-08-03
      */
-    suspend operator fun invoke(): List<GameP2> {
+    open suspend operator fun invoke(): List<GameP2> {
         return repository.getAllGamesP2()
     }
 }

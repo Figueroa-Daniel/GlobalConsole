@@ -1,4 +1,4 @@
-package org.example.globalconsole.generalDomain.presentation.viewmodel
+package org.example.globalconsole.presesentation.viewModel.home
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -8,8 +8,8 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.example.globalconsole.generalDomain.entititys.Platforms
-import org.example.globalconsole.generalDomain.presentation.fakes.FakeGetGamesP2UseCase
-import org.example.globalconsole.generalDomain.presentation.state.HomeUiState
+import org.example.globalconsole.presesentation.viewModel.home.fakes.FakeGetGamesP2UseCase
+import org.example.globalconsole.presesentation.viewModel.home.HomeUiState
 import org.example.globalconsole.juegosPcsx2.domain.entitys.GameP2
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
