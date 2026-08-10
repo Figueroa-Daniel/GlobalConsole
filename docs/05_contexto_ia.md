@@ -34,24 +34,29 @@ Este documento actúa como memoria continua y estado del proyecto para las sesio
 - **Tests:**
   - `HomeViewModelTest.kt`: 6 pruebas de integración del ViewModel con Fakes.
   - `FakeGetGamesP2UseCase.kt` + `FakeGameP2Repository.kt` para aislar la capa de datos.
-- **Estructura de Reglas de Agente:** Configuración bajo la carpeta `.agents/AGENTS.md`.
+  - `SaveEmulatorPathUseCaseTest.kt` + `GetEmulatorPathUseCaseTest.kt`: 7 pruebas TDD para los UseCases de configuración.
+  - `FakeSettingsRepository.kt` para aislar tests del disco.
+- **Persistencia de Configuración (Completa):**
+  - `SettingsRepository.kt`: Interfaz de dominio para gestión de rutas.
+  - `SettingsRepositoryImpl.kt`: Persistencia en `config.json` con `kotlinx.serialization`.
+  - `SaveEmulatorPathUseCase.kt` y `GetEmulatorPathUseCase.kt`: Casos de uso con validación.
+  - `SettingsUiState.kt` y `SettingsViewModel.kt`: Estado y lógica del diálogo de configuración.
+  - `SetupPathDialog.kt`: Actualizado con navegación por gamepad (D-Pad entre botones) y conexión al SettingsViewModel.
+  - `GameP2FileSystemAdapter.kt`: Refactorizado para obtener la ruta desde `GetEmulatorPathUseCase` (no más variables globales).
+  - Módulos Koin actualizados: `DataModule`, `DomainModule`, `PresentationModule`.
+- **Estructura de Reglas de Agente:** Migrado a `.agents/rules/` con punto de entrada `AGENTS.md`.
 
 ---
 
 ## 📋 2. Próximos Pasos (Pendientes)
 
-1. **Inyección de Dependencias (Koin):**
-   - Configurar Koin Multiplatform en `shared` y `desktopApp`.
-   - Registrar `GameP2FileSystemAdapter`, `GamePCSX2Adapter` y `GameP2RepositoryImpl`.
-2. **Persistencia de Rutas:**
-   - La ruta de ISOs (`ROUTE_PCSX2_GAMES` en `SettingsPlatforms.kt`) actualmente se guarda en RAM (variable global `var`).
-   - Implementar persistencia real (archivo de configuración en disco o preferencias del sistema).
-3. **Nuevas Pantallas de Navegación:**
+1. **Corrección del Bug de Borrado (ver `06_analisis_errores_data.md`):**
+   - En `GameP2RepositoryImpl.deleteGameP2()`, pasar directamente el `id` al adaptador en lugar del nombre.
+2. **Nuevas Pantallas de Navegación:**
    - Pantalla de detalle de juego (`GameDetailRoute(gameId: String)`).
    - Pantalla de configuración (`SettingsRoute`).
    - Añadir las rutas en `AppRoutes.kt` y los composables en `AppNavHost.kt`.
-4. **Corrección del Bug de Borrado (ver `06_analisis_errores_data.md`):**
-   - En `GameP2RepositoryImpl.deleteGameP2()`, pasar directamente el `id` al adaptador en lugar del nombre.
+3. **Eliminar `SettingsPlatforms.kt`:** La variable global ya está deprecada. Eliminar cuando se confirme que ningún otro módulo la referencia.
 
 ---
 
@@ -60,3 +65,4 @@ Este documento actúa como memoria continua y estado del proyecto para las sesio
 - Tecnologías: [02_tecnologias.md](02_tecnologias.md).
 - Módulos del proyecto: [03_modulos.md](03_modulos.md).
 - Errores de Datos: [06_analisis_errores_data.md](06_analisis_errores_data.md).
+- Persistencia de Configuración: [08_persistencia_configuracion.md](08_persistencia_configuracion.md).
