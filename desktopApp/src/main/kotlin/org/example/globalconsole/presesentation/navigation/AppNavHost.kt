@@ -7,6 +7,7 @@ import androidx.navigation.compose.composable
 import org.example.globalconsole.presesentation.input.GamepadManager
 import org.example.globalconsole.presesentation.view.screen.HomeScreen
 import org.example.globalconsole.presesentation.viewModel.home.HomeViewModel
+import org.example.globalconsole.presesentation.viewModel.settings.SettingsViewModel
 
 /**
  * Grafo de navegación principal de la aplicación GlobalConsole.
@@ -19,6 +20,7 @@ import org.example.globalconsole.presesentation.viewModel.home.HomeViewModel
  *
  * @param navController Controlador de navegación que gestiona la pila de destinos.
  * @param viewModel ViewModel de la pantalla principal, inyectado desde [main.kt].
+ * @param settingsViewModel ViewModel de configuración de rutas.
  * @param gamepadManager Gestor de gamepad físico opcional para navegación por hardware.
  *
  * @author Daniel Figueroa Vidal
@@ -28,6 +30,7 @@ import org.example.globalconsole.presesentation.viewModel.home.HomeViewModel
 fun AppNavHost(
     navController: NavHostController,
     viewModel: HomeViewModel,
+    settingsViewModel: SettingsViewModel,
     gamepadManager: GamepadManager? = null
 ) {
     NavHost(
@@ -37,6 +40,7 @@ fun AppNavHost(
         composable<AppRoutes.Home> {
             HomeScreen(
                 viewModel = viewModel,
+                settingsViewModel = settingsViewModel,
                 gamepadManager = gamepadManager
             )
         }

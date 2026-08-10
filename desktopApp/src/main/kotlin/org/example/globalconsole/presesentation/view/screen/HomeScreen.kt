@@ -30,7 +30,7 @@ import org.example.globalconsole.presesentation.view.components.GameTile
 import org.example.globalconsole.presesentation.view.components.MetroTopBar
 import org.example.globalconsole.presesentation.view.components.MetroButton
 import org.example.globalconsole.presesentation.view.components.SetupPathDialog
-import org.example.globalconsole.settings.ROUTE_PCSX2_GAMES
+import org.example.globalconsole.presesentation.viewModel.settings.SettingsViewModel
 
 /**
  * Pantalla principal orquestadora de la interfaz de GlobalConsole.
@@ -40,6 +40,7 @@ import org.example.globalconsole.settings.ROUTE_PCSX2_GAMES
  * evitando que el foco se escape hacia la barra superior u otros elementos de la interfaz.
  *
  * @param viewModel ViewModel principal de la aplicación.
+ * @param settingsViewModel ViewModel de configuración de rutas.
  * @param gamepadManager Gestor opcional de gamepad físico para control mediante mando.
  *
  * @author Daniel Figueroa Vidal
@@ -48,6 +49,7 @@ import org.example.globalconsole.settings.ROUTE_PCSX2_GAMES
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
+    settingsViewModel: SettingsViewModel,
     gamepadManager: GamepadManager? = null
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -62,10 +64,15 @@ fun HomeScreen(
     var gridColumns by remember { mutableStateOf(4) }
     val density = LocalDensity.current
 
-    // Al iniciar, si no hay ruta configurada en RAM, mostramos el diálogo
+    // Al iniciar, cargamos la ruta desde el repositorio de configuración.
+    // Si no hay ruta configurada, mostramos el diálogo de configuración.
     LaunchedEffect(Unit) {
-        val currentPath = ROUTE_PCSX2_GAMES
-        if (currentPath.isNullOrBlank()) {
+        settingsViewModel.loadCurrentPath("pcsx2")
+        val hasPath = settingsViewModel.uiState.value.let { state ->
+            state is org.example.globalconsole.presesentation.viewModel.settings.SettingsUiState.Success &&
+                !state.path.isNullOrBlank()
+        }
+        if (!hasPath) {
             showPathDialog = true
         } else {
             viewModel.loadGames()
@@ -307,8 +314,10 @@ fun HomeScreen(
             }
         }
 
-        if (showPathDialog) {
+        if (showPathDialog && gamepadManager != null) {
             SetupPathDialog(
+                settingsViewModel = settingsViewModel,
+                gamepadManager = gamepadManager,
                 onDismiss = { showPathDialog = false },
                 onConfirm = {
                     showPathDialog = false
