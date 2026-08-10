@@ -32,7 +32,8 @@ import androidx.compose.ui.unit.sp
  * @param onClick Acción a ejecutar.
  * @param modifier Modificador extra opcional (por defecto usa borde blanco normal y fondo negro/gris oscuro).
  * @param isPrimary Si es true, el botón se ve blanco por defecto (destacado). Si es false, se ve con borde blanco y fondo oscuro.
- * 
+ * @param isFocused Si es true, fuerza el estado visual de foco (útil para navegación por gamepad en diálogos).
+ *
  * @author Daniel Figueroa Vidal
  * @since 2026-08-09
  */
@@ -41,12 +42,13 @@ fun MetroButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    isPrimary: Boolean = false
+    isPrimary: Boolean = false,
+    isFocused: Boolean = false
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
-    val isFocused by interactionSource.collectIsFocusedAsState()
-    val isActive = isHovered || isFocused
+    val isComposeFocused by interactionSource.collectIsFocusedAsState()
+    val isActive = isHovered || isComposeFocused || isFocused
     
     val bgColor = if (isActive) {
         if (isPrimary) Color(0xFFCCCCCC) else Color.White
