@@ -1,20 +1,26 @@
 package org.example.globalconsole.juegosPcsx2.data.database
 
 import org.example.globalconsole.juegosPcsx2.data.dto.GameP2Dto
-import org.example.globalconsole.settings.ROUTE_PCSX2_GAMES
+import org.example.globalconsole.settings.domain.usecase.GetEmulatorPathUseCase
 import java.io.File
 
 /**
  * Adaptador de acceso al sistema de archivos encargado de escanear directorios y gestionar
  * los archivos físicos de juegos (ISOs) para el emulador PCSX2.
+ * La ruta del directorio se obtiene dinámicamente desde [GetEmulatorPathUseCase],
+ * eliminando la dependencia de variables globales y haciendo el adaptador escalable.
+ *
+ * @param getEmulatorPathUseCase UseCase para obtener la ruta configurada del emulador.
  *
  * @author Daniel Figueroa Vidal
  * @since 2026-08-02
  */
-class GameP2FileSystemAdapter {
+class GameP2FileSystemAdapter(
+    private val getEmulatorPathUseCase: GetEmulatorPathUseCase
+) {
 
     /**
-     * Realiza un escaneo recursivo en el directorio configurado en [ROUTE_PCSX2_GAMES]
+     * Realiza un escaneo recursivo en el directorio configurado para PCSX2
      * y retorna una lista de todos los archivos con extensión `.iso`.
      *
      * @return Lista de objetos [GameP2Dto] con la información de los archivos de juego encontrados.
@@ -23,7 +29,8 @@ class GameP2FileSystemAdapter {
      * @since 2026-08-02
      */
     suspend fun getGamesInSystemFile(): List<GameP2Dto> {
-        val pcsxFolder = File(ROUTE_PCSX2_GAMES)
+        val routePcsx2Games = getEmulatorPathUseCase("pcsx2") ?: return emptyList()
+        val pcsxFolder = File(routePcsx2Games)
         val listGames = mutableListOf<GameP2Dto>()
         var id: Int = 0
 
@@ -47,8 +54,9 @@ class GameP2FileSystemAdapter {
      * @author Daniel Figueroa Vidal
      * @since 2026-08-02
      */
-    fun deleteGameInFile(id: String): Boolean {
-        if (ROUTE_PCSX2_GAMES.isNullOrBlank()) {
+    suspend fun deleteGameInFile(id: String): Boolean {
+        val routePcsx2Games = getEmulatorPathUseCase("pcsx2")
+        if (routePcsx2Games.isNullOrBlank()) {
             println("Games directory route is null or blank.")
             return false
         }
@@ -56,7 +64,7 @@ class GameP2FileSystemAdapter {
         val os = System.getProperty("os.name").lowercase()
 
         return if (os.contains("linux") || os.contains("windows")) {
-            deleteGameForSupportedOs(id)
+            deleteGameForSupportedOs(id, routePcsx2Games)
         } else {
             println("Unsupported operating system for file deletion: $os")
             false
@@ -67,13 +75,13 @@ class GameP2FileSystemAdapter {
      * Auxiliar para buscar y eliminar el juego en sistemas operativos soportados.
      *
      * @param id Identificador único del juego.
+     * @param path Ruta del directorio de ISOs.
      * @return True si el archivo fue encontrado y eliminado con éxito.
      *
      * @author Daniel Figueroa Vidal
      * @since 2026-08-02
      */
-    private fun deleteGameForSupportedOs(id: String): Boolean {
-        val path = ROUTE_PCSX2_GAMES ?: return false
+    private fun deleteGameForSupportedOs(id: String, path: String): Boolean {
         val pcsxFolder = File(path)
         var currentId = 0
         var fileToDelete: File? = null
