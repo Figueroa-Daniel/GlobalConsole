@@ -8,7 +8,7 @@ package org.example.globalconsole.HeroicGames.data.database
  * @author Daniel Figueroa Vidal
  * @since 2026-08-12
  */
-class LauncherHeroicGamesAdapter {
+open class LauncherHeroicGamesAdapter {
 
     /**
      * Punto de entrada público. Detecta el sistema operativo actual y delega la ejecución
@@ -18,7 +18,7 @@ class LauncherHeroicGamesAdapter {
      * @author Daniel Figueroa Vidal
      * @since 2026-08-12
      */
-    fun executeLauncher(): Boolean {
+    open fun executeLauncher(): Boolean {
         val os = System.getProperty("os.name").lowercase()
 
         return when {
