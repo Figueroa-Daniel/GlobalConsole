@@ -1,5 +1,6 @@
 package org.example.globalconsole.di
 
+import org.example.globalconsole.HeroicGames.data.database.LauncherHeroicGamesAdapter
 import org.example.globalconsole.juegosPcsx2.data.database.GameP2FileSystemAdapter
 import org.example.globalconsole.juegosPcsx2.data.database.GamePCSX2Adapter
 import org.example.globalconsole.juegosPcsx2.data.repository.GameP2Repository
@@ -18,4 +19,7 @@ val dataModule = module {
 
     // El repositorio de juegos se expone por su interfaz, inyectando los adaptadores requeridos
     single<GameP2Repository> { GameP2RepositoryImpl(get(), get()) }
+
+    // Adaptador de Heroic Games Launcher para detección y ejecución nativa del proceso
+    single { LauncherHeroicGamesAdapter() }
 }
