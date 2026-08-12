@@ -8,34 +8,34 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.example.globalconsole.generalDomain.entititys.Game
 import org.example.globalconsole.generalDomain.entititys.Platforms
+import org.example.globalconsole.HeroicGames.domain.entitys.HGLauncher
 import org.example.globalconsole.HeroicGames.domain.usecase.ExecuteHGLauncherUseCase
 import org.example.globalconsole.juegosPcsx2.domain.usecase.DeleteGameP2UseCase
 import org.example.globalconsole.juegosPcsx2.domain.usecase.ExecuteGameP2UseCase
 import org.example.globalconsole.juegosPcsx2.domain.usecase.GetGamesP2UseCase
+import org.example.globalconsole.settings.domain.usecase.IsHeroicEnabledUseCase
 
 /**
  * ViewModel centralizado de la pantalla principal de GlobalConsole.
- * Agrega juegos de todas las fuentes disponibles (actualmente solo PCSX2),
- * gestiona la búsqueda en local y delega las acciones de lanzamiento y eliminación
- * al UseCase correspondiente según la plataforma del juego.
+ * Agrega juegos de todas las fuentes disponibles y gestiona la búsqueda en local.
+ * Delega las acciones de lanzamiento y eliminación al UseCase correspondiente
+ * según la plataforma del juego seleccionado.
  *
  * @param getGamesP2UseCase UseCase para obtener la lista de juegos de PCSX2.
  * @param executeGameP2UseCase UseCase para lanzar un juego de PCSX2 en el emulador.
  * @param deleteGameP2UseCase UseCase para eliminar un juego de PCSX2 del sistema.
  * @param executeHGLauncherUseCase UseCase para lanzar Heroic Games Launcher.
+ * @param isHeroicEnabledUseCase UseCase para consultar si Heroic debe aparecer en la biblioteca.
  *
  * @author Daniel Figueroa Vidal
  * @since 2026-08-05
  */
 class HomeViewModel(
     private val getGamesP2UseCase: GetGamesP2UseCase,
-    private val executeGameP2UseCase: ExecuteGameP2UseCase? = null,     // Opcional hasta que se conecte la UI
-    private val deleteGameP2UseCase: DeleteGameP2UseCase? = null,       // Opcional hasta que se conecte la UI
-    private val executeHGLauncherUseCase: ExecuteHGLauncherUseCase? = null // Opcional hasta que se conecte la UI
-    // TODO: Añadir aquí futura fuente de juegos de Heroic Games Launcher
-    // private val getHeroicGamesUseCase: GetHeroicGamesUseCase,
-    // TODO: Añadir aquí futura fuente de juegos nativos de PC
-    // private val getLocalGamesUseCase: GetLocalGamesUseCase,
+    private val executeGameP2UseCase: ExecuteGameP2UseCase? = null,
+    private val deleteGameP2UseCase: DeleteGameP2UseCase? = null,
+    private val executeHGLauncherUseCase: ExecuteHGLauncherUseCase? = null,
+    private val isHeroicEnabledUseCase: IsHeroicEnabledUseCase? = null
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
@@ -73,15 +73,23 @@ class HomeViewModel(
             _uiState.value = HomeUiState.Loading
             try {
                 val pcsx2Games = getGamesP2UseCase()
-                // TODO: Añadir aquí la carga de juegos de Heroic Games Launcher
-                // val heroicGames = getHeroicGamesUseCase()
-                // TODO: Añadir aquí la carga de juegos nativos de PC
-                // val localGames = getLocalGamesUseCase()
 
-                val allGames: List<Game> = (pcsx2Games)
-                    // TODO: Combinar con otras fuentes cuando estén disponibles:
-                    // + heroicGames + localGames
-                    .sortedBy { it.name }
+                // Si Heroic Games Launcher está habilitado por el usuario, se añade
+                // como una entrada fija en la biblioteca, igual que cualquier otro juego.
+                val heroicEntry: List<Game> = if (isHeroicEnabledUseCase?.invoke() == true) {
+                    listOf(
+                        HGLauncher(
+                            id = "heroic-launcher",
+                            name = "Heroic Games",
+                            urlGameExecute = "",
+                            platform = Platforms.HEORIC_GAMES_LAUCHER
+                        )
+                    )
+                } else {
+                    emptyList()
+                }
+
+                val allGames: List<Game> = (pcsx2Games + heroicEntry).sortedBy { it.name }
 
                 _uiState.value = if (allGames.isEmpty()) {
                     HomeUiState.Empty
