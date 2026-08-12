@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.example.globalconsole.generalDomain.entititys.Game
 import org.example.globalconsole.generalDomain.entititys.Platforms
+import org.example.globalconsole.HeroicGames.domain.usecase.ExecuteHGLauncherUseCase
 import org.example.globalconsole.juegosPcsx2.domain.usecase.DeleteGameP2UseCase
 import org.example.globalconsole.juegosPcsx2.domain.usecase.ExecuteGameP2UseCase
 import org.example.globalconsole.juegosPcsx2.domain.usecase.GetGamesP2UseCase
@@ -21,14 +22,16 @@ import org.example.globalconsole.juegosPcsx2.domain.usecase.GetGamesP2UseCase
  * @param getGamesP2UseCase UseCase para obtener la lista de juegos de PCSX2.
  * @param executeGameP2UseCase UseCase para lanzar un juego de PCSX2 en el emulador.
  * @param deleteGameP2UseCase UseCase para eliminar un juego de PCSX2 del sistema.
+ * @param executeHGLauncherUseCase UseCase para lanzar Heroic Games Launcher.
  *
  * @author Daniel Figueroa Vidal
  * @since 2026-08-05
  */
 class HomeViewModel(
     private val getGamesP2UseCase: GetGamesP2UseCase,
-    private val executeGameP2UseCase: ExecuteGameP2UseCase? = null,  // Opcional hasta que se conecte la UI
-    private val deleteGameP2UseCase: DeleteGameP2UseCase? = null      // Opcional hasta que se conecte la UI
+    private val executeGameP2UseCase: ExecuteGameP2UseCase? = null,     // Opcional hasta que se conecte la UI
+    private val deleteGameP2UseCase: DeleteGameP2UseCase? = null,       // Opcional hasta que se conecte la UI
+    private val executeHGLauncherUseCase: ExecuteHGLauncherUseCase? = null // Opcional hasta que se conecte la UI
     // TODO: Añadir aquí futura fuente de juegos de Heroic Games Launcher
     // private val getHeroicGamesUseCase: GetHeroicGamesUseCase,
     // TODO: Añadir aquí futura fuente de juegos nativos de PC
@@ -140,7 +143,7 @@ class HomeViewModel(
                     // TODO: Implementar lanzamiento de juego local nativo
                     false
                 }
-                // TODO: Añadir aquí el caso de Heroic Games Launcher cuando esté disponible
+                Platforms.HEORIC_GAMES_LAUCHER -> executeHGLauncherUseCase?.invoke() ?: false
             }
             
             // Al terminar la ejecución, volvemos a cargar la vista
@@ -167,7 +170,9 @@ class HomeViewModel(
                 Platforms.LOCALGAME -> {
                     // TODO: Implementar eliminación de juego local nativo
                 }
-                // TODO: Añadir aquí el caso de Heroic Games Launcher cuando esté disponible
+                Platforms.HEORIC_GAMES_LAUCHER -> {
+                    // TODO: Implementar eliminación de entrada de Heroic Games
+                }
             }
         }
     }
