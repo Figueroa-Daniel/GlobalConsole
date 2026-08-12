@@ -25,19 +25,27 @@ import javax.swing.JFileChooser
 
 /**
  * Identificadores de los botones navegables del diálogo para la gestión del foco de gamepad.
+ * Incluye los tres botones de acción y el toggle de Heroic Games Launcher.
  *
  * @author Daniel Figueroa Vidal
  * @since 2026-08-10
  */
-private enum class DialogButton { BROWSE, CANCEL, CONFIRM }
+private enum class DialogButton { HEROIC_TOGGLE, BROWSE, CANCEL, CONFIRM }
 
 /**
- * Diálogo modal para la selección y persistencia de la ruta de juegos de PCSX2.
- * Diseñado con estética oscura Metro (bordes blancos nítidos, sin esquinas redondeadas, negro puro).
- * 100% navegable por gamepad: D-Pad para moverse entre botones, botón A para confirmar.
+ * Diálogo modal de configuración de la aplicación GlobalConsole.
+ * Permite configurar la ruta de juegos de PCSX2 y habilitar/deshabilitar
+ * Heroic Games Launcher en la biblioteca principal.
  *
- * @param settingsViewModel ViewModel que gestiona la carga y guardado de la ruta.
- * @param gamepadManager Gestor de eventos de gamepad para la navegación entre botones.
+ * Diseñado con estética oscura Metro (bordes blancos nítidos, sin esquinas redondeadas, negro puro).
+ * 100% navegable por gamepad: D-Pad para moverse entre elementos, botón A para confirmar.
+ *
+ * Navegación por D-Pad:
+ * - UP/DOWN: alterna entre la sección del toggle de Heroic y la sección de ruta de PCSX2.
+ * - LEFT/RIGHT: navega entre los botones EXAMINAR → CANCELAR → GUARDAR dentro de la sección PCSX2.
+ *
+ * @param settingsViewModel ViewModel que gestiona la carga y guardado de rutas y preferencias.
+ * @param gamepadManager Gestor de eventos de gamepad para la navegación entre elementos.
  * @param onDismiss Llamado al cerrar el diálogo.
  * @param onConfirm Llamado tras guardar con éxito la nueva ruta.
  *
@@ -53,14 +61,16 @@ fun SetupPathDialog(
     onConfirm: () -> Unit
 ) {
     val uiState by settingsViewModel.uiState.collectAsState()
+    val heroicEnabled by settingsViewModel.heroicEnabled.collectAsState()
 
     var pathText by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
     var focusedButton by remember { mutableStateOf(DialogButton.CONFIRM) }
 
-    // Precarga la ruta guardada al abrirse el diálogo
+    // Precarga la ruta guardada y la preferencia de Heroic al abrirse el diálogo
     LaunchedEffect(Unit) {
         settingsViewModel.loadCurrentPath("pcsx2")
+        settingsViewModel.loadHeroicEnabled()
     }
 
     // Sincroniza el campo de texto cuando el estado carga la ruta persistida
@@ -73,28 +83,47 @@ fun SetupPathDialog(
         }
     }
 
-    // Navegación por gamepad entre los botones del diálogo
+    // Navegación por gamepad entre todos los elementos del diálogo
     LaunchedEffect(gamepadManager) {
         gamepadManager.events.collect { event ->
             when (event) {
                 is GamepadEvent.DirectionPressed -> {
                     focusedButton = when (event.direction) {
+                        // UP/DOWN: alternar entre sección Heroic y sección PCSX2
+                        GamepadEvent.Direction.UP -> {
+                            if (focusedButton != DialogButton.HEROIC_TOGGLE) {
+                                DialogButton.HEROIC_TOGGLE
+                            } else {
+                                focusedButton
+                            }
+                        }
+                        GamepadEvent.Direction.DOWN -> {
+                            if (focusedButton == DialogButton.HEROIC_TOGGLE) {
+                                DialogButton.CONFIRM
+                            } else {
+                                focusedButton
+                            }
+                        }
+                        // LEFT/RIGHT: navegar entre botones de acción de PCSX2
                         GamepadEvent.Direction.LEFT -> when (focusedButton) {
                             DialogButton.CONFIRM -> DialogButton.CANCEL
                             DialogButton.CANCEL -> DialogButton.BROWSE
-                            DialogButton.BROWSE -> DialogButton.BROWSE
+                            else -> focusedButton
                         }
                         GamepadEvent.Direction.RIGHT -> when (focusedButton) {
                             DialogButton.BROWSE -> DialogButton.CANCEL
                             DialogButton.CANCEL -> DialogButton.CONFIRM
-                            DialogButton.CONFIRM -> DialogButton.CONFIRM
+                            else -> focusedButton
                         }
-                        else -> focusedButton
                     }
                 }
                 is GamepadEvent.ButtonPressed -> {
                     if (event.button == GamepadEvent.Button.CONFIRM) {
                         when (focusedButton) {
+                            // Alternar el toggle de Heroic con el botón de confirmación
+                            DialogButton.HEROIC_TOGGLE -> {
+                                settingsViewModel.setHeroicEnabled(!heroicEnabled)
+                            }
                             DialogButton.BROWSE -> {
                                 val chooser = JFileChooser().apply {
                                     fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
@@ -147,21 +176,92 @@ fun SetupPathDialog(
                     .border(2.dp, Color.White, RectangleShape)
                     .padding(24.dp)
             ) {
+                // ── Cabecera ──────────────────────────────────────────────────
                 Text(
-                    text = "CONFIGURACIÓN DE RUTA DE JUEGOS",
+                    text = "CONFIGURACIÓN",
                     color = Color.White,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = FontFamily.SansSerif,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier.padding(bottom = 20.dp)
+                )
+
+                // ── Sección: Heroic Games Launcher ────────────────────────────
+                val heroicSectionBorderColor = if (focusedButton == DialogButton.HEROIC_TOGGLE) {
+                    Color(0xFF00FFCC)
+                } else {
+                    Color(0xFF333333)
+                }
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(1.dp, heroicSectionBorderColor, RectangleShape)
+                        .padding(12.dp)
+                ) {
+                    Text(
+                        text = "HEROIC GAMES LAUNCHER",
+                        color = Color.White,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.SansSerif
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = "Mostrar Heroic Games Launcher en la biblioteca principal.",
+                        color = Color(0xFFAAAAAA),
+                        fontSize = 12.sp,
+                        fontFamily = FontFamily.SansSerif
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = if (heroicEnabled) "HABILITADO" else "DESHABILITADO",
+                            color = if (heroicEnabled) Color(0xFF00FFCC) else Color.Gray,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace
+                        )
+
+                        Switch(
+                            checked = heroicEnabled,
+                            onCheckedChange = { settingsViewModel.setHeroicEnabled(it) },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = Color.Black,
+                                checkedTrackColor = Color(0xFF00FFCC),
+                                uncheckedThumbColor = Color.Gray,
+                                uncheckedTrackColor = Color(0xFF333333)
+                            )
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // ── Sección: Ruta de juegos PCSX2 ─────────────────────────────
+                Text(
+                    text = "RUTA DE JUEGOS (PCSX2)",
+                    color = Color.White,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.SansSerif,
+                    modifier = Modifier.padding(bottom = 4.dp)
                 )
 
                 Text(
                     text = "Selecciona la carpeta donde guardas tus juegos / ISOs para PCSX2.",
                     color = Color(0xFFCCCCCC),
-                    fontSize = 13.sp,
+                    fontSize = 12.sp,
                     fontFamily = FontFamily.SansSerif,
-                    modifier = Modifier.padding(bottom = 20.dp)
+                    modifier = Modifier.padding(bottom = 12.dp)
                 )
 
                 Row(
@@ -221,6 +321,7 @@ fun SetupPathDialog(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
+                // ── Botones de acción ─────────────────────────────────────────
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
