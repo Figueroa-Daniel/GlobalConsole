@@ -7,22 +7,28 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.example.globalconsole.settings.domain.usecase.GetEmulatorPathUseCase
+import org.example.globalconsole.settings.domain.usecase.IsHeroicEnabledUseCase
 import org.example.globalconsole.settings.domain.usecase.SaveEmulatorPathUseCase
+import org.example.globalconsole.settings.domain.usecase.SaveHeroicEnabledUseCase
 
 /**
- * ViewModel del diálogo de configuración de rutas de emuladores.
- * Gestiona la carga de la ruta persistida y el guardado de nuevas rutas,
- * exponiendo el estado de la operación mediante [SettingsUiState].
+ * ViewModel del diálogo de configuración de rutas de emuladores y preferencias de launchers.
+ * Gestiona la carga de la ruta persistida, el guardado de nuevas rutas y el toggle de
+ * visibilidad de Heroic Games Launcher en la biblioteca principal.
  *
  * @param saveEmulatorPathUseCase UseCase para persistir la ruta configurada.
  * @param getEmulatorPathUseCase UseCase para recuperar la ruta persistida.
+ * @param isHeroicEnabledUseCase UseCase para consultar si Heroic debe mostrarse en la biblioteca.
+ * @param saveHeroicEnabledUseCase UseCase para persistir la preferencia de Heroic.
  *
  * @author Daniel Figueroa Vidal
  * @since 2026-08-10
  */
 class SettingsViewModel(
     private val saveEmulatorPathUseCase: SaveEmulatorPathUseCase,
-    private val getEmulatorPathUseCase: GetEmulatorPathUseCase
+    private val getEmulatorPathUseCase: GetEmulatorPathUseCase,
+    private val isHeroicEnabledUseCase: IsHeroicEnabledUseCase,
+    private val saveHeroicEnabledUseCase: SaveHeroicEnabledUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<SettingsUiState>(SettingsUiState.Idle)
@@ -34,6 +40,17 @@ class SettingsViewModel(
      * @since 2026-08-10
      */
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
+
+    private val _heroicEnabled = MutableStateFlow(false)
+
+    /**
+     * Estado observable del toggle de Heroic Games Launcher.
+     * True indica que el launcher debe mostrarse en la biblioteca principal.
+     *
+     * @author Daniel Figueroa Vidal
+     * @since 2026-08-12
+     */
+    val heroicEnabled: StateFlow<Boolean> = _heroicEnabled.asStateFlow()
 
     /**
      * Carga la ruta actualmente configurada para el emulador indicado.
@@ -66,7 +83,7 @@ class SettingsViewModel(
      * @param emulatorId Identificador del emulador (ej. "pcsx2").
      * @param path Ruta absoluta del directorio de juegos.
      * @return Unit
-     * @throws Exception cualquier error de escritura o validación se captura y refleja en [SettingsUiState.Error].
+     * @throws Exception cualquier error de escritura se captura y refleja en [SettingsUiState.Error].
      * @author Daniel Figueroa Vidal
      * @since 2026-08-10
      */
@@ -81,6 +98,36 @@ class SettingsViewModel(
             } catch (e: Exception) {
                 _uiState.value = SettingsUiState.Error(e.message ?: "Error al guardar la ruta")
             }
+        }
+    }
+
+    /**
+     * Carga la preferencia de visibilidad de Heroic Games Launcher desde la persistencia
+     * y actualiza el estado observable [heroicEnabled].
+     *
+     * @return Unit
+     * @author Daniel Figueroa Vidal
+     * @since 2026-08-12
+     */
+    fun loadHeroicEnabled() {
+        viewModelScope.launch {
+            _heroicEnabled.value = isHeroicEnabledUseCase()
+        }
+    }
+
+    /**
+     * Persiste la nueva preferencia de visibilidad de Heroic Games Launcher
+     * y actualiza inmediatamente el estado observable [heroicEnabled].
+     *
+     * @param enabled True para mostrar Heroic en la biblioteca, false para ocultarlo.
+     * @return Unit
+     * @author Daniel Figueroa Vidal
+     * @since 2026-08-12
+     */
+    fun setHeroicEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            saveHeroicEnabledUseCase(enabled)
+            _heroicEnabled.value = enabled
         }
     }
 }
