@@ -174,4 +174,67 @@ al sistema operativo.
 - Estructura modular del proyecto: [03_modulos.md](03_modulos.md)
 - Patrón de ejecución de proceso nativo (referencia PCSX2): [04_pcsx2.md](04_pcsx2.md)
 - Guía de inyección de dependencias Koin: [07_inyeccion_dependencias_koin.md](07_inyeccion_dependencias_koin.md)
+- Persistencia de configuración del proyecto: [08_persistencia_configuracion.md](08_persistencia_configuracion.md)
 - Contexto general de la IA para coherencia entre sesiones: [05_contexto_ia.md](05_contexto_ia.md)
+
+---
+
+## 8. Integración en la UI — Biblioteca y Configuración
+
+### 8.1 Toggle de visibilidad en Configuración
+
+El diálogo `SetupPathDialog` incluye una sección dedicada a Heroic Games Launcher con un
+`Switch` de Material3. La preferencia se persiste en `config.json` bajo la clave
+`"heroic_enabled"` dentro del mapa existente, sin modificar la estructura de datos.
+
+**Navegación por gamepad:**
+
+| D-Pad | Acción |
+|---|---|
+| UP | Mueve el foco a la sección del toggle de Heroic |
+| DOWN | Mueve el foco a la sección de botones de PCSX2 |
+| LEFT/RIGHT | Navega entre EXAMINAR → CANCELAR → GUARDAR |
+| A (CONFIRM) | Activa el toggle si está enfocado; confirma la acción del botón activo |
+
+El borde de la sección de Heroic se resalta en cian (`0xFF00FFCC`) cuando está enfocada,
+manteniendo la coherencia visual con el sistema de diseño Metro del proyecto.
+
+### 8.2 Entrada en la Biblioteca Principal
+
+Cuando el toggle está activo, `HomeViewModel.loadGames()` construye una entrada fija
+de tipo `HGLauncher` que se mezcla con los juegos de PCSX2 en la lista:
+
+```kotlin
+HGLauncher(
+    id = "heroic-launcher",
+    name = "Heroic Games",
+    urlGameExecute = "",
+    platform = Platforms.HEORIC_GAMES_LAUCHER
+)
+```
+
+El tile aparece en la cuadrícula exactamente igual que cualquier otro juego, sin
+ninguna diferenciación visual por el momento (decisión de diseño futura).
+Al seleccionarlo, `onGameSelected()` detecta `Platforms.HEORIC_GAMES_LAUCHER` y
+delega a `ExecuteHGLauncherUseCase`.
+
+### 8.3 Use Cases de Preferencia
+
+| Clase | Responsabilidad |
+|---|---|
+| `IsHeroicEnabledUseCase` | Consulta si Heroic debe mostrarse (lee `config.json`). |
+| `SaveHeroicEnabledUseCase` | Persiste la preferencia del toggle (escribe `config.json`). |
+
+Ambos use cases son `open` para permitir `Fakes` en tests sin frameworks de mocking.
+
+### 8.4 Tests Unitarios del Toggle
+
+**`HeroicToggleUseCasesTest`** — 4 tests con `FakeSettingsRepository` en memoria:
+
+| Test | Valida |
+|---|---|
+| `isHeroicEnabled_whenNothingSaved_returnsFalse` | Estado inicial = false por defecto. |
+| `isHeroicEnabled_afterSavingTrue_returnsTrue` | Ciclo save(true) → read = true. |
+| `isHeroicEnabled_afterSavingFalse_returnsFalse` | Ciclo save(true) → save(false) → read = false. |
+| `saveHeroicEnabled_whenInvoked_callsRepository` | Verifica que se delega al repositorio. |
+
