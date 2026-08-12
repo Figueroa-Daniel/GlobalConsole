@@ -1,5 +1,6 @@
 package org.example.globalconsole.di
 
+import org.example.globalconsole.HeroicGames.domain.usecase.ExecuteHGLauncherUseCase
 import org.example.globalconsole.juegosPcsx2.domain.usecase.DeleteGameP2UseCase
 import org.example.globalconsole.juegosPcsx2.domain.usecase.ExecuteGameP2UseCase
 import org.example.globalconsole.juegosPcsx2.domain.usecase.GetGamesP2UseCase
@@ -16,4 +17,7 @@ val domainModule = module {
     factory { GetGamesP2UseCase(repository = get()) }
     factory { ExecuteGameP2UseCase(repository = get()) }
     factory { DeleteGameP2UseCase(repository = get()) }
+
+    // UseCase de Heroic Games Launcher
+    factory { ExecuteHGLauncherUseCase(adapter = get()) }
 }
