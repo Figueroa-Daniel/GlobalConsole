@@ -4,7 +4,7 @@ import org.example.globalconsole.settings.domain.SettingsRepository
 
 /**
  * Implementación falsa de [SettingsRepository] para uso exclusivo en tests.
- * Almacena las rutas en memoria, sin acceso a disco.
+ * Almacena las rutas y preferencias en memoria, sin acceso a disco.
  *
  * @author Daniel Figueroa Vidal
  * @since 2026-08-10
@@ -12,6 +12,7 @@ import org.example.globalconsole.settings.domain.SettingsRepository
 class FakeSettingsRepository : SettingsRepository {
 
     private val paths = mutableMapOf<String, String>()
+    private var heroicEnabled = false
 
     /**
      * Guarda la ruta asociada al emulador indicado en memoria.
@@ -34,4 +35,24 @@ class FakeSettingsRepository : SettingsRepository {
      * @since 2026-08-10
      */
     override suspend fun getEmulatorPath(emulatorId: String): String? = paths[emulatorId]
+
+    /**
+     * Persiste la preferencia de visibilidad de Heroic Games Launcher en memoria.
+     *
+     * @param enabled True si debe mostrarse en la biblioteca.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-08-12
+     */
+    override suspend fun saveHeroicEnabled(enabled: Boolean) {
+        heroicEnabled = enabled
+    }
+
+    /**
+     * Retorna la preferencia de visibilidad de Heroic Games Launcher almacenada en memoria.
+     *
+     * @return True si Heroic está habilitado, false en caso contrario.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-08-12
+     */
+    override suspend fun isHeroicEnabled(): Boolean = heroicEnabled
 }
