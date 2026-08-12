@@ -19,7 +19,8 @@ class SettingsRepositoryImpl : SettingsRepository {
     /**
      * Modelo de datos serializable que representa el contenido del archivo config.json.
      *
-     * @param emulatorPaths Mapa de identificadores de emulador a rutas de directorio.
+     * @param emulatorPaths Mapa de identificadores de emulador a rutas de directorio
+     *        y preferencias booleanas codificadas como strings (ej. "heroic_enabled").
      * @author Daniel Figueroa Vidal
      * @since 2026-08-10
      */
@@ -62,6 +63,33 @@ class SettingsRepositoryImpl : SettingsRepository {
      */
     override suspend fun getEmulatorPath(emulatorId: String): String? =
         readConfig().emulatorPaths[emulatorId]
+
+    /**
+     * Persiste la preferencia de Heroic Games Launcher en el mapa de configuración
+     * usando la clave reservada `"heroic_enabled"` con valor `"true"` o `"false"`.
+     *
+     * @param enabled True si el launcher debe mostrarse en la biblioteca.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-08-12
+     */
+    override suspend fun saveHeroicEnabled(enabled: Boolean) {
+        val current = readConfig()
+        val updated = current.copy(
+            emulatorPaths = current.emulatorPaths + ("heroic_enabled" to enabled.toString())
+        )
+        configFile.writeText(json.encodeToString(updated))
+    }
+
+    /**
+     * Recupera la preferencia de Heroic Games Launcher desde el archivo `config.json`.
+     * Retorna false por defecto si la clave no existe o el archivo no está disponible.
+     *
+     * @return True si Heroic Games Launcher está habilitado, false en caso contrario.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-08-12
+     */
+    override suspend fun isHeroicEnabled(): Boolean =
+        readConfig().emulatorPaths["heroic_enabled"] == "true"
 
     /**
      * Lee y deserializa el archivo `config.json`. Si no existe o no puede parsearse,
