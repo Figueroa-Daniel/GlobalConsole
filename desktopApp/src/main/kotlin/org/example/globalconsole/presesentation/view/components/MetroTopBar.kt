@@ -28,6 +28,7 @@ import androidx.compose.foundation.hoverable
  *
  * @param searchQuery Búsqueda de texto actual.
  * @param onSearchChanged Callback invocado al escribir en el buscador.
+ * @param onSearchClick Callback invocado al pulsar el botón de búsqueda (abre el OSK).
  * @param onRefreshClick Callback invocado al pulsar el botón de recarga.
  * @param onSettingsClick Callback invocado al pulsar el botón de configuración de ruta.
  *
@@ -38,6 +39,7 @@ import androidx.compose.foundation.hoverable
 fun MetroTopBar(
     searchQuery: String,
     onSearchChanged: (String) -> Unit,
+    onSearchClick: () -> Unit,
     onRefreshClick: () -> Unit,
     onSettingsClick: () -> Unit
 ) {
@@ -102,6 +104,14 @@ fun MetroTopBar(
         }
 
         Spacer(modifier = Modifier.width(16.dp))
+
+        // Botón Buscar (abre el OSK)
+        MetroButton(
+            text = "BUSCAR",
+            onClick = onSearchClick
+        )
+
+        Spacer(modifier = Modifier.width(8.dp))
 
         // Botón Actualizar
         MetroButton(

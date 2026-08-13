@@ -27,6 +27,7 @@ import org.example.globalconsole.presesentation.input.GamepadManager
 import org.example.globalconsole.presesentation.viewModel.home.HomeUiState
 import org.example.globalconsole.presesentation.viewModel.home.HomeViewModel
 import org.example.globalconsole.presesentation.view.components.GameTile
+import org.example.globalconsole.presesentation.view.components.GamepadOSK
 import org.example.globalconsole.presesentation.view.components.MetroTopBar
 import org.example.globalconsole.presesentation.view.components.MetroButton
 import org.example.globalconsole.presesentation.view.components.SetupPathDialog
@@ -56,6 +57,7 @@ fun HomeScreen(
     val searchQuery by viewModel.searchQuery.collectAsState()
 
     var showPathDialog by remember { mutableStateOf(false) }
+    var showOSK by remember { mutableStateOf(false) }
 
     // Índice del tile actualmente enfocado por el mando
     var focusedGameIndex by remember { mutableStateOf(0) }
@@ -93,6 +95,7 @@ fun HomeScreen(
             MetroTopBar(
                 searchQuery = searchQuery,
                 onSearchChanged = { viewModel.onSearchQueryChanged(it) },
+                onSearchClick = { showOSK = true },
                 onRefreshClick = { viewModel.loadGames() },
                 onSettingsClick = { showPathDialog = true }
             )
@@ -328,6 +331,19 @@ fun HomeScreen(
                     showPathDialog = false
                     viewModel.loadGames()
                 }
+            )
+        }
+
+        if (showOSK && gamepadManager != null) {
+            GamepadOSK(
+                gamepadManager = gamepadManager,
+                initialText = searchQuery,
+                onTextChanged = { viewModel.onSearchQueryChanged(it) },
+                onConfirm = {
+                    viewModel.onSearchQueryChanged(it)
+                    showOSK = false
+                },
+                onDismiss = { showOSK = false }
             )
         }
 
