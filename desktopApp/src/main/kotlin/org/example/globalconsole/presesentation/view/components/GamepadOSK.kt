@@ -124,7 +124,7 @@ fun GamepadOSK(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.9f)),
+                .background(Color.Transparent),
             contentAlignment = Alignment.BottomCenter
         ) {
             Column(
