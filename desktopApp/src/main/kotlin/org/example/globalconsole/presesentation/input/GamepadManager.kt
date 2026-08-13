@@ -56,6 +56,12 @@ class GamepadManager {
     var isSuspended: Boolean = false
 
     /**
+     * Velocidad / sensibilidad del movimiento del ratón con el stick derecho.
+     * Puede ser ajustada en tiempo real.
+     */
+    var mouseSensitivity: Float = 14f
+
+    /**
      * Inicializa GLFW en segundo plano y comienza a escuchar eventos de gamepad.
      *
      * @param scope [CoroutineScope] en el que se ejecutará el bucle de polling.
@@ -207,9 +213,8 @@ class GamepadManager {
         if (abs(rightX) < deadZone && abs(rightY) < deadZone) return
 
         // Escalado cuadrático: suave en el centro, rápido en el extremo
-        val speed = 14f
-        val scaledX = rightX * abs(rightX) * speed
-        val scaledY = rightY * abs(rightY) * speed
+        val scaledX = rightX * abs(rightX) * mouseSensitivity
+        val scaledY = rightY * abs(rightY) * mouseSensitivity
 
         val loc = MouseInfo.getPointerInfo()?.location ?: return
         

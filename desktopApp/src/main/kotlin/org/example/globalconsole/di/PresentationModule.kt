@@ -28,7 +28,9 @@ val presentationModule = module {
             getEmulatorPathUseCase = get(),
             findHGLauncherUseCase = get(),
             enableHGLauncherUseCase = get(),
-            hideHGLauncherUseCase = get()
+            hideHGLauncherUseCase = get(),
+            getMouseSensitivityUseCase = get(),
+            saveMouseSensitivityUseCase = get()
         )
     }
 }

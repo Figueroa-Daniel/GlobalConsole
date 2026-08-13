@@ -30,7 +30,7 @@ import javax.swing.JFileChooser
  * @author Daniel Figueroa Vidal
  * @since 2026-08-10
  */
-private enum class DialogButton { HEROIC_TOGGLE, BROWSE, CANCEL, CONFIRM }
+private enum class DialogButton { SENSITIVITY_SLIDER, HEROIC_TOGGLE, BROWSE, CANCEL, CONFIRM }
 
 /**
  * Diálogo modal de configuración de la aplicación GlobalConsole.
@@ -41,8 +41,8 @@ private enum class DialogButton { HEROIC_TOGGLE, BROWSE, CANCEL, CONFIRM }
  * 100% navegable por gamepad: D-Pad para moverse entre elementos, botón A para confirmar.
  *
  * Navegación por D-Pad:
- * - UP/DOWN: alterna entre la sección del toggle de Heroic y la sección de ruta de PCSX2.
- * - LEFT/RIGHT: navega entre los botones EXAMINAR → CANCELAR → GUARDAR dentro de la sección PCSX2.
+ * - UP/DOWN: alterna entre secciones (Sensibilidad, Heroic, PCSX2).
+ * - LEFT/RIGHT: navega entre botones o ajusta el valor del slider.
  *
  * @param settingsViewModel ViewModel que gestiona la carga y guardado de rutas y preferencias.
  * @param gamepadManager Gestor de eventos de gamepad para la navegación entre elementos.
@@ -62,15 +62,17 @@ fun SetupPathDialog(
 ) {
     val uiState by settingsViewModel.uiState.collectAsState()
     val heroicEnabled by settingsViewModel.heroicEnabled.collectAsState()
+    val mouseSensitivity by settingsViewModel.mouseSensitivity.collectAsState()
 
     var pathText by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
     var focusedButton by remember { mutableStateOf(DialogButton.CONFIRM) }
 
-    // Precarga la ruta guardada y la preferencia de Heroic al abrirse el diálogo
+    // Precarga la ruta guardada, la preferencia de Heroic y la sensibilidad
     LaunchedEffect(Unit) {
         settingsViewModel.loadCurrentPath("pcsx2")
         settingsViewModel.loadHeroicEnabled()
+        settingsViewModel.loadMouseSensitivity()
     }
 
     // Sincroniza el campo de texto cuando el estado carga la ruta persistida
@@ -89,30 +91,34 @@ fun SetupPathDialog(
             when (event) {
                 is GamepadEvent.DirectionPressed -> {
                     focusedButton = when (event.direction) {
-                        // UP/DOWN: alternar entre sección Heroic y sección PCSX2
-                        GamepadEvent.Direction.UP -> {
-                            if (focusedButton != DialogButton.HEROIC_TOGGLE) {
-                                DialogButton.HEROIC_TOGGLE
-                            } else {
-                                focusedButton
-                            }
+                        GamepadEvent.Direction.UP -> when (focusedButton) {
+                            DialogButton.HEROIC_TOGGLE -> DialogButton.SENSITIVITY_SLIDER
+                            DialogButton.CONFIRM, DialogButton.CANCEL, DialogButton.BROWSE -> DialogButton.HEROIC_TOGGLE
+                            else -> focusedButton
                         }
-                        GamepadEvent.Direction.DOWN -> {
-                            if (focusedButton == DialogButton.HEROIC_TOGGLE) {
-                                DialogButton.CONFIRM
-                            } else {
-                                focusedButton
-                            }
+                        GamepadEvent.Direction.DOWN -> when (focusedButton) {
+                            DialogButton.SENSITIVITY_SLIDER -> DialogButton.HEROIC_TOGGLE
+                            DialogButton.HEROIC_TOGGLE -> DialogButton.CONFIRM
+                            else -> focusedButton
                         }
-                        // LEFT/RIGHT: navegar entre botones de acción de PCSX2
                         GamepadEvent.Direction.LEFT -> when (focusedButton) {
                             DialogButton.CONFIRM -> DialogButton.CANCEL
                             DialogButton.CANCEL -> DialogButton.BROWSE
+                            DialogButton.SENSITIVITY_SLIDER -> {
+                                val newVal = (mouseSensitivity - 2f).coerceAtLeast(1f)
+                                settingsViewModel.setMouseSensitivity(newVal)
+                                focusedButton
+                            }
                             else -> focusedButton
                         }
                         GamepadEvent.Direction.RIGHT -> when (focusedButton) {
                             DialogButton.BROWSE -> DialogButton.CANCEL
                             DialogButton.CANCEL -> DialogButton.CONFIRM
+                            DialogButton.SENSITIVITY_SLIDER -> {
+                                val newVal = (mouseSensitivity + 2f).coerceAtMost(50f)
+                                settingsViewModel.setMouseSensitivity(newVal)
+                                focusedButton
+                            }
                             else -> focusedButton
                         }
                     }
@@ -123,6 +129,10 @@ fun SetupPathDialog(
                             // Alternar el toggle de Heroic con el botón de confirmación
                             DialogButton.HEROIC_TOGGLE -> {
                                 settingsViewModel.setHeroicEnabled(!heroicEnabled)
+                            }
+                            DialogButton.SENSITIVITY_SLIDER -> {
+                                // No hace falta confirmar nada con el botón A en el slider,
+                                // se ajusta directamente con las direcciones LEFT/RIGHT.
                             }
                             DialogButton.BROWSE -> {
                                 val chooser = JFileChooser().apply {
@@ -185,6 +195,68 @@ fun SetupPathDialog(
                     fontFamily = FontFamily.SansSerif,
                     modifier = Modifier.padding(bottom = 20.dp)
                 )
+
+                // ── Sección: Control del Gamepad ──────────────────────────────
+                val sensitivityBorderColor = if (focusedButton == DialogButton.SENSITIVITY_SLIDER) {
+                    Color(0xFF00FFCC)
+                } else {
+                    Color(0xFF333333)
+                }
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(1.dp, sensitivityBorderColor, RectangleShape)
+                        .padding(12.dp)
+                ) {
+                    Text(
+                        text = "CONTROL DEL GAMEPAD",
+                        color = Color.White,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.SansSerif
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = "Sensibilidad del ratón al usar el stick derecho.",
+                        color = Color(0xFFAAAAAA),
+                        fontSize = 12.sp,
+                        fontFamily = FontFamily.SansSerif
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = String.format("%.0f", mouseSensitivity),
+                            color = Color(0xFF00FFCC),
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace,
+                            modifier = Modifier.width(30.dp)
+                        )
+
+                        Slider(
+                            value = mouseSensitivity,
+                            onValueChange = { settingsViewModel.setMouseSensitivity(it) },
+                            valueRange = 1f..50f,
+                            steps = 49,
+                            modifier = Modifier.weight(1f),
+                            colors = SliderDefaults.colors(
+                                thumbColor = Color.White,
+                                activeTrackColor = Color(0xFF00FFCC),
+                                inactiveTrackColor = Color(0xFF333333)
+                            )
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
 
                 // ── Sección: Heroic Games Launcher ────────────────────────────
                 val heroicSectionBorderColor = if (focusedButton == DialogButton.HEROIC_TOGGLE) {

@@ -1,6 +1,9 @@
 package org.example.globalconsole
 
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.window.Window
@@ -47,6 +50,12 @@ fun main() = application {
     ) {
         val coroutineScope = rememberCoroutineScope()
         
+        // Sincronizar la sensibilidad del ratón en tiempo real
+        val mouseSensitivity by settingsViewModel.mouseSensitivity.collectAsState()
+        LaunchedEffect(mouseSensitivity) {
+            gamepadManager.mouseSensitivity = mouseSensitivity
+        }
+
         // Ciclo de vida del gamepad acoplado a la ventana
         DisposableEffect(Unit) {
             gamepadManager.start(coroutineScope)

@@ -11,6 +11,8 @@ import org.example.globalconsole.HeroicGames.domain.usecase.FindHGLauncherUseCas
 import org.example.globalconsole.HeroicGames.domain.usecase.HideHGLauncherUseCase
 import org.example.globalconsole.settings.domain.usecase.GetEmulatorPathUseCase
 import org.example.globalconsole.settings.domain.usecase.SaveEmulatorPathUseCase
+import org.example.globalconsole.settings.domain.usecase.GetMouseSensitivityUseCase
+import org.example.globalconsole.settings.domain.usecase.SaveMouseSensitivityUseCase
 
 /**
  * ViewModel del diálogo de configuración de rutas de emuladores y preferencias de launchers.
@@ -25,6 +27,8 @@ import org.example.globalconsole.settings.domain.usecase.SaveEmulatorPathUseCase
  * @param findHGLauncherUseCase UseCase para consultar si Heroic debe mostrarse en la biblioteca.
  * @param enableHGLauncherUseCase UseCase para activar la visibilidad de Heroic en la biblioteca.
  * @param hideHGLauncherUseCase UseCase para desactivar la visibilidad de Heroic en la biblioteca.
+ * @param getMouseSensitivityUseCase UseCase para recuperar la sensibilidad del ratón.
+ * @param saveMouseSensitivityUseCase UseCase para persistir la sensibilidad del ratón.
  *
  * @author Daniel Figueroa Vidal
  * @since 2026-08-10
@@ -34,7 +38,9 @@ class SettingsViewModel(
     private val getEmulatorPathUseCase: GetEmulatorPathUseCase,
     private val findHGLauncherUseCase: FindHGLauncherUseCase,
     private val enableHGLauncherUseCase: EnableHGLauncherUseCase,
-    private val hideHGLauncherUseCase: HideHGLauncherUseCase
+    private val hideHGLauncherUseCase: HideHGLauncherUseCase,
+    private val getMouseSensitivityUseCase: GetMouseSensitivityUseCase,
+    private val saveMouseSensitivityUseCase: SaveMouseSensitivityUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<SettingsUiState>(SettingsUiState.Idle)
@@ -57,6 +63,16 @@ class SettingsViewModel(
      * @since 2026-08-12
      */
     val heroicEnabled: StateFlow<Boolean> = _heroicEnabled.asStateFlow()
+
+    private val _mouseSensitivity = MutableStateFlow(14f)
+
+    /**
+     * Estado observable de la sensibilidad del ratón con el gamepad.
+     *
+     * @author Daniel Figueroa Vidal
+     * @since 2026-08-13
+     */
+    val mouseSensitivity: StateFlow<Float> = _mouseSensitivity.asStateFlow()
 
     /**
      * Carga la ruta actualmente configurada para el emulador indicado.
@@ -139,6 +155,32 @@ class SettingsViewModel(
                 hideHGLauncherUseCase()
             }
             _heroicEnabled.value = enabled
+        }
+    }
+
+    /**
+     * Carga la sensibilidad del ratón desde la persistencia y actualiza el estado.
+     *
+     * @author Daniel Figueroa Vidal
+     * @since 2026-08-13
+     */
+    fun loadMouseSensitivity() {
+        viewModelScope.launch {
+            _mouseSensitivity.value = getMouseSensitivityUseCase()
+        }
+    }
+
+    /**
+     * Persiste la sensibilidad del ratón y actualiza el estado.
+     *
+     * @param speed Nueva sensibilidad (ej. 1f a 50f).
+     * @author Daniel Figueroa Vidal
+     * @since 2026-08-13
+     */
+    fun setMouseSensitivity(speed: Float) {
+        viewModelScope.launch {
+            saveMouseSensitivityUseCase(speed)
+            _mouseSensitivity.value = speed
         }
     }
 }
