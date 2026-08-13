@@ -18,6 +18,7 @@ import kotlinx.serialization.Serializable
  *
  * @param emulatorPaths Mapa de identificadores de emulador (ej. "pcsx2") a rutas absolutas.
  * @param heroicEnabled True si Heroic Games Launcher debe aparecer en la biblioteca principal.
+ * @param mouseSensitivity Velocidad de movimiento del ratón con el gamepad (por defecto 14f).
  *
  * @author Daniel Figueroa Vidal
  * @since 2026-08-13
@@ -25,5 +26,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class AppConfig(
     val emulatorPaths: Map<String, String> = emptyMap(),
-    val heroicEnabled: Boolean = false
+    val heroicEnabled: Boolean = false,
+    val mouseSensitivity: Float = 14f
 )
