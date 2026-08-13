@@ -51,11 +51,6 @@ class GamepadManager {
     private val awtRobot: Robot? = try { Robot() } catch (e: Exception) { null }
 
     /**
-     * Referencia a la ventana de la aplicación para confinar el movimiento del ratón.
-     */
-    var appWindow: java.awt.Window? = null
-
-    /**
      * Indica si la lectura del mando está suspendida (ej. durante la ejecución de un juego).
      */
     var isSuspended: Boolean = false
@@ -218,14 +213,15 @@ class GamepadManager {
 
         val loc = MouseInfo.getPointerInfo()?.location ?: return
         
-        // Usar los límites de la ventana si está disponible, sino los del monitor principal
-        val bounds = appWindow?.bounds ?: GraphicsEnvironment
-            .getLocalGraphicsEnvironment()
-            .defaultScreenDevice.defaultConfiguration.bounds
+        // Calcular los límites de todos los monitores para permitir movimiento global
+        var virtualBounds = java.awt.Rectangle()
+        for (gs in GraphicsEnvironment.getLocalGraphicsEnvironment().screenDevices) {
+            virtualBounds = virtualBounds.union(gs.defaultConfiguration.bounds)
+        }
 
         awtRobot?.mouseMove(
-            (loc.x + scaledX).toInt().coerceIn(bounds.x, bounds.x + bounds.width - 1),
-            (loc.y + scaledY).toInt().coerceIn(bounds.y, bounds.y + bounds.height - 1)
+            (loc.x + scaledX).toInt().coerceIn(virtualBounds.x, virtualBounds.x + virtualBounds.width - 1),
+            (loc.y + scaledY).toInt().coerceIn(virtualBounds.y, virtualBounds.y + virtualBounds.height - 1)
         )
     }
 
