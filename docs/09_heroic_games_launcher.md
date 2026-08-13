@@ -112,12 +112,14 @@ Contrato del repositorio del módulo. Centraliza todas las operaciones de Heroic
 (`HeroicGames/data/repositoryImpl/HGLauncherRepositoryImpl.kt`)
 
 Implementación del repositorio. Persiste la preferencia `heroicEnabled` en `config.json`
-mediante un modelo propio `HeroicConfig`, independiente del modelo de `SettingsRepositoryImpl`.
+utilizando el modelo compartido [`AppConfig`](../desktopApp/src/main/kotlin/org/example/globalconsole/config/AppConfig.kt).
+Lee el objeto completo antes de escribir para preservar los campos de otros módulos:
 
-```json
-{
-  "heroicEnabled": true
-}
+```kotlin
+// Patrón de escritura segura
+val current = readConfig()                          // lee AppConfig completo
+val updated = current.copy(heroicEnabled = enabled) // modifica SOLO heroicEnabled
+configFile.writeText(json.encodeToString(updated))  // reescribe AppConfig completo
 ```
 
 #### Mapper
@@ -258,7 +260,21 @@ Usa `FakeHGLauncherRepository` (implementación en memoria del repositorio compl
 | `showHGLauncher_returnsMappedDomainEntity` | Entidad mapeada con todos los campos correctos. |
 | `fullVisibilityCycle_enableThenHide_stateIsConsistent` | Ciclo completo enable→find→hide→find. |
 
-### 5.3 `HomeViewModelTest` (tests de Heroic)
+### 5.3 `AppConfigIntegrationTest`
+(`test/.../config/AppConfigIntegrationTest.kt`)
+
+Verifica que `SettingsRepositoryImpl` y `HGLauncherRepositoryImpl` no se destruyen
+mutuamente al escribir en `config.json` (regresión del Bug 1).
+
+| Test | Valida |
+|---|---|
+| `saveEmulatorPath_afterHeroicEnabled_preservesHeroicEnabled` | Guardar ruta no borra `heroicEnabled`. |
+| `saveHeroicEnabled_afterEmulatorPathSaved_preservesEmulatorPath` | Activar Heroic no borra la ruta del emulador. |
+| `disableHeroic_doesNotDestroyEmulatorPath` | Deshabilitar Heroic no destruye las rutas. |
+| `interleavedWrites_maintainFullConsistency` | Escrituras intercaladas mantienen coherencia. |
+| `hideHGLauncher_preservesEmulatorPath` | `hideHGLauncher()` no destruye las rutas del emulador. |
+
+### 5.4 `HomeViewModelTest` (tests de Heroic)
 (`test/.../presesentation/viewModel/home/HomeViewModelTest.kt`)
 
 Usa `FakeFindHGLauncherUseCase` y `FakeShowHGLauncherUseCase`.

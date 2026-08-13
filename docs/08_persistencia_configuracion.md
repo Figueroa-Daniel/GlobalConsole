@@ -6,7 +6,7 @@ robusto basado en un archivo `config.json`.
 
 > **Alcance de este documento:** El módulo `settings` gestiona únicamente las rutas de
 > emuladores (ej. PCSX2). La preferencia de visibilidad de Heroic Games Launcher se persiste
-> en `HGLauncherRepositoryImpl` con su propio modelo `HeroicConfig`.
+> en `HGLauncherRepositoryImpl`, usando el mismo modelo `AppConfig` compartido.
 > Ver [09_heroic_games_launcher.md](09_heroic_games_launcher.md) para los detalles.
 
 ---
@@ -24,6 +24,9 @@ la ruta en cada sesión.
 Se extiende Clean Architecture con un nuevo módulo `settings` que sigue las mismas capas del resto del proyecto:
 
 ```
+config/
+└── AppConfig.kt                     ← Modelo unificado de config.json (compartido)
+
 settings/
 ├── domain/
 │   ├── SettingsRepository.kt        ← Contrato (interfaz)
@@ -31,7 +34,7 @@ settings/
 │       ├── SaveEmulatorPathUseCase.kt
 │       └── GetEmulatorPathUseCase.kt
 └── data/
-    └── SettingsRepositoryImpl.kt    ← Implementación con JSON
+    └── SettingsRepositoryImpl.kt    ← Lee/escribe AppConfig, modifica emulatorPaths
 ```
 
 ### Regla de Dependencias
@@ -39,26 +42,41 @@ La capa de dominio no conoce ningún detalle de implementación. `SettingsReposi
 
 ---
 
-## 💾 3. Formato del Archivo `config.json`
+## 💾 3. Modelo Unificado `AppConfig` y formato de `config.json`
 
 El archivo se genera automáticamente en el directorio de trabajo de la app (`./config.json`).
+Todos los repositorios que persisten datos en este archivo utilizan el modelo compartido `AppConfig`:
 
-**Estructura gestionada por `SettingsRepositoryImpl`** (rutas de emuladores):
+```kotlin
+// config/AppConfig.kt
+@Serializable
+data class AppConfig(
+    val emulatorPaths: Map<String, String> = emptyMap(),  // gestionado por SettingsRepositoryImpl
+    val heroicEnabled: Boolean = false                     // gestionado por HGLauncherRepositoryImpl
+)
+```
+
+Ejemplo del archivo con ambos campos presentes:
 
 ```json
 {
   "emulatorPaths": {
     "pcsx2": "/home/usuario/ISOs/PS2"
-  }
+  },
+  "heroicEnabled": true
 }
 ```
 
-La clave es el `emulatorId` (String), el valor es la ruta absoluta (String). Este diseño
-permite añadir rutas de nuevos emuladores sin cambiar la estructura del archivo.
+**Patrón de escritura segura:** Cada repositorio lee el objeto `AppConfig` completo,
+aplicar su campo y reescribe el objeto entero, evitando que una escritura parcial
+destruía los datos de otro módulo.
 
-> **Nota:** La preferencia `heroicEnabled` es gestionada por `HGLauncherRepositoryImpl`
-> con su propio modelo `HeroicConfig` serializable. Cada repositorio es dueño de
-> su propia sección del archivo de configuración, evitando el acoplamiento entre módulos.
+```kotlin
+// Ejemplo en SettingsRepositoryImpl
+val current = readConfig()                                 // lee AppConfig completo
+val updated = current.copy(emulatorPaths = ...)           // modifica SOLO su campo
+configFile.writeText(json.encodeToString(updated))        // reescribe AppConfig completo
+```
 
 ---
 
