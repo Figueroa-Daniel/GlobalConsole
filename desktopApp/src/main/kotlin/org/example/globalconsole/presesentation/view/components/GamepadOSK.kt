@@ -2,6 +2,7 @@ package org.example.globalconsole.presesentation.view.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.material3.Text
@@ -164,7 +165,20 @@ fun GamepadOSK(
                             OSKKey(
                                 label = key,
                                 isFocused = isFocused,
-                                isSpecial = key in listOf("⌫", "↵", "SHIFT", "ESPACIO")
+                                isSpecial = key in listOf("⌫", "↵", "SHIFT", "ESPACIO"),
+                                onClick = {
+                                    if (key == "↵") {
+                                        onConfirm(inputText)
+                                    } else if (key == "⌫") {
+                                        if (inputText.isNotEmpty()) {
+                                            inputText = inputText.dropLast(1)
+                                            onTextChanged(inputText)
+                                        }
+                                    } else {
+                                        inputText = handleKeyPress(key, inputText) { isUpperCase = !isUpperCase }
+                                        onTextChanged(inputText)
+                                    }
+                                }
                             )
                         }
                     }
@@ -216,11 +230,12 @@ private fun handleKeyPress(key: String, currentText: String, onShiftToggle: () -
  * @param label Texto o símbolo que muestra la tecla.
  * @param isFocused True si esta tecla tiene el foco del gamepad.
  * @param isSpecial True si es una tecla especial (Backspace, Enter, Shift, Espacio).
+ * @param onClick Acción a ejecutar si el usuario pulsa con el ratón.
  * @author Daniel Figueroa Vidal
  * @since 2026-08-13
  */
 @Composable
-private fun OSKKey(label: String, isFocused: Boolean, isSpecial: Boolean) {
+private fun OSKKey(label: String, isFocused: Boolean, isSpecial: Boolean, onClick: () -> Unit) {
     val bgColor = when {
         isFocused -> Color(0xFF00FFCC)
         isSpecial -> Color(0xFF2A2A2A)
@@ -240,7 +255,8 @@ private fun OSKKey(label: String, isFocused: Boolean, isSpecial: Boolean) {
             .height(44.dp)
             .padding(2.dp)
             .background(bgColor, RectangleShape)
-            .border(1.dp, if (isFocused) Color(0xFF00FFCC) else Color(0xFF444444), RectangleShape),
+            .border(1.dp, if (isFocused) Color(0xFF00FFCC) else Color(0xFF444444), RectangleShape)
+            .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Text(

@@ -137,6 +137,8 @@ class HomeViewModel(
      * @since 2026-08-05
      */
     fun onGameSelected(game: Game) {
+        if (_uiState.value is HomeUiState.GameRunning) return
+
         viewModelScope.launch {
             // Entramos en estado de suspensión
             _uiState.value = HomeUiState.GameRunning(game)

@@ -176,7 +176,7 @@ fun HomeScreen(
                                     is GamepadEvent.ButtonPressed -> {
                                         when (event.button) {
                                             GamepadEvent.Button.CONFIRM -> {
-                                                if (!showPathDialog && games.isNotEmpty()) {
+                                                if (!showPathDialog && !showOSK && games.isNotEmpty()) {
                                                     val idx = focusedGameIndex.coerceIn(0, games.size - 1)
                                                     viewModel.onGameSelected(games[idx])
                                                 }

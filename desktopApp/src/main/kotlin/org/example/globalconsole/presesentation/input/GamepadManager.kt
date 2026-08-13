@@ -232,16 +232,17 @@ class GamepadManager {
     }
 
     /**
-     * Detecta la pulsación del botón Cuadrado (GLFW_GAMEPAD_BUTTON_X) y ejecuta
-     * un click izquierdo del ratón en la posición actual del cursor.
+     * Detecta la pulsación del botón A / Cruz (GLFW_GAMEPAD_BUTTON_A) y ejecuta
+     * un click izquierdo del ratón físico en la posición actual del cursor.
+     * Este evento se dispara de forma simultánea a la emisión del [GamepadEvent.Button.CONFIRM].
      *
      * @param buttons Buffer de botones GLFW del mando.
      * @author Daniel Figueroa Vidal
      * @since 2026-08-09
      */
     private fun handleMouseLeftClick(buttons: ByteBuffer) {
-        val isPressed = buttons.get(GLFW_GAMEPAD_BUTTON_X).toInt() == GLFW_PRESS
-        val wasPressed = lastButtonsState[GLFW_GAMEPAD_BUTTON_X]
+        val isPressed = buttons.get(GLFW_GAMEPAD_BUTTON_A).toInt() == GLFW_PRESS
+        val wasPressed = lastButtonsState[GLFW_GAMEPAD_BUTTON_A]
 
         if (isPressed && !wasPressed) {
             awtRobot?.let {
@@ -249,7 +250,7 @@ class GamepadManager {
                 it.mouseRelease(InputEvent.BUTTON1_DOWN_MASK)
             }
         }
-        lastButtonsState[GLFW_GAMEPAD_BUTTON_X] = isPressed
+        lastButtonsState[GLFW_GAMEPAD_BUTTON_A] = isPressed
     }
 
     /**
