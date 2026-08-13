@@ -18,7 +18,7 @@ val presentationModule = module {
             executeGameP2UseCase = get(),
             deleteGameP2UseCase = get(),
             executeHGLauncherUseCase = get(),
-            isHeroicEnabledUseCase = get(),
+            findHGLauncherUseCase = get(),
             showHGLauncherUseCase = get()
         )
     }
@@ -26,8 +26,9 @@ val presentationModule = module {
         SettingsViewModel(
             saveEmulatorPathUseCase = get(),
             getEmulatorPathUseCase = get(),
-            isHeroicEnabledUseCase = get(),
-            saveHeroicEnabledUseCase = get()
+            findHGLauncherUseCase = get(),
+            enableHGLauncherUseCase = get(),
+            hideHGLauncherUseCase = get()
         )
     }
 }
