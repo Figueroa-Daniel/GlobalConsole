@@ -318,12 +318,17 @@ fun HomeScreen(
             SetupPathDialog(
                 settingsViewModel = settingsViewModel,
                 gamepadManager = gamepadManager,
-                onDismiss = { showPathDialog = false },
+                onDismiss = {
+                    showPathDialog = false
+                    // Recarga la biblioteca siempre al cerrar el diálogo: cubre el caso
+                    // en que el usuario cambia el toggle de Heroic sin pulsar GUARDAR.
+                    viewModel.loadGames()
+                },
                 onConfirm = {
                     showPathDialog = false
-                    viewModel.loadGames()
                 }
             )
         }
+
     }
 }
