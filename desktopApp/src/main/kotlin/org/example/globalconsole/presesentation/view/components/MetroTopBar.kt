@@ -113,7 +113,7 @@ fun MetroTopBar(
 
         // Botón Ajustes
         MetroButton(
-            text = "AJUSTES RUTA",
+            text = "CONFIGURACIÓN",
             onClick = onSettingsClick
         )
     }
