@@ -1,0 +1,6 @@
+{
+    "emulatorPaths": {
+        "pcsx2": "/home/figue/Escritorio/isos_ps2",
+        "heroic_enabled": "true"
+    }
+}

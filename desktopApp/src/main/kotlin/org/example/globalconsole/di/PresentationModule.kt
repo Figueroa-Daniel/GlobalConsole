@@ -18,7 +18,8 @@ val presentationModule = module {
             executeGameP2UseCase = get(),
             deleteGameP2UseCase = get(),
             executeHGLauncherUseCase = get(),
-            isHeroicEnabledUseCase = get()
+            isHeroicEnabledUseCase = get(),
+            showHGLauncherUseCase = get()
         )
     }
     factory {

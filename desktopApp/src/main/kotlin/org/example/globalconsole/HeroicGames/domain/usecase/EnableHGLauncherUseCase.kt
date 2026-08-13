@@ -5,11 +5,12 @@ import kotlinx.coroutines.withContext
 import org.example.globalconsole.HeroicGames.data.repository.HGLauncherRepository
 
 /**
- * Caso de uso de dominio que oculta Heroic Games Launcher de la biblioteca principal
+ * Caso de uso de dominio que habilita Heroic Games Launcher en la biblioteca principal
  * de GlobalConsole persistiendo la preferencia del usuario.
  *
- * Delega la operación al [HGLauncherRepository], que internamente llama a
- * [HGLauncherRepository.saveHeroicEnabled] con `false`.
+ * Sigue el principio de responsabilidad única (SRP): este use case gestiona
+ * exclusivamente la activación del launcher, mientras que [HideHGLauncherUseCase]
+ * gestiona la desactivación.
  *
  * La clase es [open] para permitir la creación de implementaciones Fake en los
  * tests unitarios sin necesidad de frameworks de mocking.
@@ -19,18 +20,17 @@ import org.example.globalconsole.HeroicGames.data.repository.HGLauncherRepositor
  * @author Daniel Figueroa Vidal
  * @since 2026-08-13
  */
-open class HideHGLauncherUseCase(
+open class EnableHGLauncherUseCase(
     private val repository: HGLauncherRepository
 ) {
 
     /**
-     * Oculta Heroic Games Launcher de la biblioteca principal persistiendo la preferencia.
+     * Habilita Heroic Games Launcher en la biblioteca principal persistiendo la preferencia.
      *
-     * @return True si la operación se realizó correctamente, false en caso de error.
      * @author Daniel Figueroa Vidal
      * @since 2026-08-13
      */
-    open suspend operator fun invoke(): Boolean = withContext(Dispatchers.IO) {
-        repository.hideHGLauncher()
+    open suspend operator fun invoke() = withContext(Dispatchers.IO) {
+        repository.saveHeroicEnabled(true)
     }
 }

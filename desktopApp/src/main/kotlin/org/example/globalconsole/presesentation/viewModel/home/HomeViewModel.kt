@@ -8,8 +8,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.example.globalconsole.generalDomain.entititys.Game
 import org.example.globalconsole.generalDomain.entititys.Platforms
-import org.example.globalconsole.HeroicGames.domain.entitys.HGLauncher
 import org.example.globalconsole.HeroicGames.domain.usecase.ExecuteHGLauncherUseCase
+import org.example.globalconsole.HeroicGames.domain.usecase.ShowHGLauncherUseCase
 import org.example.globalconsole.juegosPcsx2.domain.usecase.DeleteGameP2UseCase
 import org.example.globalconsole.juegosPcsx2.domain.usecase.ExecuteGameP2UseCase
 import org.example.globalconsole.juegosPcsx2.domain.usecase.GetGamesP2UseCase
@@ -26,6 +26,7 @@ import org.example.globalconsole.settings.domain.usecase.IsHeroicEnabledUseCase
  * @param deleteGameP2UseCase UseCase para eliminar un juego de PCSX2 del sistema.
  * @param executeHGLauncherUseCase UseCase para lanzar Heroic Games Launcher.
  * @param isHeroicEnabledUseCase UseCase para consultar si Heroic debe aparecer en la biblioteca.
+ * @param showHGLauncherUseCase UseCase para obtener los datos de Heroic Games Launcher como entidad de dominio.
  *
  * @author Daniel Figueroa Vidal
  * @since 2026-08-05
@@ -35,7 +36,8 @@ class HomeViewModel(
     private val executeGameP2UseCase: ExecuteGameP2UseCase? = null,
     private val deleteGameP2UseCase: DeleteGameP2UseCase? = null,
     private val executeHGLauncherUseCase: ExecuteHGLauncherUseCase? = null,
-    private val isHeroicEnabledUseCase: IsHeroicEnabledUseCase? = null
+    private val isHeroicEnabledUseCase: IsHeroicEnabledUseCase? = null,
+    private val showHGLauncherUseCase: ShowHGLauncherUseCase? = null
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
@@ -75,16 +77,10 @@ class HomeViewModel(
                 val pcsx2Games = getGamesP2UseCase()
 
                 // Si Heroic Games Launcher está habilitado por el usuario, se añade
-                // como una entrada fija en la biblioteca, igual que cualquier otro juego.
+                // como una entrada en la biblioteca obtenida a través del caso de uso.
                 val heroicEntry: List<Game> = if (isHeroicEnabledUseCase?.invoke() == true) {
-                    listOf(
-                        HGLauncher(
-                            id = "heroic-launcher",
-                            name = "Heroic Games",
-                            urlGameExecute = "",
-                            platform = Platforms.HEORIC_GAMES_LAUCHER
-                        )
-                    )
+                    val launcher = showHGLauncherUseCase?.invoke()
+                    if (launcher != null) listOf(launcher) else emptyList()
                 } else {
                     emptyList()
                 }

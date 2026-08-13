@@ -9,6 +9,7 @@ import androidx.navigation.compose.rememberNavController
 import org.example.globalconsole.presesentation.input.GamepadManager
 import org.example.globalconsole.presesentation.navigation.AppNavHost
 import org.example.globalconsole.presesentation.viewModel.home.HomeViewModel
+import org.example.globalconsole.presesentation.viewModel.settings.SettingsViewModel
 import org.example.globalconsole.di.dataModule
 import org.example.globalconsole.di.domainModule
 import org.example.globalconsole.di.presentationModule
@@ -35,6 +36,7 @@ fun main() = application {
 
     // Resolver dependencias desde el contenedor
     val viewModel = getKoin().get<HomeViewModel>()
+    val settingsViewModel = getKoin().get<SettingsViewModel>()
 
     // El gestor es único para la aplicación
     val gamepadManager = remember { GamepadManager() }
@@ -60,6 +62,7 @@ fun main() = application {
         AppNavHost(
             navController = navController,
             viewModel = viewModel,
+            settingsViewModel = settingsViewModel,
             gamepadManager = gamepadManager
         )
     }

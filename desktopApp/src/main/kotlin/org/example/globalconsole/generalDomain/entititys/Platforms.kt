@@ -10,5 +10,7 @@ enum class Platforms {
     /** Emulador PCSX2 para juegos de PlayStation 2. */
     PCSX2,
     /** Juego local ejecutable de PC. */
-    LOCALGAME
+    LOCALGAME,
+    /** Launcher local Heroic Games Launcher. */
+    HEORIC_GAMES_LAUCHER
 }

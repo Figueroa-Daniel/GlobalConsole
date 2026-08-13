@@ -1,6 +1,8 @@
 package org.example.globalconsole.di
 
 import org.example.globalconsole.HeroicGames.data.database.LauncherHeroicGamesAdapter
+import org.example.globalconsole.HeroicGames.data.repository.HGLauncherRepository
+import org.example.globalconsole.HeroicGames.data.repositoryImpl.HGLauncherRepositoryImpl
 import org.example.globalconsole.juegosPcsx2.data.database.GameP2FileSystemAdapter
 import org.example.globalconsole.juegosPcsx2.data.database.GamePCSX2Adapter
 import org.example.globalconsole.juegosPcsx2.data.repository.GameP2Repository
@@ -22,4 +24,7 @@ val dataModule = module {
 
     // Adaptador de Heroic Games Launcher para detección y ejecución nativa del proceso
     single { LauncherHeroicGamesAdapter() }
+
+    // Repositorio de Heroic Games Launcher expuesto por su interfaz de dominio
+    single<HGLauncherRepository> { HGLauncherRepositoryImpl(adapter = get()) }
 }
