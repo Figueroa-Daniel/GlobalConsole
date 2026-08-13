@@ -146,4 +146,22 @@ class AppConfigIntegrationTest {
         assertEquals("/home/usuario/ISOs", settingsRepo.getEmulatorPath("pcsx2"))
         assertFalse(hgLauncherRepo.isHeroicEnabled())
     }
+
+    /**
+     * Verifica que guardar la sensibilidad del ratón preserva los otros campos.
+     *
+     * @author Daniel Figueroa Vidal
+     * @since 2026-08-13
+     */
+    @Test
+    fun saveMouseSensitivity_preservesOtherFields() = runTest {
+        settingsRepo.saveEmulatorPath("pcsx2", "/home/usuario/ISOs")
+        hgLauncherRepo.saveHeroicEnabled(true)
+        
+        settingsRepo.saveMouseSensitivity(25.5f)
+
+        assertEquals("/home/usuario/ISOs", settingsRepo.getEmulatorPath("pcsx2"))
+        assertTrue(hgLauncherRepo.isHeroicEnabled())
+        assertEquals(25.5f, settingsRepo.getMouseSensitivity())
+    }
 }

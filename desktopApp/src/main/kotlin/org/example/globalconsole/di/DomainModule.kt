@@ -9,13 +9,17 @@ import org.example.globalconsole.juegosPcsx2.domain.usecase.DeleteGameP2UseCase
 import org.example.globalconsole.juegosPcsx2.domain.usecase.ExecuteGameP2UseCase
 import org.example.globalconsole.juegosPcsx2.domain.usecase.GetGamesP2UseCase
 import org.example.globalconsole.settings.domain.usecase.GetEmulatorPathUseCase
+import org.example.globalconsole.settings.domain.usecase.GetMouseSensitivityUseCase
 import org.example.globalconsole.settings.domain.usecase.SaveEmulatorPathUseCase
+import org.example.globalconsole.settings.domain.usecase.SaveMouseSensitivityUseCase
 import org.koin.dsl.module
 
 val domainModule = module {
     // UseCases de configuración (rutas de emuladores)
     factory { GetEmulatorPathUseCase(repository = get()) }
     factory { SaveEmulatorPathUseCase(repository = get()) }
+    factory { GetMouseSensitivityUseCase(repository = get()) }
+    factory { SaveMouseSensitivityUseCase(repository = get()) }
 
     // UseCases de PCSX2
     factory { GetGamesP2UseCase(repository = get()) }
