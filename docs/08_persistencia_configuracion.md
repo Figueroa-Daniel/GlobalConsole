@@ -1,12 +1,21 @@
 # 08. Persistencia de Configuración con JSON
 
-Este documento describe el diseño e implementación del sistema de persistencia de rutas de emuladores en GlobalConsole, sustituyendo el uso de variables globales por un mecanismo robusto basado en un archivo `config.json`.
+Este documento describe el diseño e implementación del sistema de persistencia de rutas
+de emuladores en GlobalConsole, sustituyendo el uso de variables globales por un mecanismo
+robusto basado en un archivo `config.json`.
+
+> **Alcance de este documento:** El módulo `settings` gestiona únicamente las rutas de
+> emuladores (ej. PCSX2). La preferencia de visibilidad de Heroic Games Launcher se persiste
+> en `HGLauncherRepositoryImpl` con su propio modelo `HeroicConfig`.
+> Ver [09_heroic_games_launcher.md](09_heroic_games_launcher.md) para los detalles.
 
 ---
 
 ## 📍 1. Problema que Resuelve
 
-Anteriormente, la ruta de los juegos de PCSX2 se almacenaba en la variable global `ROUTE_PCSX2_GAMES` (`SettingsPlatforms.kt`), que se pierde al cerrar la aplicación. Esto obliga al usuario a configurar la ruta en cada sesión.
+Anteriormente, la ruta de los juegos de PCSX2 se almacenaba en la variable global `ROUTE_PCSX2_GAMES`
+(`SettingsPlatforms.kt`), que se pierde al cerrar la aplicación. Esto obliga al usuario a configurar
+la ruta en cada sesión.
 
 ---
 
@@ -34,6 +43,8 @@ La capa de dominio no conoce ningún detalle de implementación. `SettingsReposi
 
 El archivo se genera automáticamente en el directorio de trabajo de la app (`./config.json`).
 
+**Estructura gestionada por `SettingsRepositoryImpl`** (rutas de emuladores):
+
 ```json
 {
   "emulatorPaths": {
@@ -42,7 +53,12 @@ El archivo se genera automáticamente en el directorio de trabajo de la app (`./
 }
 ```
 
-La clave es el `emulatorId` (String), el valor es la ruta absoluta (String). Este diseño permite añadir rutas de nuevos emuladores sin cambiar la estructura del archivo.
+La clave es el `emulatorId` (String), el valor es la ruta absoluta (String). Este diseño
+permite añadir rutas de nuevos emuladores sin cambiar la estructura del archivo.
+
+> **Nota:** La preferencia `heroicEnabled` es gestionada por `HGLauncherRepositoryImpl`
+> con su propio modelo `HeroicConfig` serializable. Cada repositorio es dueño de
+> su propia sección del archivo de configuración, evitando el acoplamiento entre módulos.
 
 ---
 
@@ -95,6 +111,7 @@ Se usa `FakeSettingsRepository` (implementación en memoria) para aislar los tes
 - Arquitectura Clean: [01_arquitectura.md](01_arquitectura.md)
 - Tecnologías (kotlinx.serialization): [02_tecnologias.md](02_tecnologias.md)
 - Módulos del proyecto: [03_modulos.md](03_modulos.md)
+- Persistencia propia de Heroic Games Launcher: [09_heroic_games_launcher.md](09_heroic_games_launcher.md)
 - Contexto IA: [05_contexto_ia.md](05_contexto_ia.md)
 
 @author Daniel Figueroa Vidal

@@ -1,39 +1,24 @@
-# 09. Integración de Heroic Games Launcher en GlobalConsole
+# 09. Heroic Games Launcher — Integración Completa
 
-Este documento detalla la arquitectura, el flujo de ejecución y las decisiones técnicas
-tomadas para integrar Heroic Games Launcher como launcher nativo dentro de GlobalConsole,
-siguiendo el mismo patrón establecido para PCSX2 (ver [04_pcsx2.md](04_pcsx2.md)).
-
----
-
-## 1. Propósito y Alcance
-
-Heroic Games Launcher es un lanzador de código abierto compatible con las tiendas Epic Games
-y GOG en sistemas Linux y Windows. Su integración en GlobalConsole permite al usuario acceder
-a su biblioteca de juegos de PC desde la interfaz 10-foot UI sin salir de la aplicación.
-
-El sistema implementado cubre:
-
-1. **Detección del SO:** Diferencia entre Linux y Windows para aplicar el mecanismo correcto.
-2. **Verificación de instalación:** Comprueba que el launcher está disponible antes de intentar lanzarlo.
-3. **Ejecución controlada:** Lanza el proceso en modo pantalla completa y bloquea el hilo hasta que el usuario cierre el launcher, permitiendo el retorno limpio a GlobalConsole.
+Este documento describe la integración completa de Heroic Games Launcher en GlobalConsole:
+detección de SO, arquitectura de módulo propio, ejecución nativa y gestión de visibilidad
+en la biblioteca principal.
 
 ---
 
-## 2. Flujo de Ejecución
+## 1. Flujo de Ejecución
 
 ```
-[GlobalConsole UI]
-       │
-       ▼
-[HomeViewModel.onGameSelected(game: HGLauncher)]
-       │
-       ▼
-[ExecuteHGLauncherUseCase.invoke()]  ← Dispatchers.IO
-       │
-       ▼
+[HomeScreen — usuario selecciona "Heroic Games"]
+       ↓
+[HomeViewModel.onGameSelected(game)]
+       ↓
+[game.platform == Platforms.HEORIC_GAMES_LAUCHER]
+       ↓
+[ExecuteHGLauncherUseCase.invoke()]
+       ↓
 [LauncherHeroicGamesAdapter.executeLauncher()]
-       │
+       ↓
        ├── Linux  → isInstalledOnLinux() → executeOnLinux()
        │                                   flatpak run com.heroicgameslauncher.hgl --fullscreen
        │
@@ -41,109 +26,247 @@ El sistema implementado cubre:
                                               %LOCALAPPDATA%\Programs\heroic\Heroic.exe --fullscreen
        │
        ▼
-[process.waitFor()]  ← Bloquea hilo hasta que Heroic se cierre
-       │
-       ▼
+[process.waitFor()]  ← Bloquea el hilo hasta que Heroic se cierre
+       ↓
 [HomeViewModel reanuda → loadGames()]
-       │
-       ▼
+       ↓
 [GlobalConsole UI]
+```
+
+---
+
+## 2. Flujo de Visibilidad en Biblioteca
+
+```
+[SetupPathDialog — usuario activa toggle de Heroic]
+       ↓
+[SettingsViewModel.setHeroicEnabled(true)]
+       ↓
+[EnableHGLauncherUseCase.invoke()]
+       ↓
+[HGLauncherRepository.saveHeroicEnabled(true)]
+       ↓
+[HGLauncherRepositoryImpl → escribe config.json]
+
+[HomeViewModel.loadGames()]
+       ↓
+[FindHGLauncherUseCase.invoke()] → true
+       ↓
+[ShowHGLauncherUseCase.invoke()]
+       ↓
+[HGLauncherRepository.showHGLauncher()] → HGLauncherDto
+       ↓
+[HGLauncherDto.toDomain()] → HGLauncher (entidad de dominio)
+       ↓
+[HGLauncher se añade a la lista de juegos]
+       ↓
+[HomeUiState.Success — biblioteca con Heroic incluido]
 ```
 
 ---
 
 ## 3. Arquitectura por Capas
 
-La implementación sigue estrictamente la **Clean Architecture (MVVM)** definida en
-[01_arquitectura.md](01_arquitectura.md).
+La implementación sigue estrictamente **Clean Architecture (MVVM)** y separa
+la lógica de Heroic Games Launcher en su propio módulo, independiente de `settings`.
+
+> **Principio de diseño:** Todo lo relacionado con Heroic Games Launcher vive en el módulo
+> `HeroicGames/`. La capa `settings/` es responsable únicamente de las rutas de emuladores
+> (ej. PCSX2). Ver motivación técnica en [08_persistencia_configuracion.md](08_persistencia_configuracion.md).
 
 ### 3.1 Capa de Datos
 
-**`LauncherHeroicGamesAdapter`**
+#### `LauncherHeroicGamesAdapter`
 (`HeroicGames/data/database/LauncherHeroicGamesAdapter.kt`)
 
-Adaptador responsable de toda la interacción con el sistema operativo. Expone un único
-método público (`executeLauncher()`) y gestiona internamente la bifurcación por SO:
+Adaptador que gestiona toda la interacción con el sistema operativo para la ejecución del proceso.
 
 | Método | Responsabilidad |
 |---|---|
 | `executeLauncher()` | Detecta el SO y delega. Marcado `open` para herencia en tests. |
 | `isInstalledOnLinux()` | `flatpak info com.heroicgameslauncher.hgl` → exit code 0 = instalado. |
 | `executeOnLinux()` | `flatpak run com.heroicgameslauncher.hgl --fullscreen` + `waitFor()`. |
-| `isInstalledOnWindows()` | Comando `cmd /c if exist "%LocalAppData%\Programs\heroic\Heroic.exe"`. |
+| `isInstalledOnWindows()` | `cmd /c if exist "%LocalAppData%\Programs\heroic\Heroic.exe"`. |
 | `executeOnWindows()` | Ruta absoluta via `System.getenv("LOCALAPPDATA")` + `--fullscreen` + `waitFor()`. |
 
-> **¿Por qué `open`?** La clase y su método principal son `open` para permitir que los tests
-> unitarios hereden y sobreescriban `executeLauncher()` sin frameworks de mocking, siguiendo
-> el patrón de Fakes descrito en [07_inyeccion_dependencias_koin.md](07_inyeccion_dependencias_koin.md#5-koin-en-tests).
+#### `HGLauncherDto`
+(`HeroicGames/data/dto/HGLauncherDto.kt`)
+
+DTO serializable con los datos del launcher: `id`, `name`, `urlGameExecute` e `image`.
+
+#### `HGLauncherRepository` (interfaz)
+(`HeroicGames/data/repository/HGLauncherRepository.kt`)
+
+Contrato del repositorio del módulo. Centraliza todas las operaciones de Heroic:
+
+| Método | Responsabilidad |
+|---|---|
+| `isHGLauncherInstalled()` | Detecta si el launcher está instalado. |
+| `showHGLauncher()` | Retorna el `HGLauncherDto` con los datos del launcher. |
+| `hideHGLauncher()` | Oculta Heroic de la biblioteca persistiendo `enabled=false`. |
+| `executeHGLauncher()` | Delega la ejecución al adaptador nativo. |
+| `isHeroicEnabled()` | Recupera la preferencia de visibilidad del usuario. |
+| `saveHeroicEnabled(Boolean)` | Persiste la preferencia de visibilidad del usuario. |
+
+#### `HGLauncherRepositoryImpl`
+(`HeroicGames/data/repositoryImpl/HGLauncherRepositoryImpl.kt`)
+
+Implementación del repositorio. Persiste la preferencia `heroicEnabled` en `config.json`
+mediante un modelo propio `HeroicConfig`, independiente del modelo de `SettingsRepositoryImpl`.
+
+```json
+{
+  "heroicEnabled": true
+}
+```
+
+#### Mapper
+(`HeroicGames/data/mappers/Mappers.kt`)
+
+```kotlin
+fun HGLauncherDto.toDomain() = HGLauncher(
+    id = id,
+    name = name,
+    urlGameExecute = urlGameExecute,
+    image = image,
+    platform = Platforms.HEORIC_GAMES_LAUCHER
+)
+```
+
+---
 
 ### 3.2 Capa de Dominio
 
-**`ExecuteHGLauncherUseCase`**
-(`HeroicGames/domain/usecase/ExecuteHGLauncherUseCase.kt`)
+#### Entidad: `HGLauncher`
+(`HeroicGames/domain/entitys/HGLauncher.kt`)
 
-Caso de uso que aísla la lógica de negocio de la capa de datos. Recibe el adaptador por
-inyección de constructor y garantiza que la operación bloqueante se ejecute en
-`Dispatchers.IO`, liberando el hilo de la UI.
+Extiende `Game` con la plataforma `Platforms.HEORIC_GAMES_LAUCHER`. Es la entidad
+que fluye a través del ViewModel hasta la UI.
 
-- Marcado `open` para permitir implementaciones Fake en los tests.
-- El operador `invoke()` también es `open` por la misma razón.
+#### Use Cases
+
+| Clase | Responsabilidad |
+|---|---|
+| `FindHGLauncherUseCase` | Consulta `isHeroicEnabled()`. Reemplaza `IsHeroicEnabledUseCase` de settings. |
+| `EnableHGLauncherUseCase` | Llama a `saveHeroicEnabled(true)`. Activa Heroic en biblioteca. |
+| `HideHGLauncherUseCase` | Llama a `hideHGLauncher()` → `saveHeroicEnabled(false)`. Oculta Heroic. |
+| `ShowHGLauncherUseCase` | Llama a `showHGLauncher().toDomain()`. Obtiene entidad de dominio. |
+| `ExecuteHGLauncherUseCase` | Llama a `executeHGLauncher()`. Lanza el proceso nativo. |
+
+> **¿Por qué use cases separados para Enable y Hide?** Principio de Responsabilidad Única (SRP):
+> cada use case representa una sola intención del usuario. Facilita el testing independiente
+> y documenta explícitamente el contrato de cada operación.
+
+Todos los use cases son `open` para permitir implementaciones Fake sin frameworks de mocking.
+
+---
 
 ### 3.3 Capa de Presentación
 
-**`HomeViewModel`**
+#### `HomeViewModel`
 (`presesentation/viewModel/home/HomeViewModel.kt`)
 
-El ViewModel recibe `ExecuteHGLauncherUseCase` como parámetro opcional (nullable) en su
-constructor, siguiendo el patrón ya establecido para `ExecuteGameP2UseCase`. El `when`
-exhaustivo sobre `Platforms.HEORIC_GAMES_LAUCHER` delega al use case.
+Recibe por inyección `FindHGLauncherUseCase` y `ShowHGLauncherUseCase`. En `loadGames()`:
+
+```kotlin
+val heroicEntry: List<Game> = if (findHGLauncherUseCase?.invoke() == true) {
+    val launcher = showHGLauncherUseCase?.invoke()
+    if (launcher != null) listOf(launcher) else emptyList()
+} else {
+    emptyList()
+}
+```
+
+> **Decisión de diseño:** El ViewModel no construye el objeto `HGLauncher` directamente.
+> Delega la obtención de datos al `ShowHGLauncherUseCase`, respetando Clean Architecture.
+
+#### `SettingsViewModel`
+(`presesentation/viewModel/settings/SettingsViewModel.kt`)
+
+Recibe por inyección `FindHGLauncherUseCase`, `EnableHGLauncherUseCase` y `HideHGLauncherUseCase`.
+El método `setHeroicEnabled(enabled)` despacha al use case correcto:
+
+```kotlin
+fun setHeroicEnabled(enabled: Boolean) {
+    viewModelScope.launch {
+        if (enabled) enableHGLauncherUseCase()
+        else hideHGLauncherUseCase()
+        _heroicEnabled.value = enabled
+    }
+}
+```
 
 ---
 
 ## 4. Inyección de Dependencias (Koin)
 
-Los nuevos componentes se registran en los módulos Koin existentes. Consultar la guía
-completa en [07_inyeccion_dependencias_koin.md](07_inyeccion_dependencias_koin.md).
+Consultar la guía completa en [07_inyeccion_dependencias_koin.md](07_inyeccion_dependencias_koin.md).
 
 ### 4.1 DataModule
 
 ```kotlin
-// Adaptador de Heroic Games Launcher para detección y ejecución nativa del proceso
+// Adaptador nativo — single porque no tiene estado mutable
 single { LauncherHeroicGamesAdapter() }
-```
 
-Se registra como `single` porque no tiene estado mutable y puede ser compartido entre
-distintas partes del grafo de dependencias.
+// Repositorio expuesto por su interfaz
+single<HGLauncherRepository> { HGLauncherRepositoryImpl(adapter = get()) }
+```
 
 ### 4.2 DomainModule
 
 ```kotlin
-// UseCase de Heroic Games Launcher
+// Ejecución
 factory { ExecuteHGLauncherUseCase(adapter = get()) }
-```
 
-Se registra como `factory` porque los casos de uso son stateless y cada consumidor
-debe obtener su propia instancia limpia.
+// Datos del launcher
+factory { ShowHGLauncherUseCase(repository = get()) }
+
+// Gestión de visibilidad en biblioteca
+factory { FindHGLauncherUseCase(repository = get()) }
+factory { EnableHGLauncherUseCase(repository = get()) }
+factory { HideHGLauncherUseCase(repository = get()) }
+```
 
 ---
 
 ## 5. Pruebas Unitarias (TDD)
 
-**`ExecuteHGLauncherUseCaseTest`**
+### 5.1 `ExecuteHGLauncherUseCaseTest`
 (`test/.../HeroicGames/domain/usecase/ExecuteHGLauncherUseCaseTest.kt`)
 
-Se usa un `FakeHeroicLauncherAdapter` que hereda de `LauncherHeroicGamesAdapter` y
-sobreescribe `executeLauncher()` para controlar el resultado sin hacer llamadas reales
-al sistema operativo.
+Usa `FakeHeroicLauncherAdapter` (hereda de `LauncherHeroicGamesAdapter`) para controlar el resultado.
 
 | Test | Valida |
 |---|---|
-| `whenLaunchSucceeds_returnsTrue` | El UseCase retorna `true` cuando el adaptador tiene éxito. |
-| `whenLaunchFails_returnsFalse` | El UseCase retorna `false` cuando el adaptador reporta fallo. |
-| `whenInvoked_callsAdapterExecute` | El UseCase delega la llamada al adaptador. |
+| `whenLaunchSucceeds_returnsTrue` | UseCase retorna `true` cuando el adaptador tiene éxito. |
+| `whenLaunchFails_returnsFalse` | UseCase retorna `false` cuando el adaptador reporta fallo. |
+| `whenInvoked_callsAdapterExecute` | UseCase delega la llamada al adaptador. |
 
-> El aislamiento de los tests unitarios frente al sistema operativo real es un requisito
-> obligatorio del proyecto. Ver reglas TDD en [01_arquitectura.md](01_arquitectura.md).
+### 5.2 `HGLauncherVisibilityUseCasesTest`
+(`test/.../HeroicGames/domain/usecase/HGLauncherVisibilityUseCasesTest.kt`)
+
+Usa `FakeHGLauncherRepository` (implementación en memoria del repositorio completo).
+
+| Test | Valida |
+|---|---|
+| `findHGLauncher_whenDisabled_returnsFalse` | Estado inicial = false por defecto. |
+| `findHGLauncher_whenEnabled_returnsTrue` | Retorna true cuando está habilitado. |
+| `enableHGLauncher_setsHeroicEnabledToTrue` | Persiste `true` en el repositorio. |
+| `hideHGLauncher_setsHeroicEnabledToFalse` | Persiste `false` en el repositorio. |
+| `hideHGLauncher_onSuccess_returnsTrue` | Retorna `true` si la operación es exitosa. |
+| `hideHGLauncher_onFailure_returnsFalse` | Retorna `false` si el repositorio falla. |
+| `showHGLauncher_returnsMappedDomainEntity` | Entidad mapeada con todos los campos correctos. |
+| `fullVisibilityCycle_enableThenHide_stateIsConsistent` | Ciclo completo enable→find→hide→find. |
+
+### 5.3 `HomeViewModelTest` (tests de Heroic)
+(`test/.../presesentation/viewModel/home/HomeViewModelTest.kt`)
+
+Usa `FakeFindHGLauncherUseCase` y `FakeShowHGLauncherUseCase`.
+
+| Test | Valida |
+|---|---|
+| `loadGames_withHeroicEnabled_includesHeroicInGamesList` | Heroic aparece en lista cuando está activo. |
+| `loadGames_withHeroicDisabled_doesNotIncludeHeroicInGamesList` | Heroic no aparece cuando está inactivo. |
 
 ---
 
@@ -152,40 +275,25 @@ al sistema operativo.
 ### 6.1 Linux (Flatpak)
 
 - **Verificación:** `flatpak info com.heroicgameslauncher.hgl`
-  - Exit code `0` = instalado. Cualquier otro código = no instalado o error.
+  - Exit code `0` = instalado.
 - **Ejecución:** `flatpak run com.heroicgameslauncher.hgl --fullscreen`
-- **¿Por qué Flatpak?** Es la distribución estándar y más común de Heroic Games Launcher
-  en plataformas portátiles de Linux (como Steam Deck), coherente con el enfoque de PCSX2.
+- **¿Por qué Flatpak?** Es la distribución estándar en plataformas portátiles Linux (Steam Deck).
 
 ### 6.2 Windows
 
 - **Verificación:** `cmd /c if exist "%LocalAppData%\Programs\heroic\Heroic.exe" (echo 1) else (echo 0)`
-  - Salida `"1"` = instalado.
 - **Ejecución:** `System.getenv("LOCALAPPDATA") + "\Programs\heroic\Heroic.exe" --fullscreen`
-- **¿Por qué esta ruta?** Es la ruta de instalación estándar del instalador oficial de
-  Heroic Games Launcher para Windows.
+- **¿Por qué esta ruta?** Es la ruta del instalador oficial de Heroic Games Launcher para Windows.
 
 ---
 
-## 7. Referencias Cruzadas
+## 7. Integración en la UI
 
-- Arquitectura general de capas: [01_arquitectura.md](01_arquitectura.md)
-- Tecnologías y dependencias (Coroutines, ProcessBuilder): [02_tecnologias.md](02_tecnologias.md)
-- Estructura modular del proyecto: [03_modulos.md](03_modulos.md)
-- Patrón de ejecución de proceso nativo (referencia PCSX2): [04_pcsx2.md](04_pcsx2.md)
-- Guía de inyección de dependencias Koin: [07_inyeccion_dependencias_koin.md](07_inyeccion_dependencias_koin.md)
-- Persistencia de configuración del proyecto: [08_persistencia_configuracion.md](08_persistencia_configuracion.md)
-- Contexto general de la IA para coherencia entre sesiones: [05_contexto_ia.md](05_contexto_ia.md)
+### 7.1 Toggle de Visibilidad en Configuración
 
----
-
-## 8. Integración en la UI — Biblioteca y Configuración
-
-### 8.1 Toggle de visibilidad en Configuración
-
-El diálogo `SetupPathDialog` incluye una sección dedicada a Heroic Games Launcher con un
-`Switch` de Material3. La preferencia se persiste en `config.json` bajo la clave
-`"heroic_enabled"` dentro del mapa existente, sin modificar la estructura de datos.
+El diálogo `SetupPathDialog` incluye un `Switch` de Material3 para activar/desactivar
+Heroic en la biblioteca. La preferencia se persiste en `config.json` (campo `heroicEnabled`)
+a través del `SettingsViewModel` → `EnableHGLauncherUseCase` / `HideHGLauncherUseCase`.
 
 **Navegación por gamepad:**
 
@@ -196,45 +304,29 @@ El diálogo `SetupPathDialog` incluye una sección dedicada a Heroic Games Launc
 | LEFT/RIGHT | Navega entre EXAMINAR → CANCELAR → GUARDAR |
 | A (CONFIRM) | Activa el toggle si está enfocado; confirma la acción del botón activo |
 
-El borde de la sección de Heroic se resalta en cian (`0xFF00FFCC`) cuando está enfocada,
-manteniendo la coherencia visual con el sistema de diseño Metro del proyecto.
+### 7.2 Entrada en la Biblioteca Principal
 
-### 8.2 Entrada en la Biblioteca Principal
+Cuando el toggle está activo, `HomeViewModel.loadGames()` llama a `ShowHGLauncherUseCase`
+para obtener el `HGLauncher` mapeado desde el repositorio, que se mezcla con los juegos
+de PCSX2 en la lista ordenada por nombre.
 
-Cuando el toggle está activo, `HomeViewModel.loadGames()` construye una entrada fija
-de tipo `HGLauncher` que se mezcla con los juegos de PCSX2 en la lista:
+Al seleccionarlo, `onGameSelected()` detecta `Platforms.HEORIC_GAMES_LAUCHER`
+y delega a `ExecuteHGLauncherUseCase`.
 
-```kotlin
-HGLauncher(
-    id = "heroic-launcher",
-    name = "Heroic Games",
-    urlGameExecute = "",
-    platform = Platforms.HEORIC_GAMES_LAUCHER
-)
-```
+---
 
-El tile aparece en la cuadrícula exactamente igual que cualquier otro juego, sin
-ninguna diferenciación visual por el momento (decisión de diseño futura).
-Al seleccionarlo, `onGameSelected()` detecta `Platforms.HEORIC_GAMES_LAUCHER` y
-delega a `ExecuteHGLauncherUseCase`.
+## 8. Referencias Cruzadas
 
-### 8.3 Use Cases de Preferencia
+- Arquitectura general de capas: [01_arquitectura.md](01_arquitectura.md)
+- Tecnologías y dependencias (Coroutines, ProcessBuilder): [02_tecnologias.md](02_tecnologias.md)
+- Estructura modular del proyecto: [03_modulos.md](03_modulos.md)
+- Patrón de ejecución de proceso nativo (referencia PCSX2): [04_pcsx2.md](04_pcsx2.md)
+- Guía de inyección de dependencias Koin: [07_inyeccion_dependencias_koin.md](07_inyeccion_dependencias_koin.md)
+- Persistencia de configuración del proyecto: [08_persistencia_configuracion.md](08_persistencia_configuracion.md)
+- Contexto general de la IA: [05_contexto_ia.md](05_contexto_ia.md)
 
-| Clase | Responsabilidad |
-|---|---|
-| `IsHeroicEnabledUseCase` | Consulta si Heroic debe mostrarse (lee `config.json`). |
-| `SaveHeroicEnabledUseCase` | Persiste la preferencia del toggle (escribe `config.json`). |
+---
 
-Ambos use cases son `open` para permitir `Fakes` en tests sin frameworks de mocking.
-
-### 8.4 Tests Unitarios del Toggle
-
-**`HeroicToggleUseCasesTest`** — 4 tests con `FakeSettingsRepository` en memoria:
-
-| Test | Valida |
-|---|---|
-| `isHeroicEnabled_whenNothingSaved_returnsFalse` | Estado inicial = false por defecto. |
-| `isHeroicEnabled_afterSavingTrue_returnsTrue` | Ciclo save(true) → read = true. |
-| `isHeroicEnabled_afterSavingFalse_returnsFalse` | Ciclo save(true) → save(false) → read = false. |
-| `saveHeroicEnabled_whenInvoked_callsRepository` | Verifica que se delega al repositorio. |
-
+@author Daniel Figueroa Vidal
+@since 2026-08-12
+@updated 2026-08-13
