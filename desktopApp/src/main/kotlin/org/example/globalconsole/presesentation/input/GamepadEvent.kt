@@ -20,7 +20,9 @@ sealed class GamepadEvent {
         /** Botón de cancelación / volver atrás (B en Xbox, Círculo en PlayStation). */
         BACK,
         /** Botón de menú o pausa (Start / Options). */
-        MENU
+        MENU,
+        /** Botón de borrado / eliminar (X en Xbox, Cuadrado en PlayStation). Usado en el OSK para borrar la última letra. */
+        DELETE
     }
 
     /**

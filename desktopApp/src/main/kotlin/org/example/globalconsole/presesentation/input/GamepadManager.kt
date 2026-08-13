@@ -149,6 +149,7 @@ class GamepadManager {
         checkButtonPress(buttons, GLFW_GAMEPAD_BUTTON_A, GamepadEvent.Button.CONFIRM)
         checkButtonPress(buttons, GLFW_GAMEPAD_BUTTON_B, GamepadEvent.Button.BACK)
         checkButtonPress(buttons, GLFW_GAMEPAD_BUTTON_START, GamepadEvent.Button.MENU)
+        checkButtonPress(buttons, GLFW_GAMEPAD_BUTTON_X, GamepadEvent.Button.DELETE)
 
         // 2. Stick derecho → ratón (estilo PS4 Remote Play)
         moveMouseWithRightStick(axes)
