@@ -47,6 +47,7 @@ import org.example.globalconsole.generalDomain.entititys.Game
 fun GameTile(
     game: Game,
     focusRequester: FocusRequester = remember { FocusRequester() },
+    inputMode: org.example.globalconsole.presesentation.input.InputMode = org.example.globalconsole.presesentation.input.InputMode.GAMEPAD,
     onClick: () -> Unit,
     onFocus: () -> Unit = {}
 ) {
@@ -54,22 +55,15 @@ fun GameTile(
     val isHovered by interactionSource.collectIsHoveredAsState()
     val isFocused by interactionSource.collectIsFocusedAsState()
     
-    // Activo si está bajo el cursor o enfocado por gamepad/teclado
-    val isActive = isHovered || isFocused
+    // Solo aplicar el brillo de isFocused si el modo de entrada es GAMEPAD.
+    // Si es MOUSE, ignoramos el isFocused virtual y usamos solo el hover real del ratón.
+    val isVirtualFocused = isFocused && inputMode == org.example.globalconsole.presesentation.input.InputMode.GAMEPAD
+    val isActive = isHovered || isVirtualFocused
 
     // Notificar al componente madre cuando este juego obtenga el foco por cualquier medio
     LaunchedEffect(isFocused) {
         if (isFocused) {
             onFocus()
-        }
-    }
-
-    // Sincronizar el ratón con el sistema de foco: al pasar por encima, solicitamos foco
-    // de forma que si el usuario presiona "Confirmar" con el mando, lance este juego.
-    LaunchedEffect(isHovered) {
-        if (isHovered && !isFocused) {
-            onFocus()
-            focusRequester.requestFocus()
         }
     }
 

@@ -68,6 +68,7 @@ fun GamepadOSK(
 ) {
     var inputText by remember { mutableStateOf(initialText) }
     var isUpperCase by remember { mutableStateOf(false) }
+    val inputMode by gamepadManager.inputMode.collectAsState()
     var focusedRow by remember { mutableStateOf(0) }
     var focusedCol by remember { mutableStateOf(0) }
 
@@ -165,7 +166,8 @@ fun GamepadOSK(
                             OSKKey(
                                 label = key,
                                 isFocused = isFocused,
-                                isSpecial = key in listOf("⌫", "↵", "SHIFT", "ESPACIO"),
+                                isSpecial = key in listOf("SHIFT", "↵", "⌫", "ESPACIO"),
+                                inputMode = inputMode,
                                 onClick = {
                                     if (key == "↵") {
                                         onConfirm(inputText)
@@ -235,13 +237,20 @@ private fun handleKeyPress(key: String, currentText: String, onShiftToggle: () -
  * @since 2026-08-13
  */
 @Composable
-private fun OSKKey(label: String, isFocused: Boolean, isSpecial: Boolean, onClick: () -> Unit) {
+private fun OSKKey(
+    label: String,
+    isFocused: Boolean,
+    isSpecial: Boolean,
+    inputMode: org.example.globalconsole.presesentation.input.InputMode,
+    onClick: () -> Unit
+) {
+    val isVirtualFocused = isFocused && inputMode == org.example.globalconsole.presesentation.input.InputMode.GAMEPAD
     val bgColor = when {
-        isFocused -> Color(0xFF00FFCC)
+        isVirtualFocused -> Color(0xFF00FFCC)
         isSpecial -> Color(0xFF2A2A2A)
         else -> Color(0xFF1A1A1A)
     }
-    val textColor = if (isFocused) Color.Black else Color.White
+    val textColor = if (isVirtualFocused) Color.Black else Color.White
     val width = when (label) {
         "ESPACIO" -> 320.dp
         "SHIFT", "↵" -> 64.dp
@@ -255,7 +264,7 @@ private fun OSKKey(label: String, isFocused: Boolean, isSpecial: Boolean, onClic
             .height(44.dp)
             .padding(2.dp)
             .background(bgColor, RectangleShape)
-            .border(1.dp, if (isFocused) Color(0xFF00FFCC) else Color(0xFF444444), RectangleShape)
+            .border(1.dp, if (isVirtualFocused) Color(0xFF00FFCC) else Color(0xFF444444), RectangleShape)
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
@@ -263,7 +272,7 @@ private fun OSKKey(label: String, isFocused: Boolean, isSpecial: Boolean, onClic
             text = label,
             color = textColor,
             fontSize = if (label.length > 3) 10.sp else 14.sp,
-            fontWeight = if (isFocused) FontWeight.Bold else FontWeight.Normal,
+            fontWeight = if (isVirtualFocused) FontWeight.Bold else FontWeight.Normal,
             fontFamily = FontFamily.Monospace,
             textAlign = TextAlign.Center
         )

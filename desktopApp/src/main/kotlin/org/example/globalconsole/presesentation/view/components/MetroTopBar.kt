@@ -43,10 +43,10 @@ fun MetroTopBar(
     searchQuery: String,
     onSearchChanged: (String) -> Unit,
     focusedButton: TopBarFocus = TopBarFocus.NONE,
+    inputMode: org.example.globalconsole.presesentation.input.InputMode = org.example.globalconsole.presesentation.input.InputMode.GAMEPAD,
     onSearchClick: () -> Unit,
     onRefreshClick: () -> Unit,
-    onSettingsClick: () -> Unit,
-    onHoverButton: (TopBarFocus) -> Unit = {}
+    onSettingsClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -114,8 +114,8 @@ fun MetroTopBar(
         MetroButton(
             text = "BUSCAR",
             isFocused = focusedButton == TopBarFocus.SEARCH,
-            onClick = onSearchClick,
-            onHover = { onHoverButton(TopBarFocus.SEARCH) }
+            inputMode = inputMode,
+            onClick = onSearchClick
         )
 
         Spacer(modifier = Modifier.width(8.dp))
@@ -124,8 +124,8 @@ fun MetroTopBar(
         MetroButton(
             text = "RECARGAR",
             isFocused = focusedButton == TopBarFocus.REFRESH,
-            onClick = onRefreshClick,
-            onHover = { onHoverButton(TopBarFocus.REFRESH) }
+            inputMode = inputMode,
+            onClick = onRefreshClick
         )
 
         Spacer(modifier = Modifier.width(8.dp))
@@ -134,8 +134,8 @@ fun MetroTopBar(
         MetroButton(
             text = "CONFIGURACIÓN",
             isFocused = focusedButton == TopBarFocus.SETTINGS,
-            onClick = onSettingsClick,
-            onHover = { onHoverButton(TopBarFocus.SETTINGS) }
+            inputMode = inputMode,
+            onClick = onSettingsClick
         )
     }
 }

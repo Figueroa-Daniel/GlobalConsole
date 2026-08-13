@@ -60,6 +60,8 @@ fun HomeScreen(
     var showPathDialog by remember { mutableStateOf(false) }
     var showOSK by remember { mutableStateOf(false) }
     var focusedTopBar by remember { mutableStateOf(TopBarFocus.NONE) }
+    
+    val inputMode by gamepadManager?.inputMode?.collectAsState() ?: remember { mutableStateOf(org.example.globalconsole.presesentation.input.InputMode.GAMEPAD) }
 
     // Índice del tile actualmente enfocado por el mando
     var focusedGameIndex by remember { mutableStateOf(0) }
@@ -98,10 +100,10 @@ fun HomeScreen(
                 searchQuery = searchQuery,
                 onSearchChanged = { viewModel.onSearchQueryChanged(it) },
                 focusedButton = focusedTopBar,
+                inputMode = inputMode,
                 onSearchClick = { showOSK = true },
                 onRefreshClick = { viewModel.loadGames() },
-                onSettingsClick = { showPathDialog = true },
-                onHoverButton = { focusedTopBar = it }
+                onSettingsClick = { showPathDialog = true }
             )
 
             Box(
@@ -245,6 +247,7 @@ fun HomeScreen(
                                     GameTile(
                                         game = game,
                                         focusRequester = focusRequesters[index],
+                                        inputMode = inputMode,
                                         onClick = { viewModel.onGameSelected(game) },
                                         onFocus = { focusedGameIndex = index }
                                     )

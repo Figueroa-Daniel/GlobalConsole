@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import org.example.globalconsole.presesentation.input.InputMode
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -44,19 +45,17 @@ fun MetroButton(
     modifier: Modifier = Modifier,
     isPrimary: Boolean = false,
     isFocused: Boolean = false,
-    onHover: () -> Unit = {}
+    inputMode: InputMode = InputMode.GAMEPAD
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
     val isComposeFocused by interactionSource.collectIsFocusedAsState()
-    val isActive = isHovered || isComposeFocused || isFocused
-
-    androidx.compose.runtime.LaunchedEffect(isHovered) {
-        if (isHovered && !isFocused && !isComposeFocused) {
-            onHover()
-        }
-    }
     
+    // Solo aplicar el brillo de isFocused si el modo de entrada es GAMEPAD.
+    // Si es MOUSE, ignoramos el isFocused virtual y usamos solo el hover real del ratón.
+    val isVirtualFocused = isFocused && inputMode == InputMode.GAMEPAD
+    val isActive = isHovered || isComposeFocused || isVirtualFocused
+
     val bgColor = if (isActive) {
         if (isPrimary) Color(0xFFCCCCCC) else Color.White
     } else {

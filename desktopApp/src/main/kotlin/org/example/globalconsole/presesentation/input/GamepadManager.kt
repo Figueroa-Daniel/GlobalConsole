@@ -2,8 +2,11 @@ package org.example.globalconsole.presesentation.input
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWGamepadState
 import java.awt.GraphicsEnvironment
@@ -12,6 +15,13 @@ import java.awt.Robot
 import java.awt.event.InputEvent
 import java.nio.ByteBuffer
 import kotlin.math.abs
+
+/**
+ * Modos de entrada disponibles en la interfaz.
+ */
+enum class InputMode {
+    MOUSE, GAMEPAD
+}
 
 /**
  * Gestor del ciclo de vida de GLFW y de la lectura de eventos de gamepad físicos.
@@ -34,6 +44,9 @@ class GamepadManager {
      * El movimiento del ratón por stick derecho NO se emite aquí; se aplica directamente al sistema.
      */
     val events: SharedFlow<GamepadEvent> = _events.asSharedFlow()
+
+    private val _inputMode = MutableStateFlow(InputMode.GAMEPAD)
+    val inputMode: StateFlow<InputMode> = _inputMode.asStateFlow()
 
     private var pollingJob: Job? = null
     private var isInitialized = false
@@ -146,7 +159,19 @@ class GamepadManager {
         val axes = state.axes()
 
         // 1. Botones de acción
-        checkButtonPress(buttons, GLFW_GAMEPAD_BUTTON_A, GamepadEvent.Button.CONFIRM)
+        // El botón A (Cruz) depende del modo de entrada actual
+        val aPressed = buttons.get(GLFW_GAMEPAD_BUTTON_A).toInt() == GLFW_PRESS
+        val aWasPressed = lastButtonsState[GLFW_GAMEPAD_BUTTON_A] ?: false
+        if (aPressed && !aWasPressed) {
+            if (_inputMode.value == InputMode.MOUSE) {
+                awtRobot?.mousePress(InputEvent.BUTTON1_DOWN_MASK)
+                awtRobot?.mouseRelease(InputEvent.BUTTON1_DOWN_MASK)
+            } else {
+                _events.emit(GamepadEvent.ButtonPressed(GamepadEvent.Button.CONFIRM))
+            }
+        }
+        lastButtonsState[GLFW_GAMEPAD_BUTTON_A] = aPressed
+
         checkButtonPress(buttons, GLFW_GAMEPAD_BUTTON_B, GamepadEvent.Button.BACK)
         checkButtonPress(buttons, GLFW_GAMEPAD_BUTTON_START, GamepadEvent.Button.MENU)
         checkButtonPress(buttons, GLFW_GAMEPAD_BUTTON_X, GamepadEvent.Button.DELETE)
@@ -154,8 +179,7 @@ class GamepadManager {
         // 2. Stick derecho → ratón (estilo PS4 Remote Play)
         moveMouseWithRightStick(axes)
 
-        // 3. Cuadrado (BUTTON_X en GLFW) → click izquierdo del ratón
-        handleMouseLeftClick(buttons)
+        // 3. (Eliminado handleMouseLeftClick individual para evitar conflicto de estado)
 
         // 4. Direcciones de navegación: D-Pad tiene prioridad sobre stick izquierdo
         var activeDirection: GamepadEvent.Direction? = null
@@ -185,6 +209,7 @@ class GamepadManager {
         // Debouncing de dirección: emite el primer evento inmediatamente y repite después de un retardo
         val currentTime = System.currentTimeMillis()
         if (activeDirection != null) {
+            _inputMode.value = InputMode.GAMEPAD
             if (activeDirection != lastPressedDirection ||
                 (currentTime - lastDirectionPressedTime) >= directionRepeatDelayMs
             ) {
@@ -213,6 +238,8 @@ class GamepadManager {
 
         if (abs(rightX) < deadZone && abs(rightY) < deadZone) return
 
+        _inputMode.value = InputMode.MOUSE
+
         // Escalado cuadrático: suave en el centro, rápido en el extremo
         val scaledX = rightX * abs(rightX) * mouseSensitivity
         val scaledY = rightY * abs(rightY) * mouseSensitivity
@@ -231,27 +258,7 @@ class GamepadManager {
         )
     }
 
-    /**
-     * Detecta la pulsación del botón A / Cruz (GLFW_GAMEPAD_BUTTON_A) y ejecuta
-     * un click izquierdo del ratón físico en la posición actual del cursor.
-     * Este evento se dispara de forma simultánea a la emisión del [GamepadEvent.Button.CONFIRM].
-     *
-     * @param buttons Buffer de botones GLFW del mando.
-     * @author Daniel Figueroa Vidal
-     * @since 2026-08-09
-     */
-    private fun handleMouseLeftClick(buttons: ByteBuffer) {
-        val isPressed = buttons.get(GLFW_GAMEPAD_BUTTON_A).toInt() == GLFW_PRESS
-        val wasPressed = lastButtonsState[GLFW_GAMEPAD_BUTTON_A]
 
-        if (isPressed && !wasPressed) {
-            awtRobot?.let {
-                it.mousePress(InputEvent.BUTTON1_DOWN_MASK)
-                it.mouseRelease(InputEvent.BUTTON1_DOWN_MASK)
-            }
-        }
-        lastButtonsState[GLFW_GAMEPAD_BUTTON_A] = isPressed
-    }
 
     /**
      * Compara el estado del botón actual con el anterior para emitir el evento
@@ -269,7 +276,7 @@ class GamepadManager {
         eventButton: GamepadEvent.Button
     ) {
         val isPressed = buttons.get(glfwButtonId).toInt() == GLFW_PRESS
-        val wasPressed = lastButtonsState[glfwButtonId]
+        val wasPressed = lastButtonsState[glfwButtonId] ?: false
 
         if (isPressed && !wasPressed) {
             _events.emit(GamepadEvent.ButtonPressed(eventButton))
