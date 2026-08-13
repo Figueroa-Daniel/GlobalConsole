@@ -43,12 +43,19 @@ fun MetroButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     isPrimary: Boolean = false,
-    isFocused: Boolean = false
+    isFocused: Boolean = false,
+    onHover: () -> Unit = {}
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
     val isComposeFocused by interactionSource.collectIsFocusedAsState()
     val isActive = isHovered || isComposeFocused || isFocused
+
+    androidx.compose.runtime.LaunchedEffect(isHovered) {
+        if (isHovered && !isFocused && !isComposeFocused) {
+            onHover()
+        }
+    }
     
     val bgColor = if (isActive) {
         if (isPrimary) Color(0xFFCCCCCC) else Color.White

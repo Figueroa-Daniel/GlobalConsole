@@ -2,6 +2,10 @@ package org.example.globalconsole.presesentation.view.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -260,11 +264,21 @@ fun SetupPathDialog(
                     Color(0xFF333333)
                 }
 
+                val heroicInteractionSource = remember { MutableInteractionSource() }
+                val isHeroicHovered by heroicInteractionSource.collectIsHoveredAsState()
+                
+                LaunchedEffect(isHeroicHovered) {
+                    if (isHeroicHovered) {
+                        focusedButton = DialogButton.HEROIC_TOGGLE
+                    }
+                }
+
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .border(1.dp, heroicSectionBorderColor, RectangleShape)
                         .padding(12.dp)
+                        .hoverable(heroicInteractionSource)
                 ) {
                     Text(
                         text = "HEROIC GAMES LAUNCHER",
@@ -365,7 +379,8 @@ fun SetupPathDialog(
                         isFocused = focusedButton == DialogButton.BROWSE,
                         onClick = {
                             showFolderPicker = true
-                        }
+                        },
+                        onHover = { focusedButton = DialogButton.BROWSE }
                     )
                 }
 
@@ -388,7 +403,8 @@ fun SetupPathDialog(
                     MetroButton(
                         text = "CANCELAR",
                         isFocused = focusedButton == DialogButton.CANCEL,
-                        onClick = onDismiss
+                        onClick = onDismiss,
+                        onHover = { focusedButton = DialogButton.CANCEL }
                     )
 
                     Spacer(modifier = Modifier.width(16.dp))
@@ -410,7 +426,8 @@ fun SetupPathDialog(
                                     errorMessage = "La ruta no es un directorio válido"
                                 }
                             }
-                        }
+                        },
+                        onHover = { focusedButton = DialogButton.CONFIRM }
                     )
                 }
             }
