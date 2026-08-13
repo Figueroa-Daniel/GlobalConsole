@@ -61,6 +61,29 @@ class SettingsRepositoryImpl : SettingsRepository {
         readConfig().emulatorPaths[emulatorId]
 
     /**
+     * Persiste la sensibilidad del ratón en `config.json`.
+     *
+     * @param speed La nueva sensibilidad.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-08-13
+     */
+    override suspend fun saveMouseSensitivity(speed: Float) {
+        val current = readConfig()
+        val updated = current.copy(mouseSensitivity = speed)
+        configFile.writeText(json.encodeToString(updated))
+    }
+
+    /**
+     * Recupera la sensibilidad del ratón desde `config.json`.
+     *
+     * @return La sensibilidad del ratón (por defecto 14f).
+     * @author Daniel Figueroa Vidal
+     * @since 2026-08-13
+     */
+    override suspend fun getMouseSensitivity(): Float =
+        readConfig().mouseSensitivity
+
+    /**
      * Lee y deserializa el archivo `config.json` en [AppConfig].
      * Si el archivo no existe o no puede parsearse, retorna una instancia por defecto.
      *

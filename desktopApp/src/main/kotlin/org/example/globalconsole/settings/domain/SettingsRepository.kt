@@ -32,4 +32,22 @@ interface SettingsRepository {
      * @since 2026-08-10
      */
     suspend fun getEmulatorPath(emulatorId: String): String?
+
+    /**
+     * Guarda la sensibilidad del ratón para el gamepad.
+     *
+     * @param speed Valor de sensibilidad (ej. de 1f a 50f).
+     * @author Daniel Figueroa Vidal
+     * @since 2026-08-13
+     */
+    suspend fun saveMouseSensitivity(speed: Float)
+
+    /**
+     * Recupera la sensibilidad del ratón configurada para el gamepad.
+     *
+     * @return La sensibilidad del ratón.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-08-13
+     */
+    suspend fun getMouseSensitivity(): Float
 }

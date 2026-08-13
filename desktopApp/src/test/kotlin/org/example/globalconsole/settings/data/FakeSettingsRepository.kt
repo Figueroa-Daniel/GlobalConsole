@@ -12,6 +12,7 @@ import org.example.globalconsole.settings.domain.SettingsRepository
 class FakeSettingsRepository : SettingsRepository {
 
     private val paths = mutableMapOf<String, String>()
+    private var mouseSensitivity: Float = 14f
 
     /**
      * Guarda la ruta asociada al emulador indicado en memoria.
@@ -34,4 +35,10 @@ class FakeSettingsRepository : SettingsRepository {
      * @since 2026-08-10
      */
     override suspend fun getEmulatorPath(emulatorId: String): String? = paths[emulatorId]
+
+    override suspend fun saveMouseSensitivity(speed: Float) {
+        mouseSensitivity = speed
+    }
+
+    override suspend fun getMouseSensitivity(): Float = mouseSensitivity
 }
