@@ -67,6 +67,7 @@ fun SetupPathDialog(
     var pathText by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
     var focusedButton by remember { mutableStateOf(DialogButton.CONFIRM) }
+    var showFolderPicker by remember { mutableStateOf(false) }
 
     // Precarga la ruta guardada, la preferencia de Heroic y la sensibilidad
     LaunchedEffect(Unit) {
@@ -86,7 +87,9 @@ fun SetupPathDialog(
     }
 
     // Navegación por gamepad entre todos los elementos del diálogo
-    LaunchedEffect(gamepadManager) {
+    LaunchedEffect(gamepadManager, showFolderPicker) {
+        if (showFolderPicker) return@LaunchedEffect
+        
         gamepadManager.events.collect { event ->
             when (event) {
                 is GamepadEvent.DirectionPressed -> {
@@ -126,7 +129,6 @@ fun SetupPathDialog(
                 is GamepadEvent.ButtonPressed -> {
                     if (event.button == GamepadEvent.Button.CONFIRM) {
                         when (focusedButton) {
-                            // Alternar el toggle de Heroic con el botón de confirmación
                             DialogButton.HEROIC_TOGGLE -> {
                                 settingsViewModel.setHeroicEnabled(!heroicEnabled)
                             }
@@ -135,15 +137,7 @@ fun SetupPathDialog(
                                 // se ajusta directamente con las direcciones LEFT/RIGHT.
                             }
                             DialogButton.BROWSE -> {
-                                val chooser = JFileChooser().apply {
-                                    fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
-                                    dialogTitle = "Selecciona la carpeta de Juegos"
-                                }
-                                val result = chooser.showOpenDialog(null)
-                                if (result == JFileChooser.APPROVE_OPTION) {
-                                    pathText = chooser.selectedFile.absolutePath
-                                    errorMessage = ""
-                                }
+                                showFolderPicker = true
                             }
                             DialogButton.CANCEL -> onDismiss()
                             DialogButton.CONFIRM -> {
@@ -370,15 +364,7 @@ fun SetupPathDialog(
                         isPrimary = focusedButton == DialogButton.BROWSE,
                         isFocused = focusedButton == DialogButton.BROWSE,
                         onClick = {
-                            val chooser = JFileChooser().apply {
-                                fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
-                                dialogTitle = "Selecciona la carpeta de Juegos"
-                            }
-                            val result = chooser.showOpenDialog(null)
-                            if (result == JFileChooser.APPROVE_OPTION) {
-                                pathText = chooser.selectedFile.absolutePath
-                                errorMessage = ""
-                            }
+                            showFolderPicker = true
                         }
                     )
                 }
@@ -429,5 +415,20 @@ fun SetupPathDialog(
                 }
             }
         }
+    }
+
+    if (showFolderPicker) {
+        GamepadFolderPickerDialog(
+            gamepadManager = gamepadManager,
+            initialPath = if (pathText.isNotBlank() && File(pathText).exists()) pathText else System.getProperty("user.home"),
+            onDirectorySelected = { selectedPath ->
+                pathText = selectedPath
+                errorMessage = ""
+                showFolderPicker = false
+            },
+            onDismiss = {
+                showFolderPicker = false
+            }
+        )
     }
 }
