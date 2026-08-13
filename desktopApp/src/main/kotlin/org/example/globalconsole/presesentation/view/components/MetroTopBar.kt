@@ -22,12 +22,15 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.hoverable
 
+enum class TopBarFocus { NONE, SEARCH, REFRESH, SETTINGS }
+
 /**
  * Barra de navegación superior estilo Metro.
  * Contiene el título principal de la aplicación, el buscador minimalista y accesos rápidos.
  *
  * @param searchQuery Búsqueda de texto actual.
  * @param onSearchChanged Callback invocado al escribir en el buscador.
+ * @param focusedButton Botón actualmente enfocado por el D-pad.
  * @param onSearchClick Callback invocado al pulsar el botón de búsqueda (abre el OSK).
  * @param onRefreshClick Callback invocado al pulsar el botón de recarga.
  * @param onSettingsClick Callback invocado al pulsar el botón de configuración de ruta.
@@ -39,9 +42,11 @@ import androidx.compose.foundation.hoverable
 fun MetroTopBar(
     searchQuery: String,
     onSearchChanged: (String) -> Unit,
+    focusedButton: TopBarFocus = TopBarFocus.NONE,
     onSearchClick: () -> Unit,
     onRefreshClick: () -> Unit,
-    onSettingsClick: () -> Unit
+    onSettingsClick: () -> Unit,
+    onHoverButton: (TopBarFocus) -> Unit = {}
 ) {
     Row(
         modifier = Modifier
@@ -108,7 +113,9 @@ fun MetroTopBar(
         // Botón Buscar (abre el OSK)
         MetroButton(
             text = "BUSCAR",
-            onClick = onSearchClick
+            isFocused = focusedButton == TopBarFocus.SEARCH,
+            onClick = onSearchClick,
+            onHover = { onHoverButton(TopBarFocus.SEARCH) }
         )
 
         Spacer(modifier = Modifier.width(8.dp))
@@ -116,7 +123,9 @@ fun MetroTopBar(
         // Botón Actualizar
         MetroButton(
             text = "RECARGAR",
-            onClick = onRefreshClick
+            isFocused = focusedButton == TopBarFocus.REFRESH,
+            onClick = onRefreshClick,
+            onHover = { onHoverButton(TopBarFocus.REFRESH) }
         )
 
         Spacer(modifier = Modifier.width(8.dp))
@@ -124,7 +133,9 @@ fun MetroTopBar(
         // Botón Ajustes
         MetroButton(
             text = "CONFIGURACIÓN",
-            onClick = onSettingsClick
+            isFocused = focusedButton == TopBarFocus.SETTINGS,
+            onClick = onSettingsClick,
+            onHover = { onHoverButton(TopBarFocus.SETTINGS) }
         )
     }
 }

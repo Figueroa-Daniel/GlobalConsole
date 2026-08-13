@@ -31,6 +31,7 @@ import org.example.globalconsole.presesentation.view.components.GamepadOSK
 import org.example.globalconsole.presesentation.view.components.MetroTopBar
 import org.example.globalconsole.presesentation.view.components.MetroButton
 import org.example.globalconsole.presesentation.view.components.SetupPathDialog
+import org.example.globalconsole.presesentation.view.components.TopBarFocus
 import org.example.globalconsole.presesentation.viewModel.settings.SettingsViewModel
 
 /**
@@ -58,6 +59,7 @@ fun HomeScreen(
 
     var showPathDialog by remember { mutableStateOf(false) }
     var showOSK by remember { mutableStateOf(false) }
+    var focusedTopBar by remember { mutableStateOf(TopBarFocus.NONE) }
 
     // Índice del tile actualmente enfocado por el mando
     var focusedGameIndex by remember { mutableStateOf(0) }
@@ -95,9 +97,11 @@ fun HomeScreen(
             MetroTopBar(
                 searchQuery = searchQuery,
                 onSearchChanged = { viewModel.onSearchQueryChanged(it) },
+                focusedButton = focusedTopBar,
                 onSearchClick = { showOSK = true },
                 onRefreshClick = { viewModel.loadGames() },
-                onSettingsClick = { showPathDialog = true }
+                onSettingsClick = { showPathDialog = true },
+                onHoverButton = { focusedTopBar = it }
             )
 
             Box(
@@ -140,43 +144,70 @@ fun HomeScreen(
                                 when (event) {
                                     is GamepadEvent.DirectionPressed -> {
                                         if (games.isEmpty()) return@collectLatest
-
-                                        val current = focusedGameIndex.coerceIn(0, games.size - 1)
-                                        val newIndex = when (event.direction) {
-                                            GamepadEvent.Direction.UP -> {
-                                                val candidate = current - gridColumns
-                                                if (candidate >= 0) candidate else current // No escapa hacia arriba
+                                        
+                                        if (focusedTopBar != TopBarFocus.NONE) {
+                                            when (event.direction) {
+                                                GamepadEvent.Direction.LEFT -> {
+                                                    focusedTopBar = when (focusedTopBar) {
+                                                        TopBarFocus.SETTINGS -> TopBarFocus.REFRESH
+                                                        TopBarFocus.REFRESH -> TopBarFocus.SEARCH
+                                                        else -> focusedTopBar
+                                                    }
+                                                }
+                                                GamepadEvent.Direction.RIGHT -> {
+                                                    focusedTopBar = when (focusedTopBar) {
+                                                        TopBarFocus.SEARCH -> TopBarFocus.REFRESH
+                                                        TopBarFocus.REFRESH -> TopBarFocus.SETTINGS
+                                                        else -> focusedTopBar
+                                                    }
+                                                }
+                                                GamepadEvent.Direction.DOWN -> {
+                                                    focusedTopBar = TopBarFocus.NONE
+                                                }
+                                                GamepadEvent.Direction.UP -> {}
                                             }
-                                            GamepadEvent.Direction.DOWN -> {
-                                                val candidate = current + gridColumns
-                                                if (candidate < games.size) candidate else current
+                                        } else {
+                                            val current = focusedGameIndex.coerceIn(0, games.size - 1)
+                                            val newIndex = when (event.direction) {
+                                                GamepadEvent.Direction.UP -> {
+                                                    val candidate = current - gridColumns
+                                                    if (candidate >= 0) candidate else {
+                                                        focusedTopBar = TopBarFocus.SEARCH
+                                                        current
+                                                    }
+                                                }
+                                                GamepadEvent.Direction.DOWN -> {
+                                                    val candidate = current + gridColumns
+                                                    if (candidate < games.size) candidate else current
+                                                }
+                                                GamepadEvent.Direction.LEFT -> {
+                                                    val candidate = current - 1
+                                                    if (candidate >= 0 && candidate / gridColumns == current / gridColumns) candidate else current
+                                                }
+                                                GamepadEvent.Direction.RIGHT -> {
+                                                    val candidate = current + 1
+                                                    if (candidate < games.size && candidate / gridColumns == current / gridColumns) candidate else current
+                                                }
                                             }
-                                            GamepadEvent.Direction.LEFT -> {
-                                                val candidate = current - 1
-                                                // No cruza a la fila anterior
-                                                if (candidate >= 0 && candidate / gridColumns == current / gridColumns) {
-                                                    candidate
-                                                } else current
+    
+                                            if (newIndex != current && newIndex < focusRequesters.size && focusedTopBar == TopBarFocus.NONE) {
+                                                focusedGameIndex = newIndex
+                                                focusRequesters[newIndex].requestFocus()
                                             }
-                                            GamepadEvent.Direction.RIGHT -> {
-                                                val candidate = current + 1
-                                                // No cruza a la fila siguiente
-                                                if (candidate < games.size && candidate / gridColumns == current / gridColumns) {
-                                                    candidate
-                                                } else current
-                                            }
-                                        }
-
-                                        if (newIndex != current && newIndex < focusRequesters.size) {
-                                            focusedGameIndex = newIndex
-                                            focusRequesters[newIndex].requestFocus()
                                         }
                                     }
 
                                     is GamepadEvent.ButtonPressed -> {
                                         when (event.button) {
                                             GamepadEvent.Button.CONFIRM -> {
-                                                if (!showPathDialog && !showOSK && games.isNotEmpty()) {
+                                                if (focusedTopBar != TopBarFocus.NONE) {
+                                                    when (focusedTopBar) {
+                                                        TopBarFocus.SEARCH -> showOSK = true
+                                                        TopBarFocus.REFRESH -> viewModel.loadGames()
+                                                        TopBarFocus.SETTINGS -> showPathDialog = true
+                                                        else -> {}
+                                                    }
+                                                } else if (!showPathDialog && !showOSK && games.isNotEmpty()) {
                                                     val idx = focusedGameIndex.coerceIn(0, games.size - 1)
                                                     viewModel.onGameSelected(games[idx])
                                                 }
