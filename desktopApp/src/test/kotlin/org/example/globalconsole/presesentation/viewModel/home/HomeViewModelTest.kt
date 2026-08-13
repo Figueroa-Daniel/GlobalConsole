@@ -8,7 +8,9 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.example.globalconsole.generalDomain.entititys.Platforms
+import org.example.globalconsole.presesentation.viewModel.home.fakes.FakeFindHGLauncherUseCase
 import org.example.globalconsole.presesentation.viewModel.home.fakes.FakeGetGamesP2UseCase
+import org.example.globalconsole.presesentation.viewModel.home.fakes.FakeShowHGLauncherUseCase
 import org.example.globalconsole.presesentation.viewModel.home.HomeUiState
 import org.example.globalconsole.juegosPcsx2.domain.entitys.GameP2
 import kotlin.test.AfterTest
@@ -16,6 +18,7 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
@@ -165,4 +168,61 @@ class HomeViewModelTest {
         assertIs<HomeUiState.Success>(state)
         assertEquals(2, state.filteredGames.size)
     }
+
+    /**
+     * Verifica que cuando Heroic Games Launcher está habilitado aparece como entrada
+     * en la lista de juegos junto a los juegos de PCSX2.
+     *
+     * @author Daniel Figueroa Vidal
+     * @since 2026-08-13
+     */
+    @Test
+    fun loadGames_withHeroicEnabled_includesHeroicInGamesList() = runTest {
+        val fakeFindHGLauncher = FakeFindHGLauncherUseCase().apply { heroicEnabled = true }
+        val fakeShowHGLauncher = FakeShowHGLauncherUseCase()
+        val viewModel = HomeViewModel(
+            getGamesP2UseCase = fakeGetGamesP2UseCase,
+            findHGLauncherUseCase = fakeFindHGLauncher,
+            showHGLauncherUseCase = fakeShowHGLauncher
+        )
+        val game = GameP2("1", "Gran Turismo 4", "/iso/gt4.iso", null, Platforms.PCSX2)
+        fakeGetGamesP2UseCase.games.add(game)
+
+        viewModel.loadGames()
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertIs<HomeUiState.Success>(state)
+        assertEquals(2, state.games.size)
+        assertTrue(state.games.any { it.name == "Heroic Games" })
+    }
+
+    /**
+     * Verifica que cuando Heroic Games Launcher está deshabilitado no aparece
+     * en la lista de juegos.
+     *
+     * @author Daniel Figueroa Vidal
+     * @since 2026-08-13
+     */
+    @Test
+    fun loadGames_withHeroicDisabled_doesNotIncludeHeroicInGamesList() = runTest {
+        val fakeFindHGLauncher = FakeFindHGLauncherUseCase().apply { heroicEnabled = false }
+        val fakeShowHGLauncher = FakeShowHGLauncherUseCase()
+        val viewModel = HomeViewModel(
+            getGamesP2UseCase = fakeGetGamesP2UseCase,
+            findHGLauncherUseCase = fakeFindHGLauncher,
+            showHGLauncherUseCase = fakeShowHGLauncher
+        )
+        val game = GameP2("1", "Gran Turismo 4", "/iso/gt4.iso", null, Platforms.PCSX2)
+        fakeGetGamesP2UseCase.games.add(game)
+
+        viewModel.loadGames()
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertIs<HomeUiState.Success>(state)
+        assertEquals(1, state.games.size)
+        assertFalse(state.games.any { it.name == "Heroic Games" })
+    }
 }
+
