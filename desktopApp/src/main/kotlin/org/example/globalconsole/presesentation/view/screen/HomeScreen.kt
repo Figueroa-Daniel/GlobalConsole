@@ -326,6 +326,7 @@ fun HomeScreen(
                 },
                 onConfirm = {
                     showPathDialog = false
+                    viewModel.loadGames()
                 }
             )
         }
