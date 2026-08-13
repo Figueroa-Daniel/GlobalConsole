@@ -61,9 +61,10 @@ Ejemplo del archivo con ambos campos presentes:
 ```json
 {
   "emulatorPaths": {
-    "pcsx2": "/home/usuario/ISOs/PS2"
+    "pcsx2": "/home/usuario/ISOs"
   },
-  "heroicEnabled": true
+  "heroicEnabled": true,
+  "mouseSensitivity": 14.0
 }
 ```
 

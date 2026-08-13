@@ -29,7 +29,7 @@ Este documento actúa como memoria continua y estado del proyecto para las sesio
   - `main.kt`: Inyección manual de dependencias + `rememberNavController()` + `AppNavHost`.
 - **Soporte de Gamepad Nativo (LWJGL 3 - GLFW):**
   - `GamepadEvent.kt`: Eventos de botones y direcciones de crucetas o sticks analógicos.
-  - `GamepadManager.kt`: Ciclo de consulta activa (polling) a través de coroutines que publica eventos de entrada nativos filtrados. Incluye control de ratón nativo (stick derecho) de forma global para todos los monitores del SO, e implementa un sistema de suspensión reactiva.
+  - `GamepadManager.kt`: Ciclo de consulta activa (polling) a través de coroutines que publica eventos de entrada nativos filtrados. Incluye control de ratón nativo (stick derecho) de forma global para todos los monitores del SO, e implementa un sistema de suspensión reactiva. La sensibilidad del ratón es configurable por el usuario mediante un `StateFlow`.
   - Integrado de forma reactiva en `HomeScreen.kt` y `GameTile.kt`. La navegación es por índices para confinar el foco a la cuadrícula, y el movimiento libre del ratón (hover) se sincroniza en tiempo real con el foco interno de Compose.
 - **Tests:**
   - `HomeViewModelTest.kt`: 6 pruebas de integración del ViewModel con Fakes.
