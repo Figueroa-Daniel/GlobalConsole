@@ -148,7 +148,8 @@ fun SetupPathDialog(
                             DialogButton.CANCEL -> onDismiss()
                             DialogButton.CONFIRM -> {
                                 if (pathText.isBlank()) {
-                                    errorMessage = "La ruta no puede estar vacía"
+                                    settingsViewModel.savePath("pcsx2", "")
+                                    onConfirm()
                                 } else {
                                     val file = File(pathText)
                                     if (file.exists() && file.isDirectory) {
@@ -412,7 +413,8 @@ fun SetupPathDialog(
                         isFocused = focusedButton == DialogButton.CONFIRM,
                         onClick = {
                             if (pathText.isBlank()) {
-                                errorMessage = "La ruta no puede estar vacía"
+                                settingsViewModel.savePath("pcsx2", "")
+                                onConfirm()
                             } else {
                                 val file = File(pathText)
                                 if (file.exists() && file.isDirectory) {

@@ -19,29 +19,29 @@ class SaveEmulatorPathUseCaseTest {
     private val useCase = SaveEmulatorPathUseCase(repository)
 
     /**
-     * Verifica que el use case lanza excepción si la ruta está vacía.
+     * Verifica que el use case guarda correctamente si la ruta está vacía.
      *
      * @author Daniel Figueroa Vidal
      * @since 2026-08-10
      */
     @Test
-    fun `lanza excepcion si la ruta esta vacia`() = runTest {
-        assertFailsWith<IllegalArgumentException> {
-            useCase("pcsx2", "")
-        }
+    fun `guarda correctamente si la ruta esta vacia`() = runTest {
+        useCase("pcsx2", "")
+        val saved = repository.getEmulatorPath("pcsx2")
+        assertEquals("", saved)
     }
 
     /**
-     * Verifica que el use case lanza excepción si la ruta está en blanco.
+     * Verifica que el use case guarda correctamente si la ruta está en blanco.
      *
      * @author Daniel Figueroa Vidal
      * @since 2026-08-10
      */
     @Test
-    fun `lanza excepcion si la ruta esta en blanco`() = runTest {
-        assertFailsWith<IllegalArgumentException> {
-            useCase("pcsx2", "   ")
-        }
+    fun `guarda correctamente si la ruta esta en blanco`() = runTest {
+        useCase("pcsx2", "   ")
+        val saved = repository.getEmulatorPath("pcsx2")
+        assertEquals("   ", saved)
     }
 
     /**

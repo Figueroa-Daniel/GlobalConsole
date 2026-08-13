@@ -26,7 +26,6 @@ class SaveEmulatorPathUseCase(
      */
     suspend operator fun invoke(emulatorId: String, path: String) {
         require(emulatorId.isNotBlank()) { "El identificador del emulador no puede estar vacío." }
-        require(path.isNotBlank()) { "La ruta del emulador no puede estar vacía." }
         repository.saveEmulatorPath(emulatorId, path)
     }
 }
