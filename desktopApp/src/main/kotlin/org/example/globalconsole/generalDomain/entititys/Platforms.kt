@@ -12,5 +12,7 @@ enum class Platforms {
     /** Juego local ejecutable de PC. */
     LOCALGAME,
     /** Launcher local Heroic Games Launcher. */
-    HEORIC_GAMES_LAUCHER
+    HEORIC_GAMES_LAUCHER,
+
+    MELONDS
 }
