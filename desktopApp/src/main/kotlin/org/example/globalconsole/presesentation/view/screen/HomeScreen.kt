@@ -317,6 +317,13 @@ fun HomeScreen(
                     }
 
                     is HomeUiState.GameRunning -> {
+                        LaunchedEffect(gamepadManager) {
+                            gamepadManager?.events?.collectLatest { event ->
+                                if (event is GamepadEvent.ButtonPressed && event.button == GamepadEvent.Button.HOME) {
+                                    viewModel.closeActiveGame()
+                                }
+                            }
+                        }
                         Column(
                             modifier = Modifier.fillMaxSize(),
                             verticalArrangement = Arrangement.Center,

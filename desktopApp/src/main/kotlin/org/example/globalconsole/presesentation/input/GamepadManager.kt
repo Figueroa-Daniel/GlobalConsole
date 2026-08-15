@@ -101,9 +101,13 @@ class GamepadManager {
                         detectActiveGamepad()
                     }
 
-                    if (selectedGamepadId != -1 && !isSuspended) {
+                    if (selectedGamepadId != -1) {
                         if (glfwGetGamepadState(selectedGamepadId, state)) {
-                            processGamepadState(state)
+                            if (isSuspended) {
+                                processSuspendedGamepadState(state)
+                            } else {
+                                processGamepadState(state)
+                            }
                         }
                     }
 
@@ -145,6 +149,17 @@ class GamepadManager {
             }
         }
         selectedGamepadId = -1
+    }
+
+    /**
+     * Procesa únicamente el botón HOME cuando el gamepad está suspendido (ej. con un juego abierto).
+     *
+     * @author Daniel Figueroa Vidal
+     * @since 2026-08-15
+     */
+    private suspend fun processSuspendedGamepadState(state: GLFWGamepadState) {
+        val buttons: ByteBuffer = state.buttons()
+        checkButtonPress(buttons, GLFW_GAMEPAD_BUTTON_GUIDE, GamepadEvent.Button.HOME)
     }
 
     /**
