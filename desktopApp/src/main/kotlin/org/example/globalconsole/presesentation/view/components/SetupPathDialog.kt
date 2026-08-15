@@ -3,8 +3,9 @@ package org.example.globalconsole.presesentation.view.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,40 +21,23 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import org.example.globalconsole.presesentation.input.GamepadEvent
 import org.example.globalconsole.presesentation.input.GamepadManager
-import org.example.globalconsole.presesentation.viewModel.settings.SettingsUiState
 import org.example.globalconsole.presesentation.viewModel.settings.SettingsViewModel
 import java.io.File
-import javax.swing.JFileChooser
 
 /**
  * Identificadores de los botones navegables del diálogo para la gestión del foco de gamepad.
- * Incluye los tres botones de acción y el toggle de Heroic Games Launcher.
- *
- * @author Daniel Figueroa Vidal
- * @since 2026-08-10
  */
-private enum class DialogButton { SENSITIVITY_SLIDER, HEROIC_TOGGLE, BROWSE, CANCEL, CONFIRM }
+private enum class DialogButton { 
+    SENSITIVITY_SLIDER, 
+    HEROIC_TOGGLE, 
+    MELONDS_TOGGLE, 
+    PCSX2_BROWSE, 
+    MELONDS_GAMES_BROWSE, 
+    MELONDS_EXE_BROWSE, 
+    CANCEL, 
+    CONFIRM 
+}
 
-/**
- * Diálogo modal de configuración de la aplicación GlobalConsole.
- * Permite configurar la ruta de juegos de PCSX2 y habilitar/deshabilitar
- * Heroic Games Launcher en la biblioteca principal.
- *
- * Diseñado con estética oscura Metro (bordes blancos nítidos, sin esquinas redondeadas, negro puro).
- * 100% navegable por gamepad: D-Pad para moverse entre elementos, botón A para confirmar.
- *
- * Navegación por D-Pad:
- * - UP/DOWN: alterna entre secciones (Sensibilidad, Heroic, PCSX2).
- * - LEFT/RIGHT: navega entre botones o ajusta el valor del slider.
- *
- * @param settingsViewModel ViewModel que gestiona la carga y guardado de rutas y preferencias.
- * @param gamepadManager Gestor de eventos de gamepad para la navegación entre elementos.
- * @param onDismiss Llamado al cerrar el diálogo.
- * @param onConfirm Llamado tras guardar con éxito la nueva ruta.
- *
- * @author Daniel Figueroa Vidal
- * @since 2026-08-10
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SetupPathDialog(
@@ -62,35 +46,30 @@ fun SetupPathDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit
 ) {
-    val uiState by settingsViewModel.uiState.collectAsState()
     val heroicEnabled by settingsViewModel.heroicEnabled.collectAsState()
+    val melonDSEnabled by settingsViewModel.melonDSEnabled.collectAsState()
     val mouseSensitivity by settingsViewModel.mouseSensitivity.collectAsState()
+    val pcsx2PathState by settingsViewModel.pcsx2Path.collectAsState()
+    val melonDSGamesPathState by settingsViewModel.melonDSGamesPath.collectAsState()
+    val melonDSExePathState by settingsViewModel.melonDSExecutablePath.collectAsState()
 
-    var pathText by remember { mutableStateOf("") }
+    var pathTextPcsx2 by remember(pcsx2PathState) { mutableStateOf(pcsx2PathState) }
+    var pathTextMelonGames by remember(melonDSGamesPathState) { mutableStateOf(melonDSGamesPathState) }
+    var pathTextMelonExe by remember(melonDSExePathState) { mutableStateOf(melonDSExePathState) }
+    
     var errorMessage by remember { mutableStateOf("") }
     var focusedButton by remember { mutableStateOf(DialogButton.CONFIRM) }
-    var showFolderPicker by remember { mutableStateOf(false) }
+    var showFolderPickerFor by remember { mutableStateOf<DialogButton?>(null) }
 
-    // Precarga la ruta guardada, la preferencia de Heroic y la sensibilidad
     LaunchedEffect(Unit) {
-        settingsViewModel.loadCurrentPath("pcsx2")
+        settingsViewModel.loadAllPaths()
         settingsViewModel.loadHeroicEnabled()
+        settingsViewModel.loadMelonDSEnabled()
         settingsViewModel.loadMouseSensitivity()
     }
 
-    // Sincroniza el campo de texto cuando el estado carga la ruta persistida
-    LaunchedEffect(uiState) {
-        if (uiState is SettingsUiState.Success) {
-            val loadedPath = (uiState as SettingsUiState.Success).path
-            if (loadedPath != null && pathText.isBlank()) {
-                pathText = loadedPath
-            }
-        }
-    }
-
-    // Navegación por gamepad entre todos los elementos del diálogo
-    LaunchedEffect(gamepadManager, showFolderPicker) {
-        if (showFolderPicker) return@LaunchedEffect
+    LaunchedEffect(gamepadManager, showFolderPickerFor) {
+        if (showFolderPickerFor != null) return@LaunchedEffect
         
         gamepadManager.events.collect { event ->
             when (event) {
@@ -98,17 +77,24 @@ fun SetupPathDialog(
                     focusedButton = when (event.direction) {
                         GamepadEvent.Direction.UP -> when (focusedButton) {
                             DialogButton.HEROIC_TOGGLE -> DialogButton.SENSITIVITY_SLIDER
-                            DialogButton.CONFIRM, DialogButton.CANCEL, DialogButton.BROWSE -> DialogButton.HEROIC_TOGGLE
+                            DialogButton.MELONDS_TOGGLE -> DialogButton.HEROIC_TOGGLE
+                            DialogButton.PCSX2_BROWSE -> DialogButton.MELONDS_TOGGLE
+                            DialogButton.MELONDS_GAMES_BROWSE -> DialogButton.PCSX2_BROWSE
+                            DialogButton.MELONDS_EXE_BROWSE -> DialogButton.MELONDS_GAMES_BROWSE
+                            DialogButton.CONFIRM, DialogButton.CANCEL -> DialogButton.MELONDS_EXE_BROWSE
                             else -> focusedButton
                         }
                         GamepadEvent.Direction.DOWN -> when (focusedButton) {
                             DialogButton.SENSITIVITY_SLIDER -> DialogButton.HEROIC_TOGGLE
-                            DialogButton.HEROIC_TOGGLE -> DialogButton.CONFIRM
+                            DialogButton.HEROIC_TOGGLE -> DialogButton.MELONDS_TOGGLE
+                            DialogButton.MELONDS_TOGGLE -> DialogButton.PCSX2_BROWSE
+                            DialogButton.PCSX2_BROWSE -> DialogButton.MELONDS_GAMES_BROWSE
+                            DialogButton.MELONDS_GAMES_BROWSE -> DialogButton.MELONDS_EXE_BROWSE
+                            DialogButton.MELONDS_EXE_BROWSE -> DialogButton.CONFIRM
                             else -> focusedButton
                         }
                         GamepadEvent.Direction.LEFT -> when (focusedButton) {
                             DialogButton.CONFIRM -> DialogButton.CANCEL
-                            DialogButton.CANCEL -> DialogButton.BROWSE
                             DialogButton.SENSITIVITY_SLIDER -> {
                                 val newVal = (mouseSensitivity - 2f).coerceAtLeast(1f)
                                 settingsViewModel.setMouseSensitivity(newVal)
@@ -117,7 +103,6 @@ fun SetupPathDialog(
                             else -> focusedButton
                         }
                         GamepadEvent.Direction.RIGHT -> when (focusedButton) {
-                            DialogButton.BROWSE -> DialogButton.CANCEL
                             DialogButton.CANCEL -> DialogButton.CONFIRM
                             DialogButton.SENSITIVITY_SLIDER -> {
                                 val newVal = (mouseSensitivity + 2f).coerceAtMost(50f)
@@ -131,30 +116,19 @@ fun SetupPathDialog(
                 is GamepadEvent.ButtonPressed -> {
                     if (event.button == GamepadEvent.Button.CONFIRM) {
                         when (focusedButton) {
-                            DialogButton.HEROIC_TOGGLE -> {
-                                settingsViewModel.setHeroicEnabled(!heroicEnabled)
-                            }
-                            DialogButton.SENSITIVITY_SLIDER -> {
-                                // No hace falta confirmar nada con el botón A en el slider,
-                                // se ajusta directamente con las direcciones LEFT/RIGHT.
-                            }
-                            DialogButton.BROWSE -> {
-                                showFolderPicker = true
-                            }
+                            DialogButton.HEROIC_TOGGLE -> settingsViewModel.setHeroicEnabled(!heroicEnabled)
+                            DialogButton.MELONDS_TOGGLE -> settingsViewModel.setMelonDSEnabled(!melonDSEnabled)
+                            DialogButton.SENSITIVITY_SLIDER -> {}
+                            DialogButton.PCSX2_BROWSE -> showFolderPickerFor = DialogButton.PCSX2_BROWSE
+                            DialogButton.MELONDS_GAMES_BROWSE -> showFolderPickerFor = DialogButton.MELONDS_GAMES_BROWSE
+                            DialogButton.MELONDS_EXE_BROWSE -> showFolderPickerFor = DialogButton.MELONDS_EXE_BROWSE
                             DialogButton.CANCEL -> onDismiss()
                             DialogButton.CONFIRM -> {
-                                if (pathText.isBlank()) {
-                                    settingsViewModel.savePath("pcsx2", "")
-                                    onConfirm()
-                                } else {
-                                    val file = File(pathText)
-                                    if (file.exists() && file.isDirectory) {
-                                        settingsViewModel.savePath("pcsx2", pathText)
-                                        onConfirm()
-                                    } else {
-                                        errorMessage = "La ruta no es un directorio válido"
-                                    }
-                                }
+                                // Validaciones básicas
+                                settingsViewModel.savePath("pcsx2", pathTextPcsx2)
+                                settingsViewModel.savePath("melonds", pathTextMelonGames)
+                                settingsViewModel.savePath("melonds_executable", pathTextMelonExe)
+                                onConfirm()
                             }
                         }
                     }
@@ -178,12 +152,12 @@ fun SetupPathDialog(
         ) {
             Column(
                 modifier = Modifier
-                    .width(500.dp)
+                    .width(550.dp)
+                    .fillMaxHeight(0.9f)
                     .background(Color(0xFF0F0F0F), RectangleShape)
                     .border(2.dp, Color.White, RectangleShape)
                     .padding(24.dp)
             ) {
-                // ── Cabecera ──────────────────────────────────────────────────
                 Text(
                     text = "CONFIGURACIÓN",
                     color = Color.White,
@@ -193,225 +167,118 @@ fun SetupPathDialog(
                     modifier = Modifier.padding(bottom = 20.dp)
                 )
 
-                // ── Sección: Control del Gamepad ──────────────────────────────
-                val sensitivityBorderColor = if (focusedButton == DialogButton.SENSITIVITY_SLIDER) {
-                    Color(0xFF00FFCC)
-                } else {
-                    Color(0xFF333333)
-                }
-
+                val scrollState = rememberScrollState()
                 Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .border(1.dp, sensitivityBorderColor, RectangleShape)
-                        .padding(12.dp)
+                        .weight(1f)
+                        .verticalScroll(scrollState)
+                        .padding(end = 8.dp)
                 ) {
-                    Text(
-                        text = "CONTROL DEL GAMEPAD",
-                        color = Color.White,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = FontFamily.SansSerif
-                    )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Text(
-                        text = "Sensibilidad del ratón al usar el stick derecho.",
-                        color = Color(0xFFAAAAAA),
-                        fontSize = 12.sp,
-                        fontFamily = FontFamily.SansSerif
-                    )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
+                    // Control Gamepad
+                    val sensitivityBorderColor = if (focusedButton == DialogButton.SENSITIVITY_SLIDER) Color(0xFF00FFCC) else Color(0xFF333333)
+                    Column(
+                        modifier = Modifier.fillMaxWidth().border(1.dp, sensitivityBorderColor, RectangleShape).padding(12.dp)
                     ) {
-                        Text(
-                            text = String.format("%.0f", mouseSensitivity),
-                            color = Color(0xFF00FFCC),
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = FontFamily.Monospace,
-                            modifier = Modifier.width(30.dp)
-                        )
-
-                        Slider(
-                            value = mouseSensitivity,
-                            onValueChange = { settingsViewModel.setMouseSensitivity(it) },
-                            valueRange = 1f..50f,
-                            steps = 49,
-                            modifier = Modifier.weight(1f),
-                            colors = SliderDefaults.colors(
-                                thumbColor = Color.White,
-                                activeTrackColor = Color(0xFF00FFCC),
-                                inactiveTrackColor = Color(0xFF333333)
+                        Text("CONTROL DEL GAMEPAD", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text("Sensibilidad del ratón al usar el stick derecho.", color = Color(0xFFAAAAAA), fontSize = 12.sp)
+                        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            Text(String.format("%.0f", mouseSensitivity), color = Color(0xFF00FFCC), fontSize = 14.sp, modifier = Modifier.width(30.dp))
+                            Slider(
+                                value = mouseSensitivity, onValueChange = { settingsViewModel.setMouseSensitivity(it) },
+                                valueRange = 1f..50f, steps = 49, modifier = Modifier.weight(1f),
+                                colors = SliderDefaults.colors(thumbColor = Color.White, activeTrackColor = Color(0xFF00FFCC), inactiveTrackColor = Color(0xFF333333))
                             )
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                // ── Sección: Heroic Games Launcher ────────────────────────────
-                val heroicSectionBorderColor = if (focusedButton == DialogButton.HEROIC_TOGGLE) {
-                    Color(0xFF00FFCC)
-                } else {
-                    Color(0xFF333333)
-                }
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .border(1.dp, heroicSectionBorderColor, RectangleShape)
-                        .padding(12.dp)
-                ) {
-                    Text(
-                        text = "HEROIC GAMES LAUNCHER",
-                        color = Color.White,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = FontFamily.SansSerif
-                    )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Text(
-                        text = "Mostrar Heroic Games Launcher en la biblioteca principal.",
-                        color = Color(0xFFAAAAAA),
-                        fontSize = 12.sp,
-                        fontFamily = FontFamily.SansSerif
-                    )
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = if (heroicEnabled) "HABILITADO" else "DESHABILITADO",
-                            color = if (heroicEnabled) Color(0xFF00FFCC) else Color.Gray,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = FontFamily.Monospace
-                        )
-
-                        Switch(
-                            checked = heroicEnabled,
-                            onCheckedChange = { settingsViewModel.setHeroicEnabled(it) },
-                            colors = SwitchDefaults.colors(
-                                checkedThumbColor = Color.Black,
-                                checkedTrackColor = Color(0xFF00FFCC),
-                                uncheckedThumbColor = Color.Gray,
-                                uncheckedTrackColor = Color(0xFF333333)
-                            )
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                // ── Sección: Ruta de juegos PCSX2 ─────────────────────────────
-                Text(
-                    text = "RUTA DE JUEGOS (PCSX2)",
-                    color = Color.White,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily.SansSerif,
-                    modifier = Modifier.padding(bottom = 4.dp)
-                )
-
-                Text(
-                    text = "Selecciona la carpeta donde guardas tus juegos / ISOs para PCSX2.",
-                    color = Color(0xFFCCCCCC),
-                    fontSize = 12.sp,
-                    fontFamily = FontFamily.SansSerif,
-                    modifier = Modifier.padding(bottom = 12.dp)
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    TextField(
-                        value = pathText,
-                        onValueChange = {
-                            pathText = it
-                            errorMessage = ""
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .border(1.dp, Color.Gray, RectangleShape),
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color(0xFF161616),
-                            unfocusedContainerColor = Color(0xFF161616),
-                            disabledContainerColor = Color(0xFF161616),
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent
-                        ),
-                        singleLine = true,
-                        textStyle = TextStyle(fontSize = 14.sp)
-                    )
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    MetroButton(
-                        text = "EXAMINAR",
-                        isPrimary = focusedButton == DialogButton.BROWSE,
-                        isFocused = focusedButton == DialogButton.BROWSE,
-                        onClick = {
-                            showFolderPicker = true
                         }
-                    )
+                    }
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    // Heroic Games
+                    val heroicSectionBorderColor = if (focusedButton == DialogButton.HEROIC_TOGGLE) Color(0xFF00FFCC) else Color(0xFF333333)
+                    Column(
+                        modifier = Modifier.fillMaxWidth().border(1.dp, heroicSectionBorderColor, RectangleShape).padding(12.dp)
+                    ) {
+                        Text("HEROIC GAMES LAUNCHER", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text("Mostrar Heroic Games Launcher en la biblioteca.", color = Color(0xFFAAAAAA), fontSize = 12.sp)
+                        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(if (heroicEnabled) "HABILITADO" else "DESHABILITADO", color = if (heroicEnabled) Color(0xFF00FFCC) else Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Switch(
+                                checked = heroicEnabled, onCheckedChange = { settingsViewModel.setHeroicEnabled(it) },
+                                colors = SwitchDefaults.colors(checkedThumbColor = Color.Black, checkedTrackColor = Color(0xFF00FFCC), uncheckedThumbColor = Color.Gray, uncheckedTrackColor = Color(0xFF333333))
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    // Melon DS Launcher Toggle
+                    val melonToggleBorderColor = if (focusedButton == DialogButton.MELONDS_TOGGLE) Color(0xFF00FFCC) else Color(0xFF333333)
+                    Column(
+                        modifier = Modifier.fillMaxWidth().border(1.dp, melonToggleBorderColor, RectangleShape).padding(12.dp)
+                    ) {
+                        Text("MELON DS LAUNCHER", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text("Mostrar Melon DS Launcher en la biblioteca.", color = Color(0xFFAAAAAA), fontSize = 12.sp)
+                        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(if (melonDSEnabled) "HABILITADO" else "DESHABILITADO", color = if (melonDSEnabled) Color(0xFF00FFCC) else Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Switch(
+                                checked = melonDSEnabled, onCheckedChange = { settingsViewModel.setMelonDSEnabled(it) },
+                                colors = SwitchDefaults.colors(checkedThumbColor = Color.Black, checkedTrackColor = Color(0xFF00FFCC), uncheckedThumbColor = Color.Gray, uncheckedTrackColor = Color(0xFF333333))
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    // PCSX2 Path
+                    Text("RUTA DE JUEGOS (PCSX2)", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        TextField(
+                            value = pathTextPcsx2, onValueChange = { pathTextPcsx2 = it }, modifier = Modifier.weight(1f).border(1.dp, Color.Gray, RectangleShape),
+                            colors = TextFieldDefaults.colors(focusedContainerColor = Color(0xFF161616), unfocusedContainerColor = Color(0xFF161616), disabledContainerColor = Color(0xFF161616), focusedTextColor = Color.White, unfocusedTextColor = Color.White),
+                            singleLine = true, textStyle = TextStyle(fontSize = 14.sp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        MetroButton(text = "EXAMINAR", isPrimary = focusedButton == DialogButton.PCSX2_BROWSE, isFocused = focusedButton == DialogButton.PCSX2_BROWSE, onClick = { showFolderPickerFor = DialogButton.PCSX2_BROWSE })
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Melon DS Games Path
+                    Text("RUTA DE JUEGOS (MELON DS)", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        TextField(
+                            value = pathTextMelonGames, onValueChange = { pathTextMelonGames = it }, modifier = Modifier.weight(1f).border(1.dp, Color.Gray, RectangleShape),
+                            colors = TextFieldDefaults.colors(focusedContainerColor = Color(0xFF161616), unfocusedContainerColor = Color(0xFF161616), disabledContainerColor = Color(0xFF161616), focusedTextColor = Color.White, unfocusedTextColor = Color.White),
+                            singleLine = true, textStyle = TextStyle(fontSize = 14.sp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        MetroButton(text = "EXAMINAR", isPrimary = focusedButton == DialogButton.MELONDS_GAMES_BROWSE, isFocused = focusedButton == DialogButton.MELONDS_GAMES_BROWSE, onClick = { showFolderPickerFor = DialogButton.MELONDS_GAMES_BROWSE })
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Melon DS Executable Path
+                    Text("RUTA DEL EJECUTABLE (MELON DS)", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        TextField(
+                            value = pathTextMelonExe, onValueChange = { pathTextMelonExe = it }, modifier = Modifier.weight(1f).border(1.dp, Color.Gray, RectangleShape),
+                            colors = TextFieldDefaults.colors(focusedContainerColor = Color(0xFF161616), unfocusedContainerColor = Color(0xFF161616), disabledContainerColor = Color(0xFF161616), focusedTextColor = Color.White, unfocusedTextColor = Color.White),
+                            singleLine = true, textStyle = TextStyle(fontSize = 14.sp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        MetroButton(text = "EXAMINAR", isPrimary = focusedButton == DialogButton.MELONDS_EXE_BROWSE, isFocused = focusedButton == DialogButton.MELONDS_EXE_BROWSE, onClick = { showFolderPickerFor = DialogButton.MELONDS_EXE_BROWSE })
+                    }
                 }
 
                 if (errorMessage.isNotEmpty()) {
-                    Text(
-                        text = errorMessage,
-                        color = Color.Red,
-                        fontSize = 12.sp,
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
+                    Text(text = errorMessage, color = Color.Red, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
                 }
-
                 Spacer(modifier = Modifier.height(24.dp))
-
-                // ── Botones de acción ─────────────────────────────────────────
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    MetroButton(
-                        text = "CANCELAR",
-                        isFocused = focusedButton == DialogButton.CANCEL,
-                        onClick = onDismiss
-                    )
-
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    MetroButton(text = "CANCELAR", isFocused = focusedButton == DialogButton.CANCEL, onClick = onDismiss)
                     Spacer(modifier = Modifier.width(16.dp))
-
                     MetroButton(
-                        text = "GUARDAR",
-                        isPrimary = true,
-                        isFocused = focusedButton == DialogButton.CONFIRM,
+                        text = "GUARDAR", isPrimary = true, isFocused = focusedButton == DialogButton.CONFIRM,
                         onClick = {
-                            if (pathText.isBlank()) {
-                                settingsViewModel.savePath("pcsx2", "")
-                                onConfirm()
-                            } else {
-                                val file = File(pathText)
-                                if (file.exists() && file.isDirectory) {
-                                    settingsViewModel.savePath("pcsx2", pathText)
-                                    onConfirm()
-                                } else {
-                                    errorMessage = "La ruta no es un directorio válido"
-                                }
-                            }
+                            settingsViewModel.savePath("pcsx2", pathTextPcsx2)
+                            settingsViewModel.savePath("melonds", pathTextMelonGames)
+                            settingsViewModel.savePath("melonds_executable", pathTextMelonExe)
+                            onConfirm()
                         }
                     )
                 }
@@ -419,17 +286,30 @@ fun SetupPathDialog(
         }
     }
 
-    if (showFolderPicker) {
+    if (showFolderPickerFor != null) {
+        val initialPath = when (showFolderPickerFor) {
+            DialogButton.PCSX2_BROWSE -> pathTextPcsx2
+            DialogButton.MELONDS_GAMES_BROWSE -> pathTextMelonGames
+            DialogButton.MELONDS_EXE_BROWSE -> pathTextMelonExe
+            else -> ""
+        }
+        val safeInitial = if (initialPath.isNotBlank() && File(initialPath).exists()) initialPath else System.getProperty("user.home")
+        
         GamepadFolderPickerDialog(
             gamepadManager = gamepadManager,
-            initialPath = if (pathText.isNotBlank() && File(pathText).exists()) pathText else System.getProperty("user.home"),
+            initialPath = safeInitial,
             onDirectorySelected = { selectedPath ->
-                pathText = selectedPath
+                when (showFolderPickerFor) {
+                    DialogButton.PCSX2_BROWSE -> pathTextPcsx2 = selectedPath
+                    DialogButton.MELONDS_GAMES_BROWSE -> pathTextMelonGames = selectedPath
+                    DialogButton.MELONDS_EXE_BROWSE -> pathTextMelonExe = selectedPath
+                    else -> {}
+                }
                 errorMessage = ""
-                showFolderPicker = false
+                showFolderPickerFor = null
             },
             onDismiss = {
-                showFolderPicker = false
+                showFolderPickerFor = null
             }
         )
     }

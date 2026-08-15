@@ -11,6 +11,9 @@ import org.example.globalconsole.generalDomain.entititys.Platforms
 import org.example.globalconsole.HeroicGames.domain.usecase.ExecuteHGLauncherUseCase
 import org.example.globalconsole.HeroicGames.domain.usecase.FindHGLauncherUseCase
 import org.example.globalconsole.HeroicGames.domain.usecase.ShowHGLauncherUseCase
+import org.example.globalconsole.melonDS.domain.usecase.FindMelonDSLauncherUseCase
+import org.example.globalconsole.melonDS.domain.usecase.ShowMelonDSLauncherUseCase
+import org.example.globalconsole.melonDS.domain.usecase.ExecuteLauncherMelonDSUseCase
 import org.example.globalconsole.juegosPcsx2.domain.usecase.DeleteGameP2UseCase
 import org.example.globalconsole.juegosPcsx2.domain.usecase.ExecuteGameP2UseCase
 import org.example.globalconsole.juegosPcsx2.domain.usecase.GetGamesP2UseCase
@@ -39,7 +42,10 @@ class HomeViewModel(
     private val executeHGLauncherUseCase: ExecuteHGLauncherUseCase? = null,
     private val findHGLauncherUseCase: FindHGLauncherUseCase? = null,
     private val showHGLauncherUseCase: ShowHGLauncherUseCase? = null,
-    private val executeGameMelonDSUseCase: ExecuteGameMelonDSUseCase? = null
+    private val executeGameMelonDSUseCase: ExecuteGameMelonDSUseCase? = null,
+    private val executeLauncherMelonDSUseCase: ExecuteLauncherMelonDSUseCase? = null,
+    private val findMelonDSLauncherUseCase: FindMelonDSLauncherUseCase? = null,
+    private val showMelonDSLauncherUseCase: ShowMelonDSLauncherUseCase? = null
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
@@ -87,7 +93,14 @@ class HomeViewModel(
                     emptyList()
                 }
 
-                val allGames: List<Game> = (pcsx2Games + heroicEntry).sortedBy { it.name }
+                val melonDSEntry: List<Game> = if (findMelonDSLauncherUseCase?.invoke() == true) {
+                    val launcher = showMelonDSLauncherUseCase?.invoke()
+                    if (launcher != null) listOf(launcher) else emptyList()
+                } else {
+                    emptyList()
+                }
+
+                val allGames: List<Game> = (pcsx2Games + heroicEntry + melonDSEntry).sortedBy { it.name }
 
                 _uiState.value = if (allGames.isEmpty()) {
                     HomeUiState.Empty
@@ -152,7 +165,13 @@ class HomeViewModel(
                     false
                 }
                 Platforms.HEORIC_GAMES_LAUCHER -> executeHGLauncherUseCase?.invoke() ?: false
-                Platforms.MELONDS -> executeGameMelonDSUseCase?.invoke(game.urlGameExecute) ?: false
+                Platforms.MELONDS -> {
+                    if (game.id == "melonds-launcher") {
+                        executeLauncherMelonDSUseCase?.invoke() ?: false
+                    } else {
+                        executeGameMelonDSUseCase?.invoke(game.urlGameExecute) ?: false
+                    }
+                }
             }
             
             // Al terminar la ejecución, volvemos a cargar la vista

@@ -13,6 +13,9 @@ import org.example.globalconsole.settings.domain.usecase.GetEmulatorPathUseCase
 import org.example.globalconsole.settings.domain.usecase.SaveEmulatorPathUseCase
 import org.example.globalconsole.settings.domain.usecase.GetMouseSensitivityUseCase
 import org.example.globalconsole.settings.domain.usecase.SaveMouseSensitivityUseCase
+import org.example.globalconsole.melonDS.domain.usecase.FindMelonDSLauncherUseCase
+import org.example.globalconsole.melonDS.domain.usecase.EnableMelonDSLauncherUseCase
+import org.example.globalconsole.melonDS.domain.usecase.HideMelonDSLauncherUseCase
 
 /**
  * ViewModel del diálogo de configuración de rutas de emuladores y preferencias de launchers.
@@ -40,7 +43,10 @@ class SettingsViewModel(
     private val enableHGLauncherUseCase: EnableHGLauncherUseCase,
     private val hideHGLauncherUseCase: HideHGLauncherUseCase,
     private val getMouseSensitivityUseCase: GetMouseSensitivityUseCase,
-    private val saveMouseSensitivityUseCase: SaveMouseSensitivityUseCase
+    private val saveMouseSensitivityUseCase: SaveMouseSensitivityUseCase,
+    private val findMelonDSLauncherUseCase: FindMelonDSLauncherUseCase? = null,
+    private val enableMelonDSLauncherUseCase: EnableMelonDSLauncherUseCase? = null,
+    private val hideMelonDSLauncherUseCase: HideMelonDSLauncherUseCase? = null
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<SettingsUiState>(SettingsUiState.Idle)
@@ -53,6 +59,15 @@ class SettingsViewModel(
      */
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
+    private val _pcsx2Path = MutableStateFlow("")
+    val pcsx2Path: StateFlow<String> = _pcsx2Path.asStateFlow()
+
+    private val _melonDSGamesPath = MutableStateFlow("")
+    val melonDSGamesPath: StateFlow<String> = _melonDSGamesPath.asStateFlow()
+
+    private val _melonDSExecutablePath = MutableStateFlow("")
+    val melonDSExecutablePath: StateFlow<String> = _melonDSExecutablePath.asStateFlow()
+
     private val _heroicEnabled = MutableStateFlow(false)
 
     /**
@@ -63,6 +78,14 @@ class SettingsViewModel(
      * @since 2026-08-12
      */
     val heroicEnabled: StateFlow<Boolean> = _heroicEnabled.asStateFlow()
+
+    private val _melonDSEnabled = MutableStateFlow(false)
+
+    /**
+     * Estado observable del toggle de Melon DS Launcher.
+     * True indica que el launcher debe mostrarse en la biblioteca principal.
+     */
+    val melonDSEnabled: StateFlow<Boolean> = _melonDSEnabled.asStateFlow()
 
     private val _mouseSensitivity = MutableStateFlow(14f)
 
@@ -91,10 +114,24 @@ class SettingsViewModel(
             try {
                 val path = getEmulatorPathUseCase(emulatorId)
                 _uiState.value = SettingsUiState.Success(path)
+                when (emulatorId) {
+                    "pcsx2" -> _pcsx2Path.value = path ?: ""
+                    "melonds" -> _melonDSGamesPath.value = path ?: ""
+                    "melonds_executable" -> _melonDSExecutablePath.value = path ?: ""
+                }
             } catch (e: Exception) {
                 _uiState.value = SettingsUiState.Error(e.message ?: "Error al cargar la ruta")
             }
         }
+    }
+
+    /**
+     * Carga todas las rutas conocidas.
+     */
+    fun loadAllPaths() {
+        loadCurrentPath("pcsx2")
+        loadCurrentPath("melonds")
+        loadCurrentPath("melonds_executable")
     }
 
     /**
@@ -115,6 +152,11 @@ class SettingsViewModel(
             try {
                 saveEmulatorPathUseCase(emulatorId, path)
                 _uiState.value = SettingsUiState.Success(path)
+                when (emulatorId) {
+                    "pcsx2" -> _pcsx2Path.value = path
+                    "melonds" -> _melonDSGamesPath.value = path
+                    "melonds_executable" -> _melonDSExecutablePath.value = path
+                }
             } catch (e: IllegalArgumentException) {
                 _uiState.value = SettingsUiState.Error(e.message ?: "Ruta no válida")
             } catch (e: Exception) {
@@ -181,6 +223,31 @@ class SettingsViewModel(
         viewModelScope.launch {
             saveMouseSensitivityUseCase(speed)
             _mouseSensitivity.value = speed
+        }
+    }
+
+    /**
+     * Carga la preferencia de visibilidad de Melon DS Launcher desde la persistencia
+     * y actualiza el estado observable [melonDSEnabled].
+     */
+    fun loadMelonDSEnabled() {
+        viewModelScope.launch {
+            _melonDSEnabled.value = findMelonDSLauncherUseCase?.invoke() ?: false
+        }
+    }
+
+    /**
+     * Persiste la nueva preferencia de visibilidad de Melon DS Launcher
+     * y actualiza inmediatamente el estado observable [melonDSEnabled].
+     */
+    fun setMelonDSEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            if (enabled) {
+                enableMelonDSLauncherUseCase?.invoke()
+            } else {
+                hideMelonDSLauncherUseCase?.invoke()
+            }
+            _melonDSEnabled.value = enabled
         }
     }
 }
