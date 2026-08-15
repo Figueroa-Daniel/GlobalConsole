@@ -1,26 +1,49 @@
 package org.example.globalconsole.melonDS.data.repositoryImpl
 
+import org.example.globalconsole.melonDS.data.database.GameDSFileSystemAdapter
+import org.example.globalconsole.melonDS.data.database.GameMelonDSAdapter
+import org.example.globalconsole.melonDS.data.dto.GameDsDto
+import org.example.globalconsole.melonDS.data.mappers.toDomain
 import org.example.globalconsole.melonDS.data.repository.GameDSRepository
 import org.example.globalconsole.melonDS.domain.entitys.GameDS
 
-class GameDSRepositoryImpl(): GameDSRepository {
+/**
+ * Implementación del repositorio de juegos de Melon DS.
+ * Gestiona el acceso al sistema de archivos para las ROMs y delega la ejecución al adaptador.
+ *
+ * @author Daniel Figueroa Vidal
+ * @since 2026-08-15
+ */
+class GameDSRepositoryImpl(
+    private val dataSourceFile: GameDSFileSystemAdapter,
+    private val dataSourceDs: GameMelonDSAdapter
+) : GameDSRepository {
+
+    private var gamesInMemoryCache = mutableListOf<GameDsDto>()
+
     override suspend fun deleteGameDS(id: String): Boolean {
-        TODO("Not yet implemented")
+        return dataSourceFile.deleteGameInFile(id)
     }
 
     override suspend fun executeGameDS(id: String): Boolean {
-        TODO("Not yet implemented")
+        val gameSelected = gamesInMemoryCache.find { it.id == id }
+        val executeUrl = gameSelected?.urlGameExecute
+        return dataSourceDs.executeGame(executeUrl)
     }
 
     override suspend fun getGamesByName(name: String): List<GameDS> {
-        TODO("Not yet implemented")
+        return gamesInMemoryCache.filter { game ->
+            game.name.contains(name, ignoreCase = true)
+        }.toDomain()
     }
 
     override suspend fun getAllGamesDS(): List<GameDS> {
-        TODO("Not yet implemented")
+        val gamesDto = dataSourceFile.getGamesInSystemFile()
+        gamesInMemoryCache = gamesDto.toMutableList()
+        return gamesDto.toDomain()
     }
 
     override suspend fun getGameDSById(id: String): GameDS? {
-        TODO("Not yet implemented")
+        return gamesInMemoryCache.find { it.id == id }?.toDomain()
     }
 }

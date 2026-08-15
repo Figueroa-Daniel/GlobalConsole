@@ -27,4 +27,23 @@ val dataModule = module {
 
     // Repositorio de Heroic Games Launcher expuesto por su interfaz de dominio
     single<HGLauncherRepository> { HGLauncherRepositoryImpl(adapter = get()) }
+
+    // Adaptadores de Melon DS
+    single { org.example.globalconsole.melonDS.data.database.GameMelonDSAdapter() }
+    single { org.example.globalconsole.melonDS.data.database.LauncherMelonDSAdapter() }
+    single { org.example.globalconsole.melonDS.data.database.GameDSFileSystemAdapter(getEmulatorPathUseCase = get()) }
+
+    // Repositorios de Melon DS
+    single<org.example.globalconsole.melonDS.data.repository.GameDSRepository> { 
+        org.example.globalconsole.melonDS.data.repositoryImpl.GameDSRepositoryImpl(
+            dataSourceFile = get(),
+            dataSourceDs = get()
+        ) 
+    }
+    single<org.example.globalconsole.melonDS.data.repository.MelonDSRepository> { 
+        org.example.globalconsole.melonDS.data.repositoryImpl.MelonDSRepositoryImpl(
+            launcherAdapter = get(),
+            gameAdapter = get()
+        ) 
+    }
 }

@@ -36,4 +36,17 @@ val domainModule = module {
     factory { FindHGLauncherUseCase(repository = get()) }
     factory { EnableHGLauncherUseCase(repository = get()) }
     factory { HideHGLauncherUseCase(repository = get()) }
+
+    // UseCases de Melon DS Launcher
+    factory { org.example.globalconsole.melonDS.domain.usecase.FindMelonDSLauncherUseCase(repository = get()) }
+    factory { org.example.globalconsole.melonDS.domain.usecase.EnableMelonDSLauncherUseCase(repository = get()) }
+    factory { org.example.globalconsole.melonDS.domain.usecase.HideMelonDSLauncherUseCase(repository = get()) }
+    factory { org.example.globalconsole.melonDS.domain.usecase.ShowMelonDSLauncherUseCase(repository = get()) }
+    factory { org.example.globalconsole.melonDS.domain.usecase.ExecuteLauncherMelonDSUseCase(repository = get()) }
+    factory { org.example.globalconsole.melonDS.domain.usecase.CloseLauncherMelonDSUseCase(repository = get()) }
+
+    // UseCases de Juegos Melon DS
+    factory { org.example.globalconsole.melonDS.domain.usecase.GetGamesDSUseCase(repository = get()) }
+    factory { org.example.globalconsole.melonDS.domain.usecase.ExecuteGameMelonDSUseCase(repository = get()) }
+    factory { org.example.globalconsole.melonDS.domain.usecase.DeleteGameDSUseCase(repository = get()) }
 }

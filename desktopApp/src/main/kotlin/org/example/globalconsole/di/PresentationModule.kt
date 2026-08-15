@@ -19,7 +19,12 @@ val presentationModule = module {
             deleteGameP2UseCase = get(),
             executeHGLauncherUseCase = get(),
             findHGLauncherUseCase = get(),
-            showHGLauncherUseCase = get()
+            showHGLauncherUseCase = get(),
+            executeGameMelonDSUseCase = get(),
+            executeLauncherMelonDSUseCase = get(),
+            findMelonDSLauncherUseCase = get(),
+            showMelonDSLauncherUseCase = get(),
+            getGamesDSUseCase = get()
         )
     }
     factory {
@@ -30,7 +35,10 @@ val presentationModule = module {
             enableHGLauncherUseCase = get(),
             hideHGLauncherUseCase = get(),
             getMouseSensitivityUseCase = get(),
-            saveMouseSensitivityUseCase = get()
+            saveMouseSensitivityUseCase = get(),
+            findMelonDSLauncherUseCase = get(),
+            enableMelonDSLauncherUseCase = get(),
+            hideMelonDSLauncherUseCase = get()
         )
     }
 }

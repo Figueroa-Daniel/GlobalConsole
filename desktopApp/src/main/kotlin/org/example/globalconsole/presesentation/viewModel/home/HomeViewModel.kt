@@ -18,6 +18,7 @@ import org.example.globalconsole.juegosPcsx2.domain.usecase.DeleteGameP2UseCase
 import org.example.globalconsole.juegosPcsx2.domain.usecase.ExecuteGameP2UseCase
 import org.example.globalconsole.juegosPcsx2.domain.usecase.GetGamesP2UseCase
 import org.example.globalconsole.melonDS.domain.usecase.ExecuteGameMelonDSUseCase
+import org.example.globalconsole.melonDS.domain.usecase.GetGamesDSUseCase
 
 /**
  * ViewModel centralizado de la pantalla principal de GlobalConsole.
@@ -45,7 +46,8 @@ class HomeViewModel(
     private val executeGameMelonDSUseCase: ExecuteGameMelonDSUseCase? = null,
     private val executeLauncherMelonDSUseCase: ExecuteLauncherMelonDSUseCase? = null,
     private val findMelonDSLauncherUseCase: FindMelonDSLauncherUseCase? = null,
-    private val showMelonDSLauncherUseCase: ShowMelonDSLauncherUseCase? = null
+    private val showMelonDSLauncherUseCase: ShowMelonDSLauncherUseCase? = null,
+    private val getGamesDSUseCase: GetGamesDSUseCase? = null
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
@@ -100,7 +102,17 @@ class HomeViewModel(
                     emptyList()
                 }
 
-                val allGames: List<Game> = (pcsx2Games + heroicEntry + melonDSEntry).sortedBy { it.name }
+                val dsGames = getGamesDSUseCase?.invoke()?.map { gameDs -> 
+                    Game(
+                        id = gameDs.id,
+                        name = gameDs.name,
+                        urlGameExecute = gameDs.urlGameExecute,
+                        image = null,
+                        platform = Platforms.MELONDS
+                    )
+                } ?: emptyList()
+
+                val allGames: List<Game> = (pcsx2Games + heroicEntry + melonDSEntry + dsGames).sortedBy { it.name }
 
                 _uiState.value = if (allGames.isEmpty()) {
                     HomeUiState.Empty
