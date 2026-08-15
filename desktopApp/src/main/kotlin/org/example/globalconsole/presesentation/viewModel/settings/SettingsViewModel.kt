@@ -65,9 +65,6 @@ class SettingsViewModel(
     private val _melonDSGamesPath = MutableStateFlow("")
     val melonDSGamesPath: StateFlow<String> = _melonDSGamesPath.asStateFlow()
 
-    private val _melonDSExecutablePath = MutableStateFlow("")
-    val melonDSExecutablePath: StateFlow<String> = _melonDSExecutablePath.asStateFlow()
-
     private val _heroicEnabled = MutableStateFlow(false)
 
     /**
@@ -117,7 +114,6 @@ class SettingsViewModel(
                 when (emulatorId) {
                     "pcsx2" -> _pcsx2Path.value = path ?: ""
                     "melonds" -> _melonDSGamesPath.value = path ?: ""
-                    "melonds_executable" -> _melonDSExecutablePath.value = path ?: ""
                 }
             } catch (e: Exception) {
                 _uiState.value = SettingsUiState.Error(e.message ?: "Error al cargar la ruta")
@@ -131,7 +127,6 @@ class SettingsViewModel(
     fun loadAllPaths() {
         loadCurrentPath("pcsx2")
         loadCurrentPath("melonds")
-        loadCurrentPath("melonds_executable")
     }
 
     /**
@@ -155,7 +150,6 @@ class SettingsViewModel(
                 when (emulatorId) {
                     "pcsx2" -> _pcsx2Path.value = path
                     "melonds" -> _melonDSGamesPath.value = path
-                    "melonds_executable" -> _melonDSExecutablePath.value = path
                 }
             } catch (e: IllegalArgumentException) {
                 _uiState.value = SettingsUiState.Error(e.message ?: "Ruta no válida")

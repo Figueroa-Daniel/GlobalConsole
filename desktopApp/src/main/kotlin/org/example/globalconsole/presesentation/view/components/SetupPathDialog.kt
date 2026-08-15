@@ -33,7 +33,6 @@ private enum class DialogButton {
     MELONDS_TOGGLE, 
     PCSX2_BROWSE, 
     MELONDS_GAMES_BROWSE, 
-    MELONDS_EXE_BROWSE, 
     CANCEL, 
     CONFIRM 
 }
@@ -51,11 +50,9 @@ fun SetupPathDialog(
     val mouseSensitivity by settingsViewModel.mouseSensitivity.collectAsState()
     val pcsx2PathState by settingsViewModel.pcsx2Path.collectAsState()
     val melonDSGamesPathState by settingsViewModel.melonDSGamesPath.collectAsState()
-    val melonDSExePathState by settingsViewModel.melonDSExecutablePath.collectAsState()
 
     var pathTextPcsx2 by remember(pcsx2PathState) { mutableStateOf(pcsx2PathState) }
     var pathTextMelonGames by remember(melonDSGamesPathState) { mutableStateOf(melonDSGamesPathState) }
-    var pathTextMelonExe by remember(melonDSExePathState) { mutableStateOf(melonDSExePathState) }
     
     var errorMessage by remember { mutableStateOf("") }
     var focusedButton by remember { mutableStateOf(DialogButton.CONFIRM) }
@@ -80,8 +77,7 @@ fun SetupPathDialog(
                             DialogButton.MELONDS_TOGGLE -> DialogButton.HEROIC_TOGGLE
                             DialogButton.PCSX2_BROWSE -> DialogButton.MELONDS_TOGGLE
                             DialogButton.MELONDS_GAMES_BROWSE -> DialogButton.PCSX2_BROWSE
-                            DialogButton.MELONDS_EXE_BROWSE -> DialogButton.MELONDS_GAMES_BROWSE
-                            DialogButton.CONFIRM, DialogButton.CANCEL -> DialogButton.MELONDS_EXE_BROWSE
+                            DialogButton.CONFIRM, DialogButton.CANCEL -> DialogButton.MELONDS_GAMES_BROWSE
                             else -> focusedButton
                         }
                         GamepadEvent.Direction.DOWN -> when (focusedButton) {
@@ -89,8 +85,7 @@ fun SetupPathDialog(
                             DialogButton.HEROIC_TOGGLE -> DialogButton.MELONDS_TOGGLE
                             DialogButton.MELONDS_TOGGLE -> DialogButton.PCSX2_BROWSE
                             DialogButton.PCSX2_BROWSE -> DialogButton.MELONDS_GAMES_BROWSE
-                            DialogButton.MELONDS_GAMES_BROWSE -> DialogButton.MELONDS_EXE_BROWSE
-                            DialogButton.MELONDS_EXE_BROWSE -> DialogButton.CONFIRM
+                            DialogButton.MELONDS_GAMES_BROWSE -> DialogButton.CONFIRM
                             else -> focusedButton
                         }
                         GamepadEvent.Direction.LEFT -> when (focusedButton) {
@@ -121,13 +116,11 @@ fun SetupPathDialog(
                             DialogButton.SENSITIVITY_SLIDER -> {}
                             DialogButton.PCSX2_BROWSE -> showFolderPickerFor = DialogButton.PCSX2_BROWSE
                             DialogButton.MELONDS_GAMES_BROWSE -> showFolderPickerFor = DialogButton.MELONDS_GAMES_BROWSE
-                            DialogButton.MELONDS_EXE_BROWSE -> showFolderPickerFor = DialogButton.MELONDS_EXE_BROWSE
                             DialogButton.CANCEL -> onDismiss()
                             DialogButton.CONFIRM -> {
                                 // Validaciones básicas
                                 settingsViewModel.savePath("pcsx2", pathTextPcsx2)
                                 settingsViewModel.savePath("melonds", pathTextMelonGames)
-                                settingsViewModel.savePath("melonds_executable", pathTextMelonExe)
                                 onConfirm()
                             }
                         }
@@ -250,19 +243,6 @@ fun SetupPathDialog(
                         Spacer(modifier = Modifier.width(8.dp))
                         MetroButton(text = "EXAMINAR", isPrimary = focusedButton == DialogButton.MELONDS_GAMES_BROWSE, isFocused = focusedButton == DialogButton.MELONDS_GAMES_BROWSE, onClick = { showFolderPickerFor = DialogButton.MELONDS_GAMES_BROWSE })
                     }
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Melon DS Executable Path
-                    Text("RUTA DEL EJECUTABLE (MELON DS)", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        TextField(
-                            value = pathTextMelonExe, onValueChange = { pathTextMelonExe = it }, modifier = Modifier.weight(1f).border(1.dp, Color.Gray, RectangleShape),
-                            colors = TextFieldDefaults.colors(focusedContainerColor = Color(0xFF161616), unfocusedContainerColor = Color(0xFF161616), disabledContainerColor = Color(0xFF161616), focusedTextColor = Color.White, unfocusedTextColor = Color.White),
-                            singleLine = true, textStyle = TextStyle(fontSize = 14.sp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        MetroButton(text = "EXAMINAR", isPrimary = focusedButton == DialogButton.MELONDS_EXE_BROWSE, isFocused = focusedButton == DialogButton.MELONDS_EXE_BROWSE, onClick = { showFolderPickerFor = DialogButton.MELONDS_EXE_BROWSE })
-                    }
                 }
 
                 if (errorMessage.isNotEmpty()) {
@@ -277,7 +257,6 @@ fun SetupPathDialog(
                         onClick = {
                             settingsViewModel.savePath("pcsx2", pathTextPcsx2)
                             settingsViewModel.savePath("melonds", pathTextMelonGames)
-                            settingsViewModel.savePath("melonds_executable", pathTextMelonExe)
                             onConfirm()
                         }
                     )
@@ -290,7 +269,6 @@ fun SetupPathDialog(
         val initialPath = when (showFolderPickerFor) {
             DialogButton.PCSX2_BROWSE -> pathTextPcsx2
             DialogButton.MELONDS_GAMES_BROWSE -> pathTextMelonGames
-            DialogButton.MELONDS_EXE_BROWSE -> pathTextMelonExe
             else -> ""
         }
         val safeInitial = if (initialPath.isNotBlank() && File(initialPath).exists()) initialPath else System.getProperty("user.home")
@@ -302,7 +280,6 @@ fun SetupPathDialog(
                 when (showFolderPickerFor) {
                     DialogButton.PCSX2_BROWSE -> pathTextPcsx2 = selectedPath
                     DialogButton.MELONDS_GAMES_BROWSE -> pathTextMelonGames = selectedPath
-                    DialogButton.MELONDS_EXE_BROWSE -> pathTextMelonExe = selectedPath
                     else -> {}
                 }
                 errorMessage = ""
