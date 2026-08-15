@@ -217,6 +217,9 @@ fun HomeScreen(
                                             GamepadEvent.Button.BACK -> {
                                                 if (showPathDialog) showPathDialog = false
                                             }
+                                            GamepadEvent.Button.HOME -> {
+                                                viewModel.closeActiveGame()
+                                            }
                                             else -> {}
                                         }
                                     }

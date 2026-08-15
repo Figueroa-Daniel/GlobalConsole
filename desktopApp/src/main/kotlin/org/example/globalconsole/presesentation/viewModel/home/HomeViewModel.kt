@@ -47,7 +47,11 @@ class HomeViewModel(
     private val executeLauncherMelonDSUseCase: ExecuteLauncherMelonDSUseCase? = null,
     private val findMelonDSLauncherUseCase: FindMelonDSLauncherUseCase? = null,
     private val showMelonDSLauncherUseCase: ShowMelonDSLauncherUseCase? = null,
-    private val getGamesDSUseCase: GetGamesDSUseCase? = null
+    private val getGamesDSUseCase: GetGamesDSUseCase? = null,
+    private val closeGameP2UseCase: org.example.globalconsole.juegosPcsx2.domain.usecase.CloseGameP2UseCase? = null,
+    private val closeGameDSUseCase: org.example.globalconsole.melonDS.domain.usecase.CloseGameDSUseCase? = null,
+    private val closeLauncherMelonDSUseCase: org.example.globalconsole.melonDS.domain.usecase.CloseLauncherMelonDSUseCase? = null,
+    private val closeHGLauncherUseCase: org.example.globalconsole.HeroicGames.domain.usecase.CloseHGLauncherUseCase? = null
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
@@ -188,6 +192,30 @@ class HomeViewModel(
             
             // Al terminar la ejecución, volvemos a cargar la vista
             loadGames()
+        }
+    }
+
+    /**
+     * Cierra el juego o emulador que se encuentre actualmente en ejecución.
+     */
+    fun closeActiveGame() {
+        val state = _uiState.value
+        if (state !is HomeUiState.GameRunning) return
+
+        viewModelScope.launch {
+            val game = state.game
+            when (game.platform) {
+                Platforms.PCSX2 -> closeGameP2UseCase?.invoke()
+                Platforms.LOCALGAME -> {}
+                Platforms.HEORIC_GAMES_LAUCHER -> closeHGLauncherUseCase?.invoke()
+                Platforms.MELONDS -> {
+                    if (game.id == "melonds-launcher") {
+                        closeLauncherMelonDSUseCase?.invoke()
+                    } else {
+                        closeGameDSUseCase?.invoke()
+                    }
+                }
+            }
         }
     }
 

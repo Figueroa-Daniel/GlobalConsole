@@ -113,6 +113,7 @@ fun GamepadOSK(
                     }
                     GamepadEvent.Button.BACK -> onDismiss()
                     GamepadEvent.Button.MENU -> onConfirm(inputText)
+                    GamepadEvent.Button.HOME -> {}
                 }
             }
         }

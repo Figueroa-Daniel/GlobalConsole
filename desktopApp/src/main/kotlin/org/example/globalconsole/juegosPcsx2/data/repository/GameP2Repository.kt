@@ -64,4 +64,13 @@ interface GameP2Repository {
      * @since 2026-08-02
      */
     suspend fun getGamesByName(name: String): List<GameP2>
+
+    /**
+     * Cierra el juego de PCSX2 actualmente en ejecución.
+     *
+     * @return True si se cerró correctamente, false en caso contrario.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-08-15
+     */
+    suspend fun closeGame(): Boolean
 }

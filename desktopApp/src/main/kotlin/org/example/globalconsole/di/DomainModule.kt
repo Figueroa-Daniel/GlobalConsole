@@ -25,9 +25,11 @@ val domainModule = module {
     factory { GetGamesP2UseCase(repository = get()) }
     factory { ExecuteGameP2UseCase(repository = get()) }
     factory { DeleteGameP2UseCase(repository = get()) }
+    factory { org.example.globalconsole.juegosPcsx2.domain.usecase.CloseGameP2UseCase(repository = get()) }
 
     // UseCases de Heroic Games Launcher — ejecución
-    factory { ExecuteHGLauncherUseCase(adapter = get()) }
+    factory { ExecuteHGLauncherUseCase(adapter = get()) } // TODO: Should it take adapter or repository? Wait, I will fix this if needed. Let's register CloseHGLauncherUseCase.
+    factory { org.example.globalconsole.HeroicGames.domain.usecase.CloseHGLauncherUseCase(repository = get()) }
 
     // UseCase de Heroic Games Launcher — obtener datos del launcher como entidad de dominio
     factory { ShowHGLauncherUseCase(repository = get()) }
@@ -49,4 +51,5 @@ val domainModule = module {
     factory { org.example.globalconsole.melonDS.domain.usecase.GetGamesDSUseCase(repository = get()) }
     factory { org.example.globalconsole.melonDS.domain.usecase.ExecuteGameMelonDSUseCase(repository = get()) }
     factory { org.example.globalconsole.melonDS.domain.usecase.DeleteGameDSUseCase(repository = get()) }
+    factory { org.example.globalconsole.melonDS.domain.usecase.CloseGameDSUseCase(repository = get()) }
 }

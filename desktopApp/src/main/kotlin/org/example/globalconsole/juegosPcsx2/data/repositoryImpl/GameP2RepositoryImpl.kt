@@ -70,6 +70,17 @@ class GameP2RepositoryImpl(
     }
 
     /**
+     * Cierra el juego en ejecución llamando al adaptador nativo.
+     *
+     * @return True si se cerró correctamente, false en caso contrario.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-08-15
+     */
+    override suspend fun closeGame(): Boolean {
+        return dataSourcePcsx.closeProcess()
+    }
+
+    /**
      * Escanea el sistema de archivos mediante el adaptador de persistencia para refrescar la caché y retornar los juegos.
      *
      * @return Lista completa de entidades [GameP2] encontradas en el sistema.

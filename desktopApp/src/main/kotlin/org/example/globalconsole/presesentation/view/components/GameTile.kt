@@ -110,12 +110,12 @@ fun GameTile(
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .background(Color.White, RectangleShape)
-                .padding(horizontal = 8.dp, vertical = 4.dp)
+                .padding(horizontal = 12.dp, vertical = 6.dp)
         ) {
             Text(
                 text = game.platform.name,
                 color = Color.Black,
-                fontSize = 9.sp,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.Black,
                 fontFamily = FontFamily.Monospace
             )

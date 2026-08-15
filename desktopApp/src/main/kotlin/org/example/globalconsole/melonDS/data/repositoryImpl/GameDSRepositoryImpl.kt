@@ -31,6 +31,17 @@ class GameDSRepositoryImpl(
         return dataSourceDs.executeGame(executeUrl)
     }
 
+    /**
+     * Cierra el juego en ejecución llamando al adaptador nativo.
+     *
+     * @return True si se cerró correctamente, false en caso contrario.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-08-15
+     */
+    override suspend fun closeGame(): Boolean {
+        return dataSourceDs.closeProcess()
+    }
+
     override suspend fun getGamesByName(name: String): List<GameDS> {
         return gamesInMemoryCache.filter { game ->
             game.name.contains(name, ignoreCase = true)

@@ -91,6 +91,17 @@ class HGLauncherRepositoryImpl(
     }
 
     /**
+     * Cierra el proceso de Heroic Games Launcher llamando al adaptador nativo.
+     *
+     * @return True si se cerró correctamente, false en caso contrario.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-08-15
+     */
+    override suspend fun closeLauncher(): Boolean = withContext(Dispatchers.IO) {
+        adapter.closeProcess()
+    }
+
+    /**
      * Recupera la preferencia de visibilidad de Heroic Games Launcher desde `config.json`.
      * Retorna false por defecto si la clave no existe o el archivo no está disponible.
      *

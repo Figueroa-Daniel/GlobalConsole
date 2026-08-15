@@ -24,7 +24,11 @@ val presentationModule = module {
             executeLauncherMelonDSUseCase = get(),
             findMelonDSLauncherUseCase = get(),
             showMelonDSLauncherUseCase = get(),
-            getGamesDSUseCase = get()
+            getGamesDSUseCase = get(),
+            closeGameP2UseCase = get(),
+            closeGameDSUseCase = get(),
+            closeLauncherMelonDSUseCase = get(),
+            closeHGLauncherUseCase = get()
         )
     }
     factory {

@@ -10,6 +10,8 @@ import org.example.globalconsole.settings.ROUTE_PCSX2_GAMES
  * @since 2026-08-02
  */
 class GamePCSX2Adapter {
+    private var activeProcess: Process? = null
+
     /**
      * Inicia la ejecución de una ISO de PS2 determinando el sistema operativo actual (Linux o Windows).
      *
@@ -33,6 +35,23 @@ class GamePCSX2Adapter {
             executeGameForWindows(executeUrl)
         } else {
             println("Unsupported operating system: $os")
+            false
+        }
+    }
+
+    /**
+     * Cierra forzosamente el proceso del emulador si está en ejecución.
+     *
+     * @author Daniel Figueroa Vidal
+     * @since 2026-08-15
+     */
+    fun closeProcess(): Boolean {
+        return try {
+            activeProcess?.destroy()
+            activeProcess = null
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
             false
         }
     }
@@ -63,10 +82,12 @@ class GamePCSX2Adapter {
             val processBuilder = ProcessBuilder(command)
             processBuilder.inheritIO() // This will make the launched process use the same stdin/stdout/stderr as the current process
             val process = processBuilder.start()
+            activeProcess = process
             println("Launched PCSX2 with command: ${command.joinToString(" ")}")
             
             // Bloquea el hilo actual hasta que el emulador se cierre
             process.waitFor()
+            activeProcess = null
             true
         } catch (e: Exception) {
             System.err.println("Error launching PCSX2 on Windows: ${e.message}")
@@ -102,10 +123,12 @@ class GamePCSX2Adapter {
             val processBuilder = ProcessBuilder(command)
             processBuilder.inheritIO() // This will make the launched process use the same stdin/stdout/stderr as the current process
             val process = processBuilder.start()
+            activeProcess = process
             println("Launched PCSX2 with command: ${command.joinToString(" ")}")
             
             // Bloquea el hilo actual hasta que el emulador se cierre
             process.waitFor()
+            activeProcess = null
             true
         } catch (e: Exception) {
             System.err.println("Error launching PCSX2: ${e.message}")

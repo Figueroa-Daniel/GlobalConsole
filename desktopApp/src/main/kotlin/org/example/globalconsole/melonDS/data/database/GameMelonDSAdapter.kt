@@ -36,6 +36,26 @@ class GameMelonDSAdapter {
         }
     }
 
+    private var activeProcess: Process? = null
+
+    /**
+     * Cierra forzosamente el proceso del emulador si está en ejecución.
+     *
+     * @return True si se cerró correctamente, false en caso contrario.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-08-15
+     */
+    fun closeProcess(): Boolean {
+        return try {
+            activeProcess?.destroy()
+            activeProcess = null
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
     /**
      * Ejecuta el emulador Melon DS en Windows utilizando el binario local y argumentos de pantalla completa/ruta.
      *
@@ -60,10 +80,12 @@ class GameMelonDSAdapter {
             val processBuilder = ProcessBuilder(command)
             processBuilder.inheritIO()
             val process = processBuilder.start()
+            activeProcess = process
             println("Launched MelonDS with command: ${command.joinToString(" ")}")
             
             // Bloquea el hilo actual hasta que el emulador se cierre
             process.waitFor()
+            activeProcess = null
             true
         } catch (e: Exception) {
             System.err.println("Error launching MelonDS on Windows: ${e.message}")
@@ -98,10 +120,12 @@ class GameMelonDSAdapter {
             val processBuilder = ProcessBuilder(command)
             processBuilder.inheritIO()
             val process = processBuilder.start()
+            activeProcess = process
             println("Launched MelonDS with command: ${command.joinToString(" ")}")
             
             // Bloquea el hilo actual hasta que el emulador se cierre
             process.waitFor()
+            activeProcess = null
             true
         } catch (e: Exception) {
             System.err.println("Error launching MelonDS Flatpak: ${e.message}")

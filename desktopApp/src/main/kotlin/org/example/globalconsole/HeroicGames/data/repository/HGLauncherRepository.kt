@@ -50,6 +50,15 @@ interface HGLauncherRepository {
     suspend fun executeHGLauncher(): Boolean
 
     /**
+     * Cierra el proceso de Heroic Games Launcher.
+     *
+     * @return True si se cerró correctamente, false en caso contrario.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-08-15
+     */
+    suspend fun closeLauncher(): Boolean
+
+    /**
      * Recupera la preferencia del usuario sobre si Heroic Games Launcher
      * debe aparecer en la biblioteca principal de GlobalConsole.
      *

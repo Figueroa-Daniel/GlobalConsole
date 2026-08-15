@@ -1,0 +1,9 @@
+{
+    "emulatorPaths": {
+        "pcsx2": "/home/figue/Escritorio/isos_ps2",
+        "melonds": "/home/figue/Escritorio/rom_ds"
+    },
+    "heroicEnabled": true,
+    "melonDSEnabled": true,
+    "mouseSensitivity": 16.679998
+}

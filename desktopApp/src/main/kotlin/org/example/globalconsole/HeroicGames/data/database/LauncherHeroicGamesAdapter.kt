@@ -9,6 +9,25 @@ package org.example.globalconsole.HeroicGames.data.database
  * @since 2026-08-12
  */
 open class LauncherHeroicGamesAdapter {
+    private var activeProcess: Process? = null
+
+    /**
+     * Cierra forzosamente el proceso del emulador si está en ejecución.
+     *
+     * @return True si se cerró correctamente, false en caso contrario.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-08-15
+     */
+    fun closeProcess(): Boolean {
+        return try {
+            activeProcess?.destroy()
+            activeProcess = null
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
 
     /**
      * Punto de entrada público. Detecta el sistema operativo actual y delega la ejecución
@@ -82,10 +101,12 @@ open class LauncherHeroicGamesAdapter {
             val processBuilder = ProcessBuilder(command)
             processBuilder.inheritIO()
             val process = processBuilder.start()
+            activeProcess = process
             println("Heroic Games Launcher iniciado con: ${command.joinToString(" ")}")
 
             // Bloquea el hilo actual hasta que el launcher se cierre
             process.waitFor()
+            activeProcess = null
             true
         } catch (e: Exception) {
             System.err.println("Error al lanzar Heroic en Linux: ${e.message}")
@@ -137,10 +158,12 @@ open class LauncherHeroicGamesAdapter {
             val processBuilder = ProcessBuilder(command)
             processBuilder.inheritIO()
             val process = processBuilder.start()
+            activeProcess = process
             println("Heroic Games Launcher iniciado con: ${command.joinToString(" ")}")
 
             // Bloquea el hilo actual hasta que el launcher se cierre
             process.waitFor()
+            activeProcess = null
             true
         } catch (e: Exception) {
             System.err.println("Error al lanzar Heroic en Windows: ${e.message}")
