@@ -19,3 +19,20 @@ var ROUTE_PCSX2_GAMES: String? = null
  * @since 2026-08-02
  */
 var ROUTE_PCSSX2: String? = null
+
+/**
+ * Ruta del directorio local donde se encuentran almacenados los juegos de Nintendo DS (Melon DS).
+ * Configurable en tiempo de ejecución.
+ *
+ * @author Daniel Figueroa Vidal
+ * @since 2026-08-15
+ */
+var ROUTE_MELONDS_GAMES: String? = null
+
+/**
+ * Ruta de instalación o binario ejecutable de Melon DS (si aplica para Windows).
+ *
+ * @author Daniel Figueroa Vidal
+ * @since 2026-08-15
+ */
+var ROUTE_MELONDS_EXECUTABLE: String? = null

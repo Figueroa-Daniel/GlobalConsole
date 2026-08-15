@@ -14,6 +14,7 @@ import org.example.globalconsole.HeroicGames.domain.usecase.ShowHGLauncherUseCas
 import org.example.globalconsole.juegosPcsx2.domain.usecase.DeleteGameP2UseCase
 import org.example.globalconsole.juegosPcsx2.domain.usecase.ExecuteGameP2UseCase
 import org.example.globalconsole.juegosPcsx2.domain.usecase.GetGamesP2UseCase
+import org.example.globalconsole.melonDS.domain.usecase.ExecuteGameMelonDSUseCase
 
 /**
  * ViewModel centralizado de la pantalla principal de GlobalConsole.
@@ -37,7 +38,8 @@ class HomeViewModel(
     private val deleteGameP2UseCase: DeleteGameP2UseCase? = null,
     private val executeHGLauncherUseCase: ExecuteHGLauncherUseCase? = null,
     private val findHGLauncherUseCase: FindHGLauncherUseCase? = null,
-    private val showHGLauncherUseCase: ShowHGLauncherUseCase? = null
+    private val showHGLauncherUseCase: ShowHGLauncherUseCase? = null,
+    private val executeGameMelonDSUseCase: ExecuteGameMelonDSUseCase? = null
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
@@ -150,6 +152,7 @@ class HomeViewModel(
                     false
                 }
                 Platforms.HEORIC_GAMES_LAUCHER -> executeHGLauncherUseCase?.invoke() ?: false
+                Platforms.MELONDS -> executeGameMelonDSUseCase?.invoke(game.urlGameExecute) ?: false
             }
             
             // Al terminar la ejecución, volvemos a cargar la vista
@@ -178,6 +181,9 @@ class HomeViewModel(
                 }
                 Platforms.HEORIC_GAMES_LAUCHER -> {
                     // TODO: Implementar eliminación de entrada de Heroic Games
+                }
+                Platforms.MELONDS -> {
+                    // TODO: Implementar eliminación de juego de Melon DS
                 }
             }
         }
