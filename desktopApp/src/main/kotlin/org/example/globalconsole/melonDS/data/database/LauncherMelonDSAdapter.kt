@@ -79,7 +79,8 @@ class LauncherMelonDSAdapter {
     suspend fun closeLauncher(): Boolean {
         return try {
             if (currentProcess?.isAlive == true) {
-                currentProcess?.destroy()
+                currentProcess?.descendants()?.forEach { it.destroyForcibly() }
+                currentProcess?.destroyForcibly()
                 println("MelonDS Launcher process destroyed.")
                 currentProcess = null
                 true

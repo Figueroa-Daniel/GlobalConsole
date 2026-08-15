@@ -69,6 +69,11 @@ class GamepadManager {
     var isSuspended: Boolean = false
 
     /**
+     * Indica si se permite usar el ratón (stick derecho) cuando la lectura del mando está suspendida (ej. en Melon DS).
+     */
+    var isMouseAllowedWhenSuspended: Boolean = false
+
+    /**
      * Velocidad / sensibilidad del movimiento del ratón con el stick derecho.
      * Puede ser ajustada en tiempo real.
      */
@@ -152,7 +157,7 @@ class GamepadManager {
     }
 
     /**
-     * Procesa únicamente el botón HOME cuando el gamepad está suspendido (ej. con un juego abierto).
+     * Procesa únicamente el botón HOME y (opcionalmente) el ratón cuando el gamepad está suspendido (ej. con un juego abierto).
      *
      * @author Daniel Figueroa Vidal
      * @since 2026-08-15
@@ -160,6 +165,19 @@ class GamepadManager {
     private suspend fun processSuspendedGamepadState(state: GLFWGamepadState) {
         val buttons: ByteBuffer = state.buttons()
         checkButtonPress(buttons, GLFW_GAMEPAD_BUTTON_GUIDE, GamepadEvent.Button.HOME)
+
+        if (isMouseAllowedWhenSuspended) {
+            val axes = state.axes()
+            moveMouseWithRightStick(axes)
+
+            val aPressed = buttons.get(GLFW_GAMEPAD_BUTTON_A).toInt() == GLFW_PRESS
+            val aWasPressed = lastButtonsState[GLFW_GAMEPAD_BUTTON_A] ?: false
+            if (aPressed && !aWasPressed) {
+                awtRobot?.mousePress(InputEvent.BUTTON1_DOWN_MASK)
+                awtRobot?.mouseRelease(InputEvent.BUTTON1_DOWN_MASK)
+            }
+            lastButtonsState[GLFW_GAMEPAD_BUTTON_A] = aPressed
+        }
     }
 
     /**

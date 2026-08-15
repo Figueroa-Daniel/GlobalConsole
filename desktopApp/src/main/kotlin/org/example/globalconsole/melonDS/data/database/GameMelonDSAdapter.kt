@@ -47,7 +47,10 @@ class GameMelonDSAdapter {
      */
     fun closeProcess(): Boolean {
         return try {
-            activeProcess?.destroy()
+            activeProcess?.let { process ->
+                process.descendants().forEach { it.destroyForcibly() }
+                process.destroyForcibly()
+            }
             activeProcess = null
             true
         } catch (e: Exception) {

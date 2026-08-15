@@ -87,7 +87,10 @@ fun HomeScreen(
 
     // Suspender la lectura del gamepad si un juego está corriendo
     LaunchedEffect(uiState) {
-        gamepadManager?.isSuspended = (uiState is HomeUiState.GameRunning)
+        val isRunning = uiState is HomeUiState.GameRunning
+        gamepadManager?.isSuspended = isRunning
+        gamepadManager?.isMouseAllowedWhenSuspended = isRunning &&
+                (uiState as HomeUiState.GameRunning).game.platform == org.example.globalconsole.generalDomain.entititys.Platforms.MELONDS
     }
 
     Box(
