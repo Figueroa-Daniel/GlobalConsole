@@ -164,7 +164,21 @@ class GamepadManager {
      */
     private suspend fun processSuspendedGamepadState(state: GLFWGamepadState) {
         val buttons: ByteBuffer = state.buttons()
+        
+        // 1. Botón central (Guía/PS/Xbox)
         checkButtonPress(buttons, GLFW_GAMEPAD_BUTTON_GUIDE, GamepadEvent.Button.HOME)
+
+        // 2. Combo de seguridad: START + BACK simultáneamente
+        val startPressed = buttons.get(GLFW_GAMEPAD_BUTTON_START).toInt() == GLFW_PRESS
+        val backPressed = buttons.get(GLFW_GAMEPAD_BUTTON_BACK).toInt() == GLFW_PRESS
+        val wasStartPressed = lastButtonsState[GLFW_GAMEPAD_BUTTON_START] ?: false
+        val wasBackPressed = lastButtonsState[GLFW_GAMEPAD_BUTTON_BACK] ?: false
+        
+        if (startPressed && backPressed && !(wasStartPressed && wasBackPressed)) {
+            _events.emit(GamepadEvent.ButtonPressed(GamepadEvent.Button.HOME))
+        }
+        lastButtonsState[GLFW_GAMEPAD_BUTTON_START] = startPressed
+        lastButtonsState[GLFW_GAMEPAD_BUTTON_BACK] = backPressed
 
         if (isMouseAllowedWhenSuspended) {
             val axes = state.axes()
