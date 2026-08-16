@@ -142,7 +142,7 @@ fun GameTile(
 
             // Subtexto / Acción interactiva
             Text(
-                text = if (isActive) "EJECUTAR >" else "PCSX2 SYSTEM",
+                text = if (isActive) "EJECUTAR >" else "${game.platform.name} SYSTEM",
                 color = if (isActive) Color.White else Color.Gray,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,

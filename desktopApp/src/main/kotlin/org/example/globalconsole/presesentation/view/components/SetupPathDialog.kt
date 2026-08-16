@@ -31,8 +31,10 @@ private enum class DialogButton {
     SENSITIVITY_SLIDER, 
     HEROIC_TOGGLE, 
     MELONDS_TOGGLE, 
+    DOLPHIN_TOGGLE,
     PCSX2_BROWSE, 
     MELONDS_GAMES_BROWSE, 
+    DOLPHIN_GAMES_BROWSE,
     CANCEL, 
     CONFIRM 
 }
@@ -50,9 +52,12 @@ fun SetupPathDialog(
     val mouseSensitivity by settingsViewModel.mouseSensitivity.collectAsState()
     val pcsx2PathState by settingsViewModel.pcsx2Path.collectAsState()
     val melonDSGamesPathState by settingsViewModel.melonDSGamesPath.collectAsState()
+    val dolphinEnabled by settingsViewModel.dolphinEnabled.collectAsState()
+    val dolphinGamesPathState by settingsViewModel.dolphinGamesPath.collectAsState()
 
     var pathTextPcsx2 by remember(pcsx2PathState) { mutableStateOf(pcsx2PathState) }
     var pathTextMelonGames by remember(melonDSGamesPathState) { mutableStateOf(melonDSGamesPathState) }
+    var pathTextDolphinGames by remember(dolphinGamesPathState) { mutableStateOf(dolphinGamesPathState) }
     
     var errorMessage by remember { mutableStateOf("") }
     var focusedButton by remember { mutableStateOf(DialogButton.CONFIRM) }
@@ -62,6 +67,7 @@ fun SetupPathDialog(
         settingsViewModel.loadAllPaths()
         settingsViewModel.loadHeroicEnabled()
         settingsViewModel.loadMelonDSEnabled()
+        settingsViewModel.loadDolphinEnabled()
         settingsViewModel.loadMouseSensitivity()
     }
 
@@ -75,17 +81,21 @@ fun SetupPathDialog(
                         GamepadEvent.Direction.UP -> when (focusedButton) {
                             DialogButton.HEROIC_TOGGLE -> DialogButton.SENSITIVITY_SLIDER
                             DialogButton.MELONDS_TOGGLE -> DialogButton.HEROIC_TOGGLE
-                            DialogButton.PCSX2_BROWSE -> DialogButton.MELONDS_TOGGLE
+                            DialogButton.DOLPHIN_TOGGLE -> DialogButton.MELONDS_TOGGLE
+                            DialogButton.PCSX2_BROWSE -> DialogButton.DOLPHIN_TOGGLE
                             DialogButton.MELONDS_GAMES_BROWSE -> DialogButton.PCSX2_BROWSE
-                            DialogButton.CONFIRM, DialogButton.CANCEL -> DialogButton.MELONDS_GAMES_BROWSE
+                            DialogButton.DOLPHIN_GAMES_BROWSE -> DialogButton.MELONDS_GAMES_BROWSE
+                            DialogButton.CONFIRM, DialogButton.CANCEL -> DialogButton.DOLPHIN_GAMES_BROWSE
                             else -> focusedButton
                         }
                         GamepadEvent.Direction.DOWN -> when (focusedButton) {
                             DialogButton.SENSITIVITY_SLIDER -> DialogButton.HEROIC_TOGGLE
                             DialogButton.HEROIC_TOGGLE -> DialogButton.MELONDS_TOGGLE
-                            DialogButton.MELONDS_TOGGLE -> DialogButton.PCSX2_BROWSE
+                            DialogButton.MELONDS_TOGGLE -> DialogButton.DOLPHIN_TOGGLE
+                            DialogButton.DOLPHIN_TOGGLE -> DialogButton.PCSX2_BROWSE
                             DialogButton.PCSX2_BROWSE -> DialogButton.MELONDS_GAMES_BROWSE
-                            DialogButton.MELONDS_GAMES_BROWSE -> DialogButton.CONFIRM
+                            DialogButton.MELONDS_GAMES_BROWSE -> DialogButton.DOLPHIN_GAMES_BROWSE
+                            DialogButton.DOLPHIN_GAMES_BROWSE -> DialogButton.CONFIRM
                             else -> focusedButton
                         }
                         GamepadEvent.Direction.LEFT -> when (focusedButton) {
@@ -113,14 +123,17 @@ fun SetupPathDialog(
                         when (focusedButton) {
                             DialogButton.HEROIC_TOGGLE -> settingsViewModel.setHeroicEnabled(!heroicEnabled)
                             DialogButton.MELONDS_TOGGLE -> settingsViewModel.setMelonDSEnabled(!melonDSEnabled)
+                            DialogButton.DOLPHIN_TOGGLE -> settingsViewModel.setDolphinEnabled(!dolphinEnabled)
                             DialogButton.SENSITIVITY_SLIDER -> {}
                             DialogButton.PCSX2_BROWSE -> showFolderPickerFor = DialogButton.PCSX2_BROWSE
                             DialogButton.MELONDS_GAMES_BROWSE -> showFolderPickerFor = DialogButton.MELONDS_GAMES_BROWSE
+                            DialogButton.DOLPHIN_GAMES_BROWSE -> showFolderPickerFor = DialogButton.DOLPHIN_GAMES_BROWSE
                             DialogButton.CANCEL -> onDismiss()
                             DialogButton.CONFIRM -> {
                                 // Validaciones básicas
                                 settingsViewModel.savePath("pcsx2", pathTextPcsx2)
                                 settingsViewModel.savePath("melonds", pathTextMelonGames)
+                                settingsViewModel.savePath("dolphinGames", pathTextDolphinGames)
                                 onConfirm()
                             }
                         }
@@ -219,6 +232,23 @@ fun SetupPathDialog(
                     }
                     Spacer(modifier = Modifier.height(20.dp))
 
+                    // Dolphin Launcher Toggle
+                    val dolphinToggleBorderColor = if (focusedButton == DialogButton.DOLPHIN_TOGGLE) Color(0xFF00FFCC) else Color(0xFF333333)
+                    Column(
+                        modifier = Modifier.fillMaxWidth().border(1.dp, dolphinToggleBorderColor, RectangleShape).padding(12.dp)
+                    ) {
+                        Text("DOLPHIN LAUNCHER", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text("Mostrar Dolphin Launcher en la biblioteca.", color = Color(0xFFAAAAAA), fontSize = 12.sp)
+                        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(if (dolphinEnabled) "HABILITADO" else "DESHABILITADO", color = if (dolphinEnabled) Color(0xFF00FFCC) else Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Switch(
+                                checked = dolphinEnabled, onCheckedChange = { settingsViewModel.setDolphinEnabled(it) },
+                                colors = SwitchDefaults.colors(checkedThumbColor = Color.Black, checkedTrackColor = Color(0xFF00FFCC), uncheckedThumbColor = Color.Gray, uncheckedTrackColor = Color(0xFF333333))
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(20.dp))
+
                     // PCSX2 Path
                     Text("RUTA DE JUEGOS (PCSX2)", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -243,6 +273,19 @@ fun SetupPathDialog(
                         Spacer(modifier = Modifier.width(8.dp))
                         MetroButton(text = "EXAMINAR", isPrimary = focusedButton == DialogButton.MELONDS_GAMES_BROWSE, isFocused = focusedButton == DialogButton.MELONDS_GAMES_BROWSE, onClick = { showFolderPickerFor = DialogButton.MELONDS_GAMES_BROWSE })
                     }
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Dolphin Games Path
+                    Text("RUTA DE JUEGOS (DOLPHIN)", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        TextField(
+                            value = pathTextDolphinGames, onValueChange = { pathTextDolphinGames = it }, modifier = Modifier.weight(1f).border(1.dp, Color.Gray, RectangleShape),
+                            colors = TextFieldDefaults.colors(focusedContainerColor = Color(0xFF161616), unfocusedContainerColor = Color(0xFF161616), disabledContainerColor = Color(0xFF161616), focusedTextColor = Color.White, unfocusedTextColor = Color.White),
+                            singleLine = true, textStyle = TextStyle(fontSize = 14.sp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        MetroButton(text = "EXAMINAR", isPrimary = focusedButton == DialogButton.DOLPHIN_GAMES_BROWSE, isFocused = focusedButton == DialogButton.DOLPHIN_GAMES_BROWSE, onClick = { showFolderPickerFor = DialogButton.DOLPHIN_GAMES_BROWSE })
+                    }
                 }
 
                 if (errorMessage.isNotEmpty()) {
@@ -257,6 +300,7 @@ fun SetupPathDialog(
                         onClick = {
                             settingsViewModel.savePath("pcsx2", pathTextPcsx2)
                             settingsViewModel.savePath("melonds", pathTextMelonGames)
+                            settingsViewModel.savePath("dolphinGames", pathTextDolphinGames)
                             onConfirm()
                         }
                     )
@@ -269,6 +313,7 @@ fun SetupPathDialog(
         val initialPath = when (showFolderPickerFor) {
             DialogButton.PCSX2_BROWSE -> pathTextPcsx2
             DialogButton.MELONDS_GAMES_BROWSE -> pathTextMelonGames
+            DialogButton.DOLPHIN_GAMES_BROWSE -> pathTextDolphinGames
             else -> ""
         }
         val safeInitial = if (initialPath.isNotBlank() && File(initialPath).exists()) initialPath else System.getProperty("user.home")
@@ -280,6 +325,7 @@ fun SetupPathDialog(
                 when (showFolderPickerFor) {
                     DialogButton.PCSX2_BROWSE -> pathTextPcsx2 = selectedPath
                     DialogButton.MELONDS_GAMES_BROWSE -> pathTextMelonGames = selectedPath
+                    DialogButton.DOLPHIN_GAMES_BROWSE -> pathTextDolphinGames = selectedPath
                     else -> {}
                 }
                 errorMessage = ""
