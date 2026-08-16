@@ -46,7 +46,10 @@ class SettingsViewModel(
     private val saveMouseSensitivityUseCase: SaveMouseSensitivityUseCase,
     private val findMelonDSLauncherUseCase: FindMelonDSLauncherUseCase? = null,
     private val enableMelonDSLauncherUseCase: EnableMelonDSLauncherUseCase? = null,
-    private val hideMelonDSLauncherUseCase: HideMelonDSLauncherUseCase? = null
+    private val hideMelonDSLauncherUseCase: HideMelonDSLauncherUseCase? = null,
+    private val findDolphinLauncherUseCase: org.example.globalconsole.dolphin.domain.usecase.FindDolphinLauncherUseCase? = null,
+    private val enableDolphinLauncherUseCase: org.example.globalconsole.dolphin.domain.usecase.EnableDolphinLauncherUseCase? = null,
+    private val hideDolphinLauncherUseCase: org.example.globalconsole.dolphin.domain.usecase.HideDolphinLauncherUseCase? = null
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<SettingsUiState>(SettingsUiState.Idle)
@@ -64,6 +67,9 @@ class SettingsViewModel(
 
     private val _melonDSGamesPath = MutableStateFlow("")
     val melonDSGamesPath: StateFlow<String> = _melonDSGamesPath.asStateFlow()
+
+    private val _dolphinGamesPath = MutableStateFlow("")
+    val dolphinGamesPath: StateFlow<String> = _dolphinGamesPath.asStateFlow()
 
     private val _heroicEnabled = MutableStateFlow(false)
 
@@ -83,6 +89,9 @@ class SettingsViewModel(
      * True indica que el launcher debe mostrarse en la biblioteca principal.
      */
     val melonDSEnabled: StateFlow<Boolean> = _melonDSEnabled.asStateFlow()
+
+    private val _dolphinEnabled = MutableStateFlow(false)
+    val dolphinEnabled: StateFlow<Boolean> = _dolphinEnabled.asStateFlow()
 
     private val _mouseSensitivity = MutableStateFlow(14f)
 
@@ -114,6 +123,7 @@ class SettingsViewModel(
                 when (emulatorId) {
                     "pcsx2" -> _pcsx2Path.value = path ?: ""
                     "melonds" -> _melonDSGamesPath.value = path ?: ""
+                    "dolphinGames" -> _dolphinGamesPath.value = path ?: ""
                 }
             } catch (e: Exception) {
                 _uiState.value = SettingsUiState.Error(e.message ?: "Error al cargar la ruta")
@@ -127,6 +137,7 @@ class SettingsViewModel(
     fun loadAllPaths() {
         loadCurrentPath("pcsx2")
         loadCurrentPath("melonds")
+        loadCurrentPath("dolphinGames")
     }
 
     /**
@@ -150,6 +161,7 @@ class SettingsViewModel(
                 when (emulatorId) {
                     "pcsx2" -> _pcsx2Path.value = path
                     "melonds" -> _melonDSGamesPath.value = path
+                    "dolphinGames" -> _dolphinGamesPath.value = path
                 }
             } catch (e: IllegalArgumentException) {
                 _uiState.value = SettingsUiState.Error(e.message ?: "Ruta no válida")
@@ -242,6 +254,23 @@ class SettingsViewModel(
                 hideMelonDSLauncherUseCase?.invoke()
             }
             _melonDSEnabled.value = enabled
+        }
+    }
+
+    fun loadDolphinEnabled() {
+        viewModelScope.launch {
+            _dolphinEnabled.value = findDolphinLauncherUseCase?.invoke() ?: false
+        }
+    }
+
+    fun setDolphinEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            if (enabled) {
+                enableDolphinLauncherUseCase?.invoke()
+            } else {
+                hideDolphinLauncherUseCase?.invoke()
+            }
+            _dolphinEnabled.value = enabled
         }
     }
 }

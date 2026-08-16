@@ -51,7 +51,14 @@ class HomeViewModel(
     private val closeGameP2UseCase: org.example.globalconsole.juegosPcsx2.domain.usecase.CloseGameP2UseCase? = null,
     private val closeGameDSUseCase: org.example.globalconsole.melonDS.domain.usecase.CloseGameDSUseCase? = null,
     private val closeLauncherMelonDSUseCase: org.example.globalconsole.melonDS.domain.usecase.CloseLauncherMelonDSUseCase? = null,
-    private val closeHGLauncherUseCase: org.example.globalconsole.HeroicGames.domain.usecase.CloseHGLauncherUseCase? = null
+    private val closeHGLauncherUseCase: org.example.globalconsole.HeroicGames.domain.usecase.CloseHGLauncherUseCase? = null,
+    private val getGamesDolphinUseCase: org.example.globalconsole.dolphin.domain.usecase.GetGamesDolphinUseCase? = null,
+    private val executeGameDolphinUseCase: org.example.globalconsole.dolphin.domain.usecase.ExecuteGameDolphinUseCase? = null,
+    private val closeGameDolphinUseCase: org.example.globalconsole.dolphin.domain.usecase.CloseGameDolphinUseCase? = null,
+    private val executeLauncherDolphinUseCase: org.example.globalconsole.dolphin.domain.usecase.ExecuteLauncherDolphinUseCase? = null,
+    private val closeLauncherDolphinUseCase: org.example.globalconsole.dolphin.domain.usecase.CloseLauncherDolphinUseCase? = null,
+    private val findDolphinLauncherUseCase: org.example.globalconsole.dolphin.domain.usecase.FindDolphinLauncherUseCase? = null,
+    private val showDolphinLauncherUseCase: org.example.globalconsole.dolphin.domain.usecase.ShowDolphinLauncherUseCase? = null
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
@@ -116,7 +123,24 @@ class HomeViewModel(
                     )
                 } ?: emptyList()
 
-                val allGames: List<Game> = (pcsx2Games + heroicEntry + melonDSEntry + dsGames).sortedBy { it.name }
+                val dolphinEntry: List<Game> = if (findDolphinLauncherUseCase?.invoke() == true) {
+                    val launcher = showDolphinLauncherUseCase?.invoke()
+                    if (launcher != null) listOf(launcher) else emptyList()
+                } else {
+                    emptyList()
+                }
+
+                val dolphinGames = getGamesDolphinUseCase?.invoke()?.map { gameDolphin -> 
+                    Game(
+                        id = gameDolphin.id,
+                        name = gameDolphin.name,
+                        urlGameExecute = gameDolphin.urlGameExecute,
+                        image = null,
+                        platform = Platforms.DOLPHIN
+                    )
+                } ?: emptyList()
+
+                val allGames: List<Game> = (pcsx2Games + heroicEntry + melonDSEntry + dsGames + dolphinEntry + dolphinGames).sortedBy { it.name }
 
                 _uiState.value = if (allGames.isEmpty()) {
                     HomeUiState.Empty
@@ -188,6 +212,13 @@ class HomeViewModel(
                         executeGameMelonDSUseCase?.invoke(game.urlGameExecute) ?: false
                     }
                 }
+                Platforms.DOLPHIN -> {
+                    if (game.id == "dolphin-launcher-id") {
+                        executeLauncherDolphinUseCase?.invoke() ?: false
+                    } else {
+                        executeGameDolphinUseCase?.invoke(game.id) ?: false
+                    }
+                }
             }
             
             // Al terminar la ejecución, volvemos a cargar la vista
@@ -213,6 +244,13 @@ class HomeViewModel(
                         closeLauncherMelonDSUseCase?.invoke()
                     } else {
                         closeGameDSUseCase?.invoke()
+                    }
+                }
+                Platforms.DOLPHIN -> {
+                    if (game.id == "dolphin-launcher-id") {
+                        closeLauncherDolphinUseCase?.invoke()
+                    } else {
+                        closeGameDolphinUseCase?.invoke()
                     }
                 }
             }
@@ -243,6 +281,9 @@ class HomeViewModel(
                 }
                 Platforms.MELONDS -> {
                     // TODO: Implementar eliminación de juego de Melon DS
+                }
+                Platforms.DOLPHIN -> {
+                    // TODO: Implementar eliminación de juego de Dolphin
                 }
             }
         }

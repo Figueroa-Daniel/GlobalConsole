@@ -28,7 +28,14 @@ val presentationModule = module {
             closeGameP2UseCase = get(),
             closeGameDSUseCase = get(),
             closeLauncherMelonDSUseCase = get(),
-            closeHGLauncherUseCase = get()
+            closeHGLauncherUseCase = get(),
+            getGamesDolphinUseCase = get(),
+            executeGameDolphinUseCase = get(),
+            closeGameDolphinUseCase = get(),
+            executeLauncherDolphinUseCase = get(),
+            closeLauncherDolphinUseCase = get(),
+            findDolphinLauncherUseCase = get(),
+            showDolphinLauncherUseCase = get()
         )
     }
     factory {
@@ -42,7 +49,10 @@ val presentationModule = module {
             saveMouseSensitivityUseCase = get(),
             findMelonDSLauncherUseCase = get(),
             enableMelonDSLauncherUseCase = get(),
-            hideMelonDSLauncherUseCase = get()
+            hideMelonDSLauncherUseCase = get(),
+            findDolphinLauncherUseCase = get(),
+            enableDolphinLauncherUseCase = get(),
+            hideDolphinLauncherUseCase = get()
         )
     }
 }

@@ -52,4 +52,18 @@ val domainModule = module {
     factory { org.example.globalconsole.melonDS.domain.usecase.ExecuteGameMelonDSUseCase(repository = get()) }
     factory { org.example.globalconsole.melonDS.domain.usecase.DeleteGameDSUseCase(repository = get()) }
     factory { org.example.globalconsole.melonDS.domain.usecase.CloseGameDSUseCase(repository = get()) }
+
+    // UseCases de Dolphin Launcher
+    factory { org.example.globalconsole.dolphin.domain.usecase.FindDolphinLauncherUseCase(repository = get()) }
+    factory { org.example.globalconsole.dolphin.domain.usecase.EnableDolphinLauncherUseCase(repository = get()) }
+    factory { org.example.globalconsole.dolphin.domain.usecase.HideDolphinLauncherUseCase(repository = get()) }
+    factory { org.example.globalconsole.dolphin.domain.usecase.ShowDolphinLauncherUseCase(repository = get()) }
+    factory { org.example.globalconsole.dolphin.domain.usecase.ExecuteLauncherDolphinUseCase(repository = get()) }
+    factory { org.example.globalconsole.dolphin.domain.usecase.CloseLauncherDolphinUseCase(repository = get()) }
+
+    // UseCases de Juegos Dolphin
+    factory { org.example.globalconsole.dolphin.domain.usecase.GetGamesDolphinUseCase(repository = get()) }
+    factory { org.example.globalconsole.dolphin.domain.usecase.ExecuteGameDolphinUseCase(repository = get()) }
+    factory { org.example.globalconsole.dolphin.domain.usecase.DeleteGameDolphinUseCase(repository = get()) }
+    factory { org.example.globalconsole.dolphin.domain.usecase.CloseGameDolphinUseCase(repository = get()) }
 }

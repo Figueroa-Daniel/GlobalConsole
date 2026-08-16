@@ -46,4 +46,23 @@ val dataModule = module {
             gameAdapter = get()
         ) 
     }
+
+    // Adaptadores de Dolphin
+    single { org.example.globalconsole.dolphin.data.database.GameDolphinAdapter() }
+    single { org.example.globalconsole.dolphin.data.database.LauncherDolphinAdapter() }
+    single { org.example.globalconsole.dolphin.data.database.GameDolphinFileSystemAdapter(getEmulatorPathUseCase = get()) }
+
+    // Repositorios de Dolphin
+    single<org.example.globalconsole.dolphin.data.repository.GameDolphinRepository> {
+        org.example.globalconsole.dolphin.data.repositoryImpl.GameDolphinRepositoryImpl(
+            dataSourceFile = get(),
+            dataSourceDolphin = get()
+        )
+    }
+    single<org.example.globalconsole.dolphin.data.repository.DolphinRepository> {
+        org.example.globalconsole.dolphin.data.repositoryImpl.DolphinRepositoryImpl(
+            launcherAdapter = get(),
+            gameAdapter = get()
+        )
+    }
 }
