@@ -77,16 +77,23 @@ class LauncherDolphinAdapter {
      */
     suspend fun closeLauncher(): Boolean {
         return try {
-            if (currentProcess?.isAlive == true) {
-                currentProcess?.descendants()?.forEach { it.destroyForcibly() }
-                currentProcess?.destroyForcibly()
-                println("Dolphin Launcher process destroyed.")
-                currentProcess = null
-                true
-            } else {
-                println("No active Dolphin Launcher process found.")
-                false
+            currentProcess?.let { process ->
+                process.descendants().forEach { it.destroyForcibly() }
+                process.destroyForcibly()
             }
+            currentProcess = null
+
+            // Fallback robusto a nivel de SO para asegurar el cierre (Dolphin a veces sobrevive al destroy)
+            val os = System.getProperty("os.name").lowercase()
+            if (os.contains("linux")) {
+                Runtime.getRuntime().exec(arrayOf("flatpak", "kill", "org.DolphinEmu.dolphin-emu"))
+                Runtime.getRuntime().exec(arrayOf("killall", "-9", "dolphin-emu"))
+            } else if (os.contains("windows")) {
+                Runtime.getRuntime().exec(arrayOf("taskkill", "/IM", "Dolphin.exe", "/F"))
+            }
+
+            println("Dolphin Launcher process termination requested.")
+            true
         } catch (e: Exception) {
             System.err.println("Error destroying Dolphin process: ${e.message}")
             e.printStackTrace()

@@ -52,6 +52,16 @@ class GameDolphinAdapter {
                 process.destroyForcibly()
             }
             activeProcess = null
+
+            // Fallback robusto a nivel de SO para asegurar el cierre (Dolphin a veces sobrevive al destroy)
+            val os = System.getProperty("os.name").lowercase()
+            if (os.contains("linux")) {
+                Runtime.getRuntime().exec(arrayOf("flatpak", "kill", "org.DolphinEmu.dolphin-emu"))
+                Runtime.getRuntime().exec(arrayOf("killall", "-9", "dolphin-emu"))
+            } else if (os.contains("windows")) {
+                Runtime.getRuntime().exec(arrayOf("taskkill", "/IM", "Dolphin.exe", "/F"))
+            }
+
             true
         } catch (e: Exception) {
             e.printStackTrace()
