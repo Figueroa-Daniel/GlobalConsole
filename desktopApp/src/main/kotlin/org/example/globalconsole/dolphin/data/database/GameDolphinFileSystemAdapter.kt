@@ -40,7 +40,7 @@ class GameDolphinFileSystemAdapter(
             }
             .map { file ->
                 GameDolphin(
-                    id = UUID.randomUUID().toString(),
+                    id = "dolphin_${file.absolutePath.hashCode()}",
                     name = file.nameWithoutExtension,
                     urlGameExecute = file.absolutePath,
                     image = null,

@@ -30,5 +30,6 @@ data class AppConfig(
     val emulatorPaths: Map<String, String> = emptyMap(),
     val heroicEnabled: Boolean = false,
     val melonDSEnabled: Boolean = false,
+    val dolphinEnabled: Boolean = false,
     val mouseSensitivity: Float = 14f
 )
