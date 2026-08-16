@@ -14,5 +14,9 @@ enum class Platforms {
     /** Launcher local Heroic Games Launcher. */
     HEORIC_GAMES_LAUCHER,
 
-    MELONDS
+    /** Emulador Melon DS para juegos de Nintendo DS. */
+    MELONDS,
+
+    /** Emulador Dolphin para juegos de Wii/GameCube. */
+    DOLPHIN
 }
