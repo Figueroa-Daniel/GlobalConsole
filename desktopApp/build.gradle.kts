@@ -23,6 +23,10 @@ dependencies {
     // Koin - Inyección de dependencias
     implementation(libs.koin.core)
 
+    // Coil - Carga de imágenes
+    implementation(libs.coil.compose)
+    implementation(libs.compose.components.resources)
+
     // LWJGL 3 - Entrada de Mandos (GLFW)
     implementation(libs.lwjgl)
     implementation(libs.lwjgl.glfw)
