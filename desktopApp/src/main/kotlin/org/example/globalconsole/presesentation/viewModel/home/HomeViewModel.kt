@@ -118,7 +118,7 @@ class HomeViewModel(
                         id = gameDs.id,
                         name = gameDs.name,
                         urlGameExecute = gameDs.urlGameExecute,
-                        image = null,
+                        image = gameDs.image,
                         platform = Platforms.MELONDS
                     )
                 } ?: emptyList()
@@ -135,7 +135,7 @@ class HomeViewModel(
                         id = gameDolphin.id,
                         name = gameDolphin.name,
                         urlGameExecute = gameDolphin.urlGameExecute,
-                        image = null,
+                        image = gameDolphin.image,
                         platform = Platforms.DOLPHIN
                     )
                 } ?: emptyList()
