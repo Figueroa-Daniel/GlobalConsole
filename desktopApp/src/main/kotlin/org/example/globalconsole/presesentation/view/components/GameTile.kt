@@ -29,6 +29,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.example.globalconsole.generalDomain.entititys.Game
+import org.example.globalconsole.generalDomain.entititys.Platforms
+import coil3.compose.AsyncImage
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+import org.jetbrains.compose.resources.painterResource
+import globalconsole.shared.generated.resources.Res
+import globalconsole.shared.generated.resources.*
+import java.io.File
 
 /**
  * Representa una tarjeta (Tile) estilo Metro de un juego.
@@ -94,6 +102,37 @@ fun GameTile(
                 onClick = onClick
             )
     ) {
+        // Imagen del juego o por defecto
+        val imagePath = game.image
+        if (imagePath != null && File(imagePath).exists()) {
+            AsyncImage(
+                model = File(imagePath),
+                contentDescription = "Carátula de ${game.name}",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+        } else {
+            val defaultImage = when (game.platform) {
+                Platforms.PCSX2 -> Res.drawable.play2Logo
+                Platforms.HEORIC_GAMES_LAUCHER -> Res.drawable.heroicLogo
+                Platforms.MELONDS -> {
+                    if (game.id == "melonds-launcher") Res.drawable.melonDSLogo else Res.drawable.dsLogo
+                }
+                Platforms.DOLPHIN -> {
+                    if (game.id == "dolphin-launcher-id") Res.drawable.dolphinLogo else Res.drawable.wiiLogo
+                }
+                else -> null
+            }
+            if (defaultImage != null) {
+                Image(
+                    painter = painterResource(defaultImage),
+                    contentDescription = "Logo por defecto",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+        }
+
         // Fondo con un sutil degradado oscuro
         Box(
             modifier = Modifier
