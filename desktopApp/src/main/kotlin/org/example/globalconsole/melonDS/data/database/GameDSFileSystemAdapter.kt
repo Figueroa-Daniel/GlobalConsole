@@ -32,11 +32,15 @@ class GameDSFileSystemAdapter(
             dsFolder.walkTopDown().forEach { file ->
                 if (file.isFile && file.extension.equals("nds", ignoreCase = true)) {
                     id++
+                    val imagePath = file.parentFile?.listFiles()?.firstOrNull { 
+                        it.isFile && it.extension.lowercase() in listOf("png", "jpg", "jpeg") 
+                    }?.absolutePath
                     listGames.add(
                         GameDsDto(
                             id = "melonds$id",
                             name = file.nameWithoutExtension,
-                            urlGameExecute = file.absolutePath
+                            urlGameExecute = file.absolutePath,
+                            image = imagePath
                         )
                     )
                 }

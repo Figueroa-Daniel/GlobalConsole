@@ -39,11 +39,14 @@ class GameDolphinFileSystemAdapter(
                 file.isFile && supportedExtensions.any { ext -> file.name.lowercase().endsWith(".$ext") }
             }
             .map { file ->
+                val imagePath = file.parentFile?.listFiles()?.firstOrNull { 
+                    it.isFile && it.extension.lowercase() in listOf("png", "jpg", "jpeg") 
+                }?.absolutePath
                 GameDolphin(
                     id = "dolphin_${file.absolutePath.hashCode()}",
                     name = file.nameWithoutExtension,
                     urlGameExecute = file.absolutePath,
-                    image = null,
+                    image = imagePath,
                     platform = Platforms.DOLPHIN
                 )
             }
