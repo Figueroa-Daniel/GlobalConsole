@@ -46,6 +46,10 @@ Este documento describe el stack tecnológico utilizado en GlobalConsole y justi
 - **Por qué:** Proporciona acceso directo y de bajo nivel a los drivers del sistema operativo para leer gamepads físicos de forma nativa e independiente, utilizando la base de datos oficial de mapeos SDL. Es sumamente ligera, estable y su empaquetado con Gradle no interfiere con el renderizado nativo de Compose Multiplatform.
 - **Impacto:** Permite implementar un bucle de polling en coroutines independientes para leer sticks, D-Pad y botones, abstrayendo el hardware del ciclo de renderizado.
 
+### Coil (Image Loading)
+- **Por qué:** Librería estándar y moderna en Kotlin Multiplatform para la carga asíncrona de imágenes en Compose. Soporta almacenamiento en caché, y acceso a recursos del sistema de archivos local de forma eficiente.
+- **Impacto:** Garantiza un renderizado fluido de carátulas (covers) en la interfaz gráfica (`GameTile`), gestionando automáticamente la caché y evitando congelamientos del hilo principal al cargar imágenes pesadas.
+
 ---
 
 ## 🛠️ 2. Propuestas Pendientes
