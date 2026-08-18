@@ -26,13 +26,16 @@ import org.example.globalconsole.presesentation.input.GamepadEvent
 import org.example.globalconsole.presesentation.input.GamepadManager
 import org.example.globalconsole.presesentation.viewModel.home.HomeUiState
 import org.example.globalconsole.presesentation.viewModel.home.HomeViewModel
+import org.example.globalconsole.generalDomain.entititys.Game
 import org.example.globalconsole.presesentation.view.components.GameTile
 import org.example.globalconsole.presesentation.view.components.GamepadOSK
+import org.example.globalconsole.presesentation.view.components.ImageCropperDialog
 import org.example.globalconsole.presesentation.view.components.MetroTopBar
 import org.example.globalconsole.presesentation.view.components.MetroButton
 import org.example.globalconsole.presesentation.view.components.SetupPathDialog
 import org.example.globalconsole.presesentation.view.components.TopBarFocus
 import org.example.globalconsole.presesentation.viewModel.settings.SettingsViewModel
+import java.io.File
 
 /**
  * Pantalla principal orquestadora de la interfaz de GlobalConsole.
@@ -60,6 +63,9 @@ fun HomeScreen(
     var showPathDialog by remember { mutableStateOf(false) }
     var showOSK by remember { mutableStateOf(false) }
     var focusedTopBar by remember { mutableStateOf(TopBarFocus.NONE) }
+
+    // Juego seleccionado para abrir el recortador de carátula (null = diálogo cerrado)
+    var cropTargetGame by remember { mutableStateOf<Game?>(null) }
     
     val inputMode by gamepadManager?.inputMode?.collectAsState() ?: remember { mutableStateOf(org.example.globalconsole.presesentation.input.InputMode.GAMEPAD) }
 
@@ -255,7 +261,13 @@ fun HomeScreen(
                                         focusRequester = focusRequesters[index],
                                         inputMode = inputMode,
                                         onClick = { viewModel.onGameSelected(game) },
-                                        onFocus = { focusedGameIndex = index }
+                                        onFocus = { focusedGameIndex = index },
+                                        onSecondaryClick = {
+                                            // Click derecho abre el recortador si el juego tiene imagen
+                                            if (!game.image.isNullOrBlank()) {
+                                                cropTargetGame = game
+                                            }
+                                        }
                                     )
                                 }
                             }
@@ -391,6 +403,22 @@ fun HomeScreen(
                     showOSK = false
                 },
                 onDismiss = { showOSK = false }
+            )
+        }
+
+        // Diálogo de recorte de carátula — se activa con click derecho en un GameTile con imagen
+        val cropGame = cropTargetGame
+        if (cropGame != null && !cropGame.image.isNullOrBlank()) {
+            val outputDir = File(cropGame.image!!).parent ?: ""
+            ImageCropperDialog(
+                imagePath = cropGame.image!!,
+                outputDir = outputDir,
+                onDismiss = { cropTargetGame = null },
+                onCropSaved = {
+                    cropTargetGame = null
+                    // Recargar la biblioteca para reflejar la nueva carátula recortada
+                    viewModel.loadGames()
+                }
             )
         }
 
