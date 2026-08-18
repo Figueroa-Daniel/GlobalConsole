@@ -69,8 +69,11 @@ fun HomeScreen(
     
     val inputMode by gamepadManager?.inputMode?.collectAsState() ?: remember { mutableStateOf(org.example.globalconsole.presesentation.input.InputMode.GAMEPAD) }
 
-    // Índice del tile actualmente enfocado por el mando
+    // Índice del tile actualmente enfocado por el mando (navegación con D-Pad/stick izquierdo)
     var focusedGameIndex by remember { mutableStateOf(0) }
+
+    // Índice del tile actualmente bajo el cursor del ratón (navegación con stick derecho)
+    var hoveredGameIndex by remember { mutableStateOf(0) }
 
     // Número de columnas del grid, calculado dinámicamente a partir del ancho del contenedor
     var gridColumns by remember { mutableStateOf(4) }
@@ -149,8 +152,12 @@ fun HomeScreen(
                             }
                         }
 
-                        // Navegación por gamepad confinada al grid por índice
-                        LaunchedEffect(gamepadManager, games.size, gridColumns) {
+                        // Navegación por gamepad confinada al grid por índice.
+                        // IMPORTANTE: Se incluye (cropTargetGame != null) como clave para que
+                        // este LaunchedEffect se reinicie y se detenga cuando el diálogo de recorte
+                        // está abierto, evitando que los eventos del mando se filtren al HomeScreen.
+                        LaunchedEffect(gamepadManager, games.size, gridColumns, cropTargetGame != null) {
+                            if (cropTargetGame != null) return@LaunchedEffect // Diálogo abierto: no procesar eventos aquí
                             gamepadManager?.events?.collectLatest { event ->
                                 when (event) {
                                     is GamepadEvent.DirectionPressed -> {
@@ -230,10 +237,17 @@ fun HomeScreen(
                                                 viewModel.closeActiveGame()
                                             }
                                             GamepadEvent.Button.OPTIONS -> {
-                                                // Triángulo/Y: abrir recortador de carátula del juego enfocado
-                                                val focusedGame = games.getOrNull(focusedGameIndex)
-                                                if (focusedGame != null && !focusedGame.image.isNullOrBlank()) {
-                                                    cropTargetGame = focusedGame
+                                                // Triángulo/Y: abrir recortador del tile activo.
+                                                // En modo MOUSE usamos el último tile sobrevolado,
+                                                // en modo GAMEPAD el último enfocado con el mando.
+                                                val activeIndex = if (inputMode == org.example.globalconsole.presesentation.input.InputMode.MOUSE) {
+                                                    hoveredGameIndex
+                                                } else {
+                                                    focusedGameIndex
+                                                }
+                                                val targetGame = games.getOrNull(activeIndex)
+                                                if (targetGame != null && !targetGame.image.isNullOrBlank()) {
+                                                    cropTargetGame = targetGame
                                                 }
                                             }
                                             else -> {}
@@ -268,7 +282,8 @@ fun HomeScreen(
                                         focusRequester = focusRequesters[index],
                                         inputMode = inputMode,
                                         onClick = { viewModel.onGameSelected(game) },
-                                        onFocus = { focusedGameIndex = index }
+                                        onFocus = { focusedGameIndex = index },
+                                        onHover = { hoveredGameIndex = index }
                                     )
                                 }
                             }
