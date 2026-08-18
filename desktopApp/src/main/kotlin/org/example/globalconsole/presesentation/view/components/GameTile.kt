@@ -48,7 +48,8 @@ import java.io.File
  * @param focusRequester Requester para control de foco externo (gamepad).
  * @param inputMode Modo de entrada activo (gamepad o ratón).
  * @param onClick Acción ejecutada al seleccionar el juego (click primario o botón A del mando).
- * @param onFocus Acción ejecutada al recibir el foco del teclado o gamepad.
+ * @param onFocus Acción ejecutada al recibir el foco del teclado o gamepad (modo GAMEPAD).
+ * @param onHover Acción ejecutada cuando el cursor del ratón entra en el tile (modo MOUSE).
  *
  * @author Daniel Figueroa Vidal
  * @since 2026-08-09
@@ -59,7 +60,8 @@ fun GameTile(
     focusRequester: FocusRequester = remember { FocusRequester() },
     inputMode: org.example.globalconsole.presesentation.input.InputMode = org.example.globalconsole.presesentation.input.InputMode.GAMEPAD,
     onClick: () -> Unit,
-    onFocus: () -> Unit = {}
+    onFocus: () -> Unit = {},
+    onHover: () -> Unit = {}
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
@@ -70,11 +72,14 @@ fun GameTile(
     val isVirtualFocused = isFocused && inputMode == org.example.globalconsole.presesentation.input.InputMode.GAMEPAD
     val isActive = isHovered || isVirtualFocused
 
-    // Notificar al componente madre cuando este juego obtenga el foco por cualquier medio
+    // Notificar al componente madre cuando este juego obtenga el foco por gamepad
     LaunchedEffect(isFocused) {
-        if (isFocused) {
-            onFocus()
-        }
+        if (isFocused) onFocus()
+    }
+
+    // Notificar al componente madre cuando el cursor del ratón entra en este tile (modo MOUSE)
+    LaunchedEffect(isHovered) {
+        if (isHovered) onHover()
     }
 
     // Animación de escala suave
