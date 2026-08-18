@@ -153,11 +153,16 @@ fun HomeScreen(
                         }
 
                         // Navegación por gamepad confinada al grid por índice.
-                        // IMPORTANTE: Se incluye (cropTargetGame != null) como clave para que
-                        // este LaunchedEffect se reinicie y se detenga cuando el diálogo de recorte
-                        // está abierto, evitando que los eventos del mando se filtren al HomeScreen.
-                        LaunchedEffect(gamepadManager, games.size, gridColumns, cropTargetGame != null) {
-                            if (cropTargetGame != null) return@LaunchedEffect // Diálogo abierto: no procesar eventos aquí
+                        // IMPORTANTE: Se incluyen los estados de diálogos (cropTargetGame, showOSK, showPathDialog)
+                        // como keys para que este LaunchedEffect se reinicie y se detenga cuando algún diálogo modal
+                        // está abierto, evitando fugas de eventos del mando (Regla #1).
+                        LaunchedEffect(
+                            gamepadManager, games.size, gridColumns,
+                            cropTargetGame != null, showOSK, showPathDialog
+                        ) {
+                            // Si algún diálogo está abierto, no procesar eventos aquí (aislamiento de foco)
+                            if (cropTargetGame != null || showOSK || showPathDialog) return@LaunchedEffect
+                            
                             gamepadManager?.events?.collectLatest { event ->
                                 when (event) {
                                     is GamepadEvent.DirectionPressed -> {
