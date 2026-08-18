@@ -229,6 +229,13 @@ fun HomeScreen(
                                             GamepadEvent.Button.HOME -> {
                                                 viewModel.closeActiveGame()
                                             }
+                                            GamepadEvent.Button.OPTIONS -> {
+                                                // Triángulo/Y: abrir recortador de carátula del juego enfocado
+                                                val focusedGame = games.getOrNull(focusedGameIndex)
+                                                if (focusedGame != null && !focusedGame.image.isNullOrBlank()) {
+                                                    cropTargetGame = focusedGame
+                                                }
+                                            }
                                             else -> {}
                                         }
                                     }
@@ -261,13 +268,7 @@ fun HomeScreen(
                                         focusRequester = focusRequesters[index],
                                         inputMode = inputMode,
                                         onClick = { viewModel.onGameSelected(game) },
-                                        onFocus = { focusedGameIndex = index },
-                                        onSecondaryClick = {
-                                            // Click derecho abre el recortador si el juego tiene imagen
-                                            if (!game.image.isNullOrBlank()) {
-                                                cropTargetGame = game
-                                            }
-                                        }
+                                        onFocus = { focusedGameIndex = index }
                                     )
                                 }
                             }
@@ -406,13 +407,14 @@ fun HomeScreen(
             )
         }
 
-        // Diálogo de recorte de carátula — se activa con click derecho en un GameTile con imagen
+        // Diálogo de recorte de carátula — se activa con botón Y (Triángulo) del mando
         val cropGame = cropTargetGame
         if (cropGame != null && !cropGame.image.isNullOrBlank()) {
             val outputDir = File(cropGame.image!!).parent ?: ""
             ImageCropperDialog(
                 imagePath = cropGame.image!!,
                 outputDir = outputDir,
+                gamepadManager = gamepadManager,
                 onDismiss = { cropTargetGame = null },
                 onCropSaved = {
                     cropTargetGame = null

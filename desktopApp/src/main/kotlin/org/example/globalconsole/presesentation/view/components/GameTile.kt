@@ -23,9 +23,6 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.input.pointer.PointerButton
-import androidx.compose.ui.input.pointer.isSecondaryPressed
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -47,15 +44,11 @@ import java.io.File
  * (glow, color e incrementos de escala) tanto al posicionar el ratón encima (hover) como al
  * enfocarlo mediante teclado o gamepad.
  *
- * El click secundario (botón derecho del ratón) activa la acción [onSecondaryClick],
- * que se usa para abrir el recortador de carátula cuando el juego tiene imagen asignada.
- *
  * @param game Datos del juego a renderizar.
  * @param focusRequester Requester para control de foco externo (gamepad).
  * @param inputMode Modo de entrada activo (gamepad o ratón).
- * @param onClick Acción ejecutada al seleccionar el juego (click primario o botón A).
+ * @param onClick Acción ejecutada al seleccionar el juego (click primario o botón A del mando).
  * @param onFocus Acción ejecutada al recibir el foco del teclado o gamepad.
- * @param onSecondaryClick Acción ejecutada al hacer click secundario (botón derecho del ratón).
  *
  * @author Daniel Figueroa Vidal
  * @since 2026-08-09
@@ -66,8 +59,7 @@ fun GameTile(
     focusRequester: FocusRequester = remember { FocusRequester() },
     inputMode: org.example.globalconsole.presesentation.input.InputMode = org.example.globalconsole.presesentation.input.InputMode.GAMEPAD,
     onClick: () -> Unit,
-    onFocus: () -> Unit = {},
-    onSecondaryClick: () -> Unit = {}
+    onFocus: () -> Unit = {}
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
@@ -112,24 +104,7 @@ fun GameTile(
                 onClick = onClick
             )
     ) {
-        // Detectar click secundario (botón derecho del ratón) para abrir el recortador
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .pointerInput(onSecondaryClick) {
-                    awaitPointerEventScope {
-                        while (true) {
-                            val event = awaitPointerEvent()
-                            val isRightClick = event.buttons.isSecondaryPressed
-                            val wasReleased = event.changes.any { !it.pressed && it.previousPressed }
-                            if (isRightClick && wasReleased) {
-                                onSecondaryClick()
-                            }
-                        }
-                    }
-                }
-        ) {
-            // Imagen del juego o por defecto
+        // Imagen del juego o por defecto
         val imagePath = game.image
         if (imagePath != null && File(imagePath).exists()) {
             AsyncImage(
@@ -215,7 +190,6 @@ fun GameTile(
                 fontFamily = FontFamily.Monospace
             )
         }
-        }
-    } // cierre Box pointerInput
+    }
 }
 
