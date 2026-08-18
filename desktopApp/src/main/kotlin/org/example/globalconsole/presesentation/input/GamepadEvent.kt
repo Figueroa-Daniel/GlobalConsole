@@ -24,7 +24,9 @@ sealed class GamepadEvent {
         /** Botón de borrado / eliminar (X en Xbox, Cuadrado en PlayStation). Usado en el OSK para borrar la última letra. */
         DELETE,
         /** Botón de sistema / central (Xbox Guide, PS Button). Usado para cerrar juegos o salir. */
-        HOME
+        HOME,
+        /** Botón de opciones / configuración (Y en Xbox, Triángulo en PlayStation). Usado para abrir el recortador de carátula. */
+        OPTIONS
     }
 
     /**
