@@ -19,6 +19,10 @@ import org.example.globalconsole.juegosPcsx2.domain.usecase.ExecuteGameP2UseCase
 import org.example.globalconsole.juegosPcsx2.domain.usecase.GetGamesP2UseCase
 import org.example.globalconsole.melonDS.domain.usecase.ExecuteGameMelonDSUseCase
 import org.example.globalconsole.melonDS.domain.usecase.GetGamesDSUseCase
+import org.example.globalconsole.PS3Launcher.domain.usecase.ExecutePS3LauncherUseCase
+import org.example.globalconsole.PS3Launcher.domain.usecase.FindPS3LauncherUseCase
+import org.example.globalconsole.PS3Launcher.domain.usecase.ShowPS3LauncherUseCase
+import org.example.globalconsole.PS3Launcher.domain.usecase.ClosePS3LauncherUseCase
 
 /**
  * ViewModel centralizado de la pantalla principal de GlobalConsole.
@@ -58,7 +62,11 @@ class HomeViewModel(
     private val executeLauncherDolphinUseCase: org.example.globalconsole.dolphin.domain.usecase.ExecuteLauncherDolphinUseCase? = null,
     private val closeLauncherDolphinUseCase: org.example.globalconsole.dolphin.domain.usecase.CloseLauncherDolphinUseCase? = null,
     private val findDolphinLauncherUseCase: org.example.globalconsole.dolphin.domain.usecase.FindDolphinLauncherUseCase? = null,
-    private val showDolphinLauncherUseCase: org.example.globalconsole.dolphin.domain.usecase.ShowDolphinLauncherUseCase? = null
+    private val showDolphinLauncherUseCase: org.example.globalconsole.dolphin.domain.usecase.ShowDolphinLauncherUseCase? = null,
+    private val executePS3LauncherUseCase: ExecutePS3LauncherUseCase? = null,
+    private val findPS3LauncherUseCase: FindPS3LauncherUseCase? = null,
+    private val showPS3LauncherUseCase: ShowPS3LauncherUseCase? = null,
+    private val closePS3LauncherUseCase: ClosePS3LauncherUseCase? = null
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
@@ -140,7 +148,14 @@ class HomeViewModel(
                     )
                 } ?: emptyList()
 
-                val allGames: List<Game> = (pcsx2Games + heroicEntry + melonDSEntry + dsGames + dolphinEntry + dolphinGames).sortedBy { it.name }
+                val ps3Entry: List<Game> = if (findPS3LauncherUseCase?.invoke() == true) {
+                    val launcher = showPS3LauncherUseCase?.invoke()
+                    if (launcher != null) listOf(launcher) else emptyList()
+                } else {
+                    emptyList()
+                }
+
+                val allGames: List<Game> = (pcsx2Games + heroicEntry + melonDSEntry + dsGames + dolphinEntry + dolphinGames + ps3Entry).sortedBy { it.name }
 
                 _uiState.value = if (allGames.isEmpty()) {
                     HomeUiState.Empty
@@ -219,6 +234,7 @@ class HomeViewModel(
                         executeGameDolphinUseCase?.invoke(game.id) ?: false
                     }
                 }
+                Platforms.PS3 -> executePS3LauncherUseCase?.invoke() ?: false
             }
             
             // Al terminar la ejecución, volvemos a cargar la vista
@@ -253,6 +269,7 @@ class HomeViewModel(
                         closeGameDolphinUseCase?.invoke()
                     }
                 }
+                Platforms.PS3 -> closePS3LauncherUseCase?.invoke()
             }
         }
     }

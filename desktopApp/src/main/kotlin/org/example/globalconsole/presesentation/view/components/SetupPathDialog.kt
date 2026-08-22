@@ -32,6 +32,7 @@ private enum class DialogButton {
     HEROIC_TOGGLE, 
     MELONDS_TOGGLE, 
     DOLPHIN_TOGGLE,
+    PS3_TOGGLE,
     PCSX2_BROWSE, 
     MELONDS_GAMES_BROWSE, 
     DOLPHIN_GAMES_BROWSE,
@@ -53,6 +54,7 @@ fun SetupPathDialog(
     val pcsx2PathState by settingsViewModel.pcsx2Path.collectAsState()
     val melonDSGamesPathState by settingsViewModel.melonDSGamesPath.collectAsState()
     val dolphinEnabled by settingsViewModel.dolphinEnabled.collectAsState()
+    val ps3Enabled by settingsViewModel.ps3Enabled.collectAsState()
     val dolphinGamesPathState by settingsViewModel.dolphinGamesPath.collectAsState()
 
     var pathTextPcsx2 by remember(pcsx2PathState) { mutableStateOf(pcsx2PathState) }
@@ -68,6 +70,7 @@ fun SetupPathDialog(
         settingsViewModel.loadHeroicEnabled()
         settingsViewModel.loadMelonDSEnabled()
         settingsViewModel.loadDolphinEnabled()
+        settingsViewModel.loadPs3Enabled()
         settingsViewModel.loadMouseSensitivity()
     }
 
@@ -82,7 +85,8 @@ fun SetupPathDialog(
                             DialogButton.HEROIC_TOGGLE -> DialogButton.SENSITIVITY_SLIDER
                             DialogButton.MELONDS_TOGGLE -> DialogButton.HEROIC_TOGGLE
                             DialogButton.DOLPHIN_TOGGLE -> DialogButton.MELONDS_TOGGLE
-                            DialogButton.PCSX2_BROWSE -> DialogButton.DOLPHIN_TOGGLE
+                            DialogButton.PS3_TOGGLE -> DialogButton.DOLPHIN_TOGGLE
+                            DialogButton.PCSX2_BROWSE -> DialogButton.PS3_TOGGLE
                             DialogButton.MELONDS_GAMES_BROWSE -> DialogButton.PCSX2_BROWSE
                             DialogButton.DOLPHIN_GAMES_BROWSE -> DialogButton.MELONDS_GAMES_BROWSE
                             DialogButton.CONFIRM, DialogButton.CANCEL -> DialogButton.DOLPHIN_GAMES_BROWSE
@@ -92,7 +96,8 @@ fun SetupPathDialog(
                             DialogButton.SENSITIVITY_SLIDER -> DialogButton.HEROIC_TOGGLE
                             DialogButton.HEROIC_TOGGLE -> DialogButton.MELONDS_TOGGLE
                             DialogButton.MELONDS_TOGGLE -> DialogButton.DOLPHIN_TOGGLE
-                            DialogButton.DOLPHIN_TOGGLE -> DialogButton.PCSX2_BROWSE
+                            DialogButton.DOLPHIN_TOGGLE -> DialogButton.PS3_TOGGLE
+                            DialogButton.PS3_TOGGLE -> DialogButton.PCSX2_BROWSE
                             DialogButton.PCSX2_BROWSE -> DialogButton.MELONDS_GAMES_BROWSE
                             DialogButton.MELONDS_GAMES_BROWSE -> DialogButton.DOLPHIN_GAMES_BROWSE
                             DialogButton.DOLPHIN_GAMES_BROWSE -> DialogButton.CONFIRM
@@ -124,6 +129,7 @@ fun SetupPathDialog(
                             DialogButton.HEROIC_TOGGLE -> settingsViewModel.setHeroicEnabled(!heroicEnabled)
                             DialogButton.MELONDS_TOGGLE -> settingsViewModel.setMelonDSEnabled(!melonDSEnabled)
                             DialogButton.DOLPHIN_TOGGLE -> settingsViewModel.setDolphinEnabled(!dolphinEnabled)
+                            DialogButton.PS3_TOGGLE -> settingsViewModel.setPs3Enabled(!ps3Enabled)
                             DialogButton.SENSITIVITY_SLIDER -> {}
                             DialogButton.PCSX2_BROWSE -> showFolderPickerFor = DialogButton.PCSX2_BROWSE
                             DialogButton.MELONDS_GAMES_BROWSE -> showFolderPickerFor = DialogButton.MELONDS_GAMES_BROWSE
@@ -243,6 +249,23 @@ fun SetupPathDialog(
                             Text(if (dolphinEnabled) "HABILITADO" else "DESHABILITADO", color = if (dolphinEnabled) Color(0xFF00FFCC) else Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             Switch(
                                 checked = dolphinEnabled, onCheckedChange = { settingsViewModel.setDolphinEnabled(it) },
+                                colors = SwitchDefaults.colors(checkedThumbColor = Color.Black, checkedTrackColor = Color(0xFF00FFCC), uncheckedThumbColor = Color.Gray, uncheckedTrackColor = Color(0xFF333333))
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    // PS3 Launcher Toggle
+                    val ps3ToggleBorderColor = if (focusedButton == DialogButton.PS3_TOGGLE) Color(0xFF00FFCC) else Color(0xFF333333)
+                    Column(
+                        modifier = Modifier.fillMaxWidth().border(1.dp, ps3ToggleBorderColor, RectangleShape).padding(12.dp)
+                    ) {
+                        Text("PS3 LAUNCHER (RPCS3)", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text("Mostrar el launcher de PS3 en la biblioteca.", color = Color(0xFFAAAAAA), fontSize = 12.sp)
+                        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(if (ps3Enabled) "HABILITADO" else "DESHABILITADO", color = if (ps3Enabled) Color(0xFF00FFCC) else Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Switch(
+                                checked = ps3Enabled, onCheckedChange = { settingsViewModel.setPs3Enabled(it) },
                                 colors = SwitchDefaults.colors(checkedThumbColor = Color.Black, checkedTrackColor = Color(0xFF00FFCC), uncheckedThumbColor = Color.Gray, uncheckedTrackColor = Color(0xFF333333))
                             )
                         }

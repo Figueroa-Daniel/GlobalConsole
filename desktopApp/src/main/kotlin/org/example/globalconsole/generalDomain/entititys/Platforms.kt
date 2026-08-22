@@ -18,5 +18,8 @@ enum class Platforms {
     MELONDS,
 
     /** Emulador Dolphin para juegos de Wii/GameCube. */
-    DOLPHIN
+    DOLPHIN,
+
+    /** Emulador RPCS3 para juegos de PlayStation 3. */
+    PS3
 }

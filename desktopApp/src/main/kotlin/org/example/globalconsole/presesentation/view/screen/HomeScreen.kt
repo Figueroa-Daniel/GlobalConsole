@@ -98,8 +98,10 @@ fun HomeScreen(
     LaunchedEffect(uiState) {
         val isRunning = uiState is HomeUiState.GameRunning
         gamepadManager?.isSuspended = isRunning
-        gamepadManager?.isMouseAllowedWhenSuspended = isRunning &&
-                (uiState as HomeUiState.GameRunning).game.platform == org.example.globalconsole.generalDomain.entititys.Platforms.MELONDS
+        gamepadManager?.isMouseAllowedWhenSuspended = isRunning && (
+                (uiState as HomeUiState.GameRunning).game.platform == org.example.globalconsole.generalDomain.entititys.Platforms.MELONDS ||
+                (uiState as HomeUiState.GameRunning).game.platform == org.example.globalconsole.generalDomain.entititys.Platforms.PS3
+        )
     }
 
     Box(

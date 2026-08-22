@@ -16,6 +16,9 @@ import org.example.globalconsole.settings.domain.usecase.SaveMouseSensitivityUse
 import org.example.globalconsole.melonDS.domain.usecase.FindMelonDSLauncherUseCase
 import org.example.globalconsole.melonDS.domain.usecase.EnableMelonDSLauncherUseCase
 import org.example.globalconsole.melonDS.domain.usecase.HideMelonDSLauncherUseCase
+import org.example.globalconsole.PS3Launcher.domain.usecase.EnablePS3LauncherUseCase
+import org.example.globalconsole.PS3Launcher.domain.usecase.FindPS3LauncherUseCase
+import org.example.globalconsole.PS3Launcher.domain.usecase.HidePS3LauncherUseCase
 
 /**
  * ViewModel del diálogo de configuración de rutas de emuladores y preferencias de launchers.
@@ -49,7 +52,10 @@ class SettingsViewModel(
     private val hideMelonDSLauncherUseCase: HideMelonDSLauncherUseCase? = null,
     private val findDolphinLauncherUseCase: org.example.globalconsole.dolphin.domain.usecase.FindDolphinLauncherUseCase? = null,
     private val enableDolphinLauncherUseCase: org.example.globalconsole.dolphin.domain.usecase.EnableDolphinLauncherUseCase? = null,
-    private val hideDolphinLauncherUseCase: org.example.globalconsole.dolphin.domain.usecase.HideDolphinLauncherUseCase? = null
+    private val hideDolphinLauncherUseCase: org.example.globalconsole.dolphin.domain.usecase.HideDolphinLauncherUseCase? = null,
+    private val findPS3LauncherUseCase: FindPS3LauncherUseCase? = null,
+    private val enablePS3LauncherUseCase: EnablePS3LauncherUseCase? = null,
+    private val hidePS3LauncherUseCase: HidePS3LauncherUseCase? = null
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<SettingsUiState>(SettingsUiState.Idle)
@@ -92,6 +98,9 @@ class SettingsViewModel(
 
     private val _dolphinEnabled = MutableStateFlow(false)
     val dolphinEnabled: StateFlow<Boolean> = _dolphinEnabled.asStateFlow()
+
+    private val _ps3Enabled = MutableStateFlow(false)
+    val ps3Enabled: StateFlow<Boolean> = _ps3Enabled.asStateFlow()
 
     private val _mouseSensitivity = MutableStateFlow(14f)
 
@@ -271,6 +280,23 @@ class SettingsViewModel(
                 hideDolphinLauncherUseCase?.invoke()
             }
             _dolphinEnabled.value = enabled
+        }
+    }
+
+    fun loadPs3Enabled() {
+        viewModelScope.launch {
+            _ps3Enabled.value = findPS3LauncherUseCase?.invoke() ?: false
+        }
+    }
+
+    fun setPs3Enabled(enabled: Boolean) {
+        viewModelScope.launch {
+            if (enabled) {
+                enablePS3LauncherUseCase?.invoke()
+            } else {
+                hidePS3LauncherUseCase?.invoke()
+            }
+            _ps3Enabled.value = enabled
         }
     }
 }

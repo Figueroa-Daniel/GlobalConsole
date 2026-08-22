@@ -66,4 +66,12 @@ val domainModule = module {
     factory { org.example.globalconsole.dolphin.domain.usecase.ExecuteGameDolphinUseCase(repository = get()) }
     factory { org.example.globalconsole.dolphin.domain.usecase.DeleteGameDolphinUseCase(repository = get()) }
     factory { org.example.globalconsole.dolphin.domain.usecase.CloseGameDolphinUseCase(repository = get()) }
+
+    // UseCases de PS3 Launcher
+    factory { org.example.globalconsole.PS3Launcher.domain.usecase.FindPS3LauncherUseCase(repository = get()) }
+    factory { org.example.globalconsole.PS3Launcher.domain.usecase.EnablePS3LauncherUseCase(repository = get()) }
+    factory { org.example.globalconsole.PS3Launcher.domain.usecase.HidePS3LauncherUseCase(repository = get()) }
+    factory { org.example.globalconsole.PS3Launcher.domain.usecase.ShowPS3LauncherUseCase(repository = get()) }
+    factory { org.example.globalconsole.PS3Launcher.domain.usecase.ExecutePS3LauncherUseCase(adapter = get()) }
+    factory { org.example.globalconsole.PS3Launcher.domain.usecase.ClosePS3LauncherUseCase(repository = get()) }
 }

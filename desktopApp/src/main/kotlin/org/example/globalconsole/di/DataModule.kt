@@ -65,4 +65,12 @@ val dataModule = module {
             gameAdapter = get()
         )
     }
+
+    // Adaptador de PS3 Launcher
+    single { org.example.globalconsole.PS3Launcher.data.database.LauncherPS3Adapter() }
+
+    // Repositorio de PS3 Launcher
+    single<org.example.globalconsole.PS3Launcher.data.repository.PS3LauncherRepository> { 
+        org.example.globalconsole.PS3Launcher.data.repositoryImpl.PS3LauncherRepositoryImpl(adapter = get()) 
+    }
 }
