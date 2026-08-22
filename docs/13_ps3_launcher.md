@@ -32,6 +32,7 @@ Se implementa exclusivamente como un Launcher, es decir, no se encarga de extrae
 ```
 
 > **Nota sobre el control:** Durante la ejecución del emulador (estado `GameRunning` con plataforma `PS3`), se permite explícitamente el uso del modo ratón en el gamepad (`isMouseAllowedWhenSuspended = true`) para poder navegar por la interfaz de RPCS3.
+> Una vez arranca el juego y ya no se necesita el ratón, el usuario puede pulsar **`X + SELECT (BACK)`** en el mando. Esto desactivará el ratón temporalmente y moverá el cursor nativo del sistema a la esquina superior (coordenada 0,0) para ocultarlo, de forma que no estorbe en la pantalla del juego. Puede volver a pulsarse para reactivar el ratón.
 
 ---
 

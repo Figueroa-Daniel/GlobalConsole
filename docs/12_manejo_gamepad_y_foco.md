@@ -38,3 +38,8 @@ LaunchedEffect(gamepadManager, games.size, gridColumns, cropTargetGame != null) 
 }
 ```
 Esto garantiza que los inputs del usuario solo afecten al elemento activo superior y no atraviesen hacia el fondo.
+
+## Atajos en Estado Suspendido
+Cuando se ejecuta un juego externo o un launcher (ej. RPCS3, MelonDS), la lectura general del mando se "suspende" para que la entrada vaya al emulador. En este estado suspendido, `GamepadManager` escucha combinaciones especiales críticas:
+- **`START + SELECT (BACK)`**: Comando universal de cierre. Obliga a GlobalConsole a matar el proceso del juego/emulador y volver al menú principal.
+- **`X + SELECT (BACK)`**: Alternador manual del modo ratón (`isMouseAllowedWhenSuspended`). Si se desactiva por esta vía, el cursor físico se transporta a `(0, 0)` para quedar oculto fuera de la vista principal del juego. Resulta útil en emuladores que requieren ratón en la interfaz pero donde molesta durante el gameplay.

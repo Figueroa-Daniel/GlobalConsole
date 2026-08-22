@@ -192,6 +192,17 @@ class GamepadManager {
         lastButtonsState[GLFW_GAMEPAD_BUTTON_START] = startPressed
         lastButtonsState[GLFW_GAMEPAD_BUTTON_BACK] = backPressed
 
+        // 3. Combo de ocultación manual del ratón: X + BACK simultáneamente
+        val xPressed = buttons.get(GLFW_GAMEPAD_BUTTON_X).toInt() == GLFW_PRESS
+        val wasXPressed = lastButtonsState[GLFW_GAMEPAD_BUTTON_X] ?: false
+        if (xPressed && backPressed && !(wasXPressed && wasBackPressed)) {
+            isMouseAllowedWhenSuspended = !isMouseAllowedWhenSuspended
+            if (!isMouseAllowedWhenSuspended) {
+                awtRobot?.mouseMove(0, 0)
+            }
+        }
+        lastButtonsState[GLFW_GAMEPAD_BUTTON_X] = xPressed
+
         if (isMouseAllowedWhenSuspended) {
             val axes = state.axes()
             moveMouseWithRightStick(axes)
