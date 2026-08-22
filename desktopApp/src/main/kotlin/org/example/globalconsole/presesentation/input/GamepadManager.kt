@@ -198,7 +198,8 @@ class GamepadManager {
         if (xPressed && backPressed && !(wasXPressed && wasBackPressed)) {
             isMouseAllowedWhenSuspended = !isMouseAllowedWhenSuspended
             if (!isMouseAllowedWhenSuspended) {
-                awtRobot?.mouseMove(0, 0)
+                // Mandar a la esquina inferior derecha extrema para que el OS lo atrape en el borde final y quede oculto
+                awtRobot?.mouseMove(9999, 9999)
             }
         }
         lastButtonsState[GLFW_GAMEPAD_BUTTON_X] = xPressed
