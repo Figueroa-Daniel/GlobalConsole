@@ -302,6 +302,9 @@ class HomeViewModel(
                 Platforms.DOLPHIN -> {
                     // TODO: Implementar eliminación de juego de Dolphin
                 }
+                Platforms.PS3 -> {
+                    // TODO: Implementar eliminación de entrada de PS3
+                }
             }
         }
     }
