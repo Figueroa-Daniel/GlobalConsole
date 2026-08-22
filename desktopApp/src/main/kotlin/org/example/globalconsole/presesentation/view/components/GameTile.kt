@@ -128,6 +128,7 @@ fun GameTile(
                 Platforms.DOLPHIN -> {
                     if (game.id == "dolphin-launcher-id") Res.drawable.dolphinLogo else Res.drawable.wiiLogo
                 }
+                Platforms.PS3 -> Res.drawable.play3_logo_launcher
                 else -> null
             }
             if (defaultImage != null) {

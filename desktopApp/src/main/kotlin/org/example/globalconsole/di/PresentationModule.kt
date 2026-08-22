@@ -35,7 +35,11 @@ val presentationModule = module {
             executeLauncherDolphinUseCase = get(),
             closeLauncherDolphinUseCase = get(),
             findDolphinLauncherUseCase = get(),
-            showDolphinLauncherUseCase = get()
+            showDolphinLauncherUseCase = get(),
+            executePS3LauncherUseCase = get(),
+            findPS3LauncherUseCase = get(),
+            showPS3LauncherUseCase = get(),
+            closePS3LauncherUseCase = get()
         )
     }
     factory {
@@ -52,7 +56,10 @@ val presentationModule = module {
             hideMelonDSLauncherUseCase = get(),
             findDolphinLauncherUseCase = get(),
             enableDolphinLauncherUseCase = get(),
-            hideDolphinLauncherUseCase = get()
+            hideDolphinLauncherUseCase = get(),
+            findPS3LauncherUseCase = get(),
+            enablePS3LauncherUseCase = get(),
+            hidePS3LauncherUseCase = get()
         )
     }
 }
