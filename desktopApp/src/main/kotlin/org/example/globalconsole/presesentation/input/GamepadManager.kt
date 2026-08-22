@@ -200,6 +200,10 @@ class GamepadManager {
             if (!isMouseAllowedWhenSuspended) {
                 // Mandar a la esquina inferior derecha extrema para que el OS lo atrape en el borde final y quede oculto
                 awtRobot?.mouseMove(9999, 9999)
+            } else {
+                // Al reactivarlo, mandarlo al centro de la pantalla principal
+                val screenSize = java.awt.Toolkit.getDefaultToolkit().screenSize
+                awtRobot?.mouseMove(screenSize.width / 2, screenSize.height / 2)
             }
         }
         lastButtonsState[GLFW_GAMEPAD_BUTTON_X] = xPressed
