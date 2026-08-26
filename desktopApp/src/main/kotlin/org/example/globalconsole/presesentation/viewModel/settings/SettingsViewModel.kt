@@ -55,7 +55,10 @@ class SettingsViewModel(
     private val hideDolphinLauncherUseCase: org.example.globalconsole.dolphin.domain.usecase.HideDolphinLauncherUseCase? = null,
     private val findPS3LauncherUseCase: FindPS3LauncherUseCase? = null,
     private val enablePS3LauncherUseCase: EnablePS3LauncherUseCase? = null,
-    private val hidePS3LauncherUseCase: HidePS3LauncherUseCase? = null
+    private val hidePS3LauncherUseCase: HidePS3LauncherUseCase? = null,
+    private val findAzaharLauncherUseCase: org.example.globalconsole.azahar.domain.usecase.FindAzaharLauncherUseCase? = null,
+    private val enableAzaharLauncherUseCase: org.example.globalconsole.azahar.domain.usecase.EnableAzaharLauncherUseCase? = null,
+    private val hideAzaharLauncherUseCase: org.example.globalconsole.azahar.domain.usecase.HideAzaharLauncherUseCase? = null
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<SettingsUiState>(SettingsUiState.Idle)
@@ -102,6 +105,17 @@ class SettingsViewModel(
     private val _ps3Enabled = MutableStateFlow(false)
     val ps3Enabled: StateFlow<Boolean> = _ps3Enabled.asStateFlow()
 
+    private val _azaharEnabled = MutableStateFlow(false)
+
+    /**
+     * Estado observable del toggle de Azahar Launcher.
+     * True indica que el launcher debe mostrarse en la biblioteca principal.
+     */
+    val azaharEnabled: StateFlow<Boolean> = _azaharEnabled.asStateFlow()
+
+    private val _azaharGamesPath = MutableStateFlow("")
+    val azaharGamesPath: StateFlow<String> = _azaharGamesPath.asStateFlow()
+
     private val _mouseSensitivity = MutableStateFlow(14f)
 
     /**
@@ -133,6 +147,7 @@ class SettingsViewModel(
                     "pcsx2" -> _pcsx2Path.value = path ?: ""
                     "melonds" -> _melonDSGamesPath.value = path ?: ""
                     "dolphinGames" -> _dolphinGamesPath.value = path ?: ""
+                    "azahar" -> _azaharGamesPath.value = path ?: ""
                 }
             } catch (e: Exception) {
                 _uiState.value = SettingsUiState.Error(e.message ?: "Error al cargar la ruta")
@@ -147,6 +162,7 @@ class SettingsViewModel(
         loadCurrentPath("pcsx2")
         loadCurrentPath("melonds")
         loadCurrentPath("dolphinGames")
+        loadCurrentPath("azahar")
     }
 
     /**
@@ -171,6 +187,7 @@ class SettingsViewModel(
                     "pcsx2" -> _pcsx2Path.value = path
                     "melonds" -> _melonDSGamesPath.value = path
                     "dolphinGames" -> _dolphinGamesPath.value = path
+                    "azahar" -> _azaharGamesPath.value = path
                 }
             } catch (e: IllegalArgumentException) {
                 _uiState.value = SettingsUiState.Error(e.message ?: "Ruta no válida")
@@ -297,6 +314,31 @@ class SettingsViewModel(
                 hidePS3LauncherUseCase?.invoke()
             }
             _ps3Enabled.value = enabled
+        }
+    }
+
+    /**
+     * Carga la preferencia de visibilidad de Azahar Launcher desde la persistencia
+     * y actualiza el estado observable [azaharEnabled].
+     */
+    fun loadAzaharEnabled() {
+        viewModelScope.launch {
+            _azaharEnabled.value = findAzaharLauncherUseCase?.invoke() ?: false
+        }
+    }
+
+    /**
+     * Persiste la nueva preferencia de visibilidad de Azahar Launcher
+     * y actualiza inmediatamente el estado observable [azaharEnabled].
+     */
+    fun setAzaharEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            if (enabled) {
+                enableAzaharLauncherUseCase?.invoke()
+            } else {
+                hideAzaharLauncherUseCase?.invoke()
+            }
+            _azaharEnabled.value = enabled
         }
     }
 }
