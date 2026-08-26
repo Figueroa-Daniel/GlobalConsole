@@ -74,4 +74,18 @@ val domainModule = module {
     factory { org.example.globalconsole.PS3Launcher.domain.usecase.ShowPS3LauncherUseCase(repository = get()) }
     factory { org.example.globalconsole.PS3Launcher.domain.usecase.ExecutePS3LauncherUseCase(adapter = get()) }
     factory { org.example.globalconsole.PS3Launcher.domain.usecase.ClosePS3LauncherUseCase(repository = get()) }
+
+    // UseCases de Azahar Launcher (Nintendo 3DS)
+    factory { org.example.globalconsole.azahar.domain.usecase.FindAzaharLauncherUseCase(repository = get()) }
+    factory { org.example.globalconsole.azahar.domain.usecase.EnableAzaharLauncherUseCase(repository = get()) }
+    factory { org.example.globalconsole.azahar.domain.usecase.HideAzaharLauncherUseCase(repository = get()) }
+    factory { org.example.globalconsole.azahar.domain.usecase.ShowAzaharLauncherUseCase(repository = get()) }
+    factory { org.example.globalconsole.azahar.domain.usecase.ExecuteLauncherAzaharUseCase(repository = get()) }
+    factory { org.example.globalconsole.azahar.domain.usecase.CloseLauncherAzaharUseCase(repository = get()) }
+
+    // UseCases de Juegos Azahar (Nintendo 3DS)
+    factory { org.example.globalconsole.azahar.domain.usecase.GetGames3DSUseCase(repository = get()) }
+    factory { org.example.globalconsole.azahar.domain.usecase.ExecuteGame3DSUseCase(repository = get()) }
+    factory { org.example.globalconsole.azahar.domain.usecase.DeleteGame3DSUseCase(repository = get()) }
+    factory { org.example.globalconsole.azahar.domain.usecase.CloseGame3DSUseCase(repository = get()) }
 }
