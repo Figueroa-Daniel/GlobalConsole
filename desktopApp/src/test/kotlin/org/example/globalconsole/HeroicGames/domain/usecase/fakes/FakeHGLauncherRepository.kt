@@ -57,6 +57,10 @@ class FakeHGLauncherRepository : HGLauncherRepository {
         urlGameExecute = "com.heroicgameslauncher.hgl"
     )
 
+    override suspend fun closeLauncher(): Boolean {
+        return true
+    }
+
     /**
      * No implementado en el fake; lanza [UnsupportedOperationException].
      *

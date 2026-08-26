@@ -21,6 +21,9 @@ class CloseLauncherMelonDSUseCaseTest {
             override suspend fun executeLauncher(): Boolean = false
             override suspend fun closeLauncher(): Boolean = true
             override suspend fun executeGame(executeUrl: String?): Boolean = false
+            override suspend fun isMelonDSEnabled(): Boolean = false
+            override suspend fun saveMelonDSEnabled(enabled: Boolean) {}
+            override suspend fun showMelonDSLauncher() = org.example.globalconsole.melonDS.data.dto.MelonDSLauncherDto("", "", "")
         }
         val useCase = CloseLauncherMelonDSUseCase(repository)
 
@@ -38,6 +41,9 @@ class CloseLauncherMelonDSUseCaseTest {
             override suspend fun executeLauncher(): Boolean = false
             override suspend fun closeLauncher(): Boolean = false
             override suspend fun executeGame(executeUrl: String?): Boolean = false
+            override suspend fun isMelonDSEnabled(): Boolean = false
+            override suspend fun saveMelonDSEnabled(enabled: Boolean) {}
+            override suspend fun showMelonDSLauncher() = org.example.globalconsole.melonDS.data.dto.MelonDSLauncherDto("", "", "")
         }
         val useCase = CloseLauncherMelonDSUseCase(repository)
 
