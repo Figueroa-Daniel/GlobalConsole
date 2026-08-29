@@ -139,7 +139,7 @@ fun GameTile(
             }
             if (defaultImage != null) {
                 // Para Azahar u otras que necesiten fit en vez de crop
-                val needsFit = defaultImage == Res.drawable._3dsJuegos || defaultImage == Res.drawable.playLogoGames
+                val needsFit = defaultImage == Res.drawable._3dsJuegos
                 val needsWhiteBg = defaultImage == Res.drawable._3dsJuegos
                 
                 var imgModifier = Modifier.fillMaxSize()
