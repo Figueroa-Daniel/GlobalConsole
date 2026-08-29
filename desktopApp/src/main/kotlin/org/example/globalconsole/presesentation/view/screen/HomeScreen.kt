@@ -160,6 +160,31 @@ fun HomeScreen(
 
                         val gridState = rememberLazyGridState()
 
+                        // Calcular el layout real 2D para navegación direccional
+                        val gridLayout = remember(state.items, gridColumns) {
+                            val layout = mutableListOf<Pair<Int, Int>>() // index -> (row, col)
+                            var currentRow = 0
+                            var currentCol = 0
+                            for (item in state.items) {
+                                if (item is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.Header) {
+                                    if (currentCol > 0) {
+                                        currentRow++
+                                        currentCol = 0
+                                    }
+                                    layout.add(Pair(currentRow, 0))
+                                    currentRow++
+                                } else {
+                                    layout.add(Pair(currentRow, currentCol))
+                                    currentCol++
+                                    if (currentCol >= gridColumns) {
+                                        currentCol = 0
+                                        currentRow++
+                                    }
+                                }
+                            }
+                            layout
+                        }
+
                         // Auto-scroll para mantener el juego enfocado a la vista
                         LaunchedEffect(focusedGameIndex) {
                             if (state.items.isNotEmpty() && focusedGameIndex in state.items.indices) {
@@ -205,58 +230,65 @@ fun HomeScreen(
                                                 }
                                                 GamepadEvent.Direction.UP -> {}
                                             }
-                                        } else {
-                                            val current = focusedGameIndex.coerceIn(0, (state.items.size - 1).coerceAtLeast(0))
-                                            // Lógica para saltar headers
-                                            var candidate = current
-                                            var moved = false
+                                            var candidateIndex = focusedGameIndex
+                                            val currentLayout = gridLayout.getOrNull(focusedGameIndex)
                                             
-                                            // Realizamos un salto base y luego comprobamos si caemos en un header
-                                            val newIndexRaw = when (event.direction) {
-                                                GamepadEvent.Direction.UP -> {
-                                                    val raw = current - gridColumns
-                                                    if (raw >= 0) raw else {
-                                                        focusedTopBar = TopBarFocus.SEARCH
-                                                        current
+                                            if (currentLayout != null) {
+                                                when (event.direction) {
+                                                    GamepadEvent.Direction.UP -> {
+                                                        var targetRow = currentLayout.first - 1
+                                                        while (targetRow >= 0) {
+                                                            val itemsInRow = gridLayout.withIndex().filter { it.value.first == targetRow && state.items[it.index] !is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.Header }
+                                                            if (itemsInRow.isNotEmpty()) {
+                                                                val closest = itemsInRow.minByOrNull { kotlin.math.abs(it.value.second - currentLayout.second) }
+                                                                if (closest != null) candidateIndex = closest.index
+                                                                break
+                                                            }
+                                                            targetRow--
+                                                        }
+                                                        if (targetRow < 0) {
+                                                            focusedTopBar = TopBarFocus.SEARCH
+                                                        }
+                                                    }
+                                                    GamepadEvent.Direction.DOWN -> {
+                                                        var targetRow = currentLayout.first + 1
+                                                        val maxRow = gridLayout.maxOfOrNull { it.first } ?: 0
+                                                        while (targetRow <= maxRow) {
+                                                            val itemsInRow = gridLayout.withIndex().filter { it.value.first == targetRow && state.items[it.index] !is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.Header }
+                                                            if (itemsInRow.isNotEmpty()) {
+                                                                val closest = itemsInRow.minByOrNull { kotlin.math.abs(it.value.second - currentLayout.second) }
+                                                                if (closest != null) candidateIndex = closest.index
+                                                                break
+                                                            }
+                                                            targetRow++
+                                                        }
+                                                    }
+                                                    GamepadEvent.Direction.LEFT -> {
+                                                        var targetIndex = focusedGameIndex - 1
+                                                        while (targetIndex >= 0) {
+                                                            if (gridLayout[targetIndex].first == currentLayout.first && state.items[targetIndex] !is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.Header) {
+                                                                candidateIndex = targetIndex
+                                                                break
+                                                            }
+                                                            targetIndex--
+                                                        }
+                                                    }
+                                                    GamepadEvent.Direction.RIGHT -> {
+                                                        var targetIndex = focusedGameIndex + 1
+                                                        while (targetIndex < gridLayout.size) {
+                                                            if (gridLayout[targetIndex].first == currentLayout.first && state.items[targetIndex] !is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.Header) {
+                                                                candidateIndex = targetIndex
+                                                                break
+                                                            }
+                                                            targetIndex++
+                                                        }
                                                     }
                                                 }
-                                                GamepadEvent.Direction.DOWN -> {
-                                                    val raw = current + gridColumns
-                                                    if (raw < state.items.size) raw else current
+                                                
+                                                if (candidateIndex != focusedGameIndex && focusedTopBar == TopBarFocus.NONE) {
+                                                    focusedGameIndex = candidateIndex
+                                                    focusRequesters[candidateIndex].requestFocus()
                                                 }
-                                                GamepadEvent.Direction.LEFT -> {
-                                                    val raw = current - 1
-                                                    if (raw >= 0 && raw / gridColumns == current / gridColumns) raw else current
-                                                }
-                                                GamepadEvent.Direction.RIGHT -> {
-                                                    val raw = current + 1
-                                                    if (raw < state.items.size && raw / gridColumns == current / gridColumns) raw else current
-                                                }
-                                            }
-
-                                            // Si el raw index es un header, seguimos avanzando en la misma dirección (skip)
-                                            if (newIndexRaw != current) {
-                                                candidate = newIndexRaw
-                                                val maxTries = 5
-                                                var tries = 0
-                                                while (candidate in state.items.indices && state.items[candidate] is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.Header && tries < maxTries) {
-                                                    candidate = when (event.direction) {
-                                                        GamepadEvent.Direction.UP -> candidate - gridColumns
-                                                        GamepadEvent.Direction.DOWN -> candidate + gridColumns
-                                                        GamepadEvent.Direction.LEFT -> candidate - 1
-                                                        GamepadEvent.Direction.RIGHT -> candidate + 1
-                                                    }
-                                                    tries++
-                                                }
-                                                // Asegurarnos de que el candidate final es válido y es un GameItem
-                                                if (candidate in state.items.indices && state.items[candidate] !is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.Header) {
-                                                    moved = true
-                                                }
-                                            }
-    
-                                            if (moved && candidate != current && focusedTopBar == TopBarFocus.NONE) {
-                                                focusedGameIndex = candidate
-                                                focusRequesters[candidate].requestFocus()
                                             }
                                         }
                                     }
