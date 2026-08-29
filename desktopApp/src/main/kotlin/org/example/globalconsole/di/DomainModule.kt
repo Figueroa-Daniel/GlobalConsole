@@ -88,4 +88,18 @@ val domainModule = module {
     factory { org.example.globalconsole.azahar.domain.usecase.ExecuteGame3DSUseCase(repository = get()) }
     factory { org.example.globalconsole.azahar.domain.usecase.DeleteGame3DSUseCase(repository = get()) }
     factory { org.example.globalconsole.azahar.domain.usecase.CloseGame3DSUseCase(repository = get()) }
+
+    // UseCases de DuckStation Launcher (PS1)
+    factory { org.example.globalconsole.duckstation.domain.usecase.FindDuckStationLauncherUseCase(repository = get()) }
+    factory { org.example.globalconsole.duckstation.domain.usecase.EnableDuckStationLauncherUseCase(repository = get()) }
+    factory { org.example.globalconsole.duckstation.domain.usecase.HideDuckStationLauncherUseCase(repository = get()) }
+    factory { org.example.globalconsole.duckstation.domain.usecase.ShowDuckStationLauncherUseCase(repository = get()) }
+    factory { org.example.globalconsole.duckstation.domain.usecase.ExecuteLauncherDuckStationUseCase(repository = get()) }
+    factory { org.example.globalconsole.duckstation.domain.usecase.CloseLauncherDuckStationUseCase(repository = get()) }
+
+    // UseCases de Juegos DuckStation (PS1)
+    factory { org.example.globalconsole.duckstation.domain.usecase.GetGamesDuckStationUseCase(repository = get()) }
+    factory { org.example.globalconsole.duckstation.domain.usecase.ExecuteGameDuckStationUseCase(repository = get()) }
+    factory { org.example.globalconsole.duckstation.domain.usecase.DeleteGameDuckStationUseCase(repository = get()) }
+    factory { org.example.globalconsole.duckstation.domain.usecase.CloseGameDuckStationUseCase(repository = get()) }
 }
