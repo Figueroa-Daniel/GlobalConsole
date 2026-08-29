@@ -34,6 +34,7 @@ import org.example.globalconsole.presesentation.view.components.MetroTopBar
 import org.example.globalconsole.presesentation.view.components.MetroButton
 import org.example.globalconsole.presesentation.view.components.SetupPathDialog
 import org.example.globalconsole.presesentation.view.components.TopBarFocus
+import org.example.globalconsole.presesentation.view.components.ViewSettingsDialog
 import org.example.globalconsole.presesentation.viewModel.settings.SettingsViewModel
 import java.io.File
 
@@ -62,6 +63,7 @@ fun HomeScreen(
 
     var showPathDialog by remember { mutableStateOf(false) }
     var showOSK by remember { mutableStateOf(false) }
+    var showViewSettings by remember { mutableStateOf(false) }
     var focusedTopBar by remember { mutableStateOf(TopBarFocus.NONE) }
 
     // Juego seleccionado para abrir el recortador de carátula (null = diálogo cerrado)
@@ -117,6 +119,7 @@ fun HomeScreen(
                 inputMode = inputMode,
                 onSearchClick = { showOSK = true },
                 onRefreshClick = { viewModel.loadGames() },
+                onViewClick = { showViewSettings = true },
                 onSettingsClick = { showPathDialog = true }
             )
 
@@ -160,10 +163,10 @@ fun HomeScreen(
                         // está abierto, evitando fugas de eventos del mando (Regla #1).
                         LaunchedEffect(
                             gamepadManager, games.size, gridColumns,
-                            cropTargetGame != null, showOSK, showPathDialog
+                            cropTargetGame != null, showOSK, showPathDialog, showViewSettings
                         ) {
                             // Si algún diálogo está abierto, no procesar eventos aquí (aislamiento de foco)
-                            if (cropTargetGame != null || showOSK || showPathDialog) return@LaunchedEffect
+                            if (cropTargetGame != null || showOSK || showPathDialog || showViewSettings) return@LaunchedEffect
                             
                             gamepadManager?.events?.collectLatest { event ->
                                 when (event) {
@@ -182,7 +185,8 @@ fun HomeScreen(
                                                 GamepadEvent.Direction.RIGHT -> {
                                                     focusedTopBar = when (focusedTopBar) {
                                                         TopBarFocus.SEARCH -> TopBarFocus.REFRESH
-                                                        TopBarFocus.REFRESH -> TopBarFocus.SETTINGS
+                                                        TopBarFocus.REFRESH -> TopBarFocus.VIEW
+                                                        TopBarFocus.VIEW -> TopBarFocus.SETTINGS
                                                         else -> focusedTopBar
                                                     }
                                                 }
@@ -192,32 +196,57 @@ fun HomeScreen(
                                                 GamepadEvent.Direction.UP -> {}
                                             }
                                         } else {
-                                            val current = focusedGameIndex.coerceIn(0, games.size - 1)
-                                            val newIndex = when (event.direction) {
+                                            val current = focusedGameIndex.coerceIn(0, (state.items.size - 1).coerceAtLeast(0))
+                                            // Lógica para saltar headers
+                                            var candidate = current
+                                            var moved = false
+                                            
+                                            // Realizamos un salto base y luego comprobamos si caemos en un header
+                                            val newIndexRaw = when (event.direction) {
                                                 GamepadEvent.Direction.UP -> {
-                                                    val candidate = current - gridColumns
-                                                    if (candidate >= 0) candidate else {
+                                                    val raw = current - gridColumns
+                                                    if (raw >= 0) raw else {
                                                         focusedTopBar = TopBarFocus.SEARCH
                                                         current
                                                     }
                                                 }
                                                 GamepadEvent.Direction.DOWN -> {
-                                                    val candidate = current + gridColumns
-                                                    if (candidate < games.size) candidate else current
+                                                    val raw = current + gridColumns
+                                                    if (raw < state.items.size) raw else current
                                                 }
                                                 GamepadEvent.Direction.LEFT -> {
-                                                    val candidate = current - 1
-                                                    if (candidate >= 0 && candidate / gridColumns == current / gridColumns) candidate else current
+                                                    val raw = current - 1
+                                                    if (raw >= 0 && raw / gridColumns == current / gridColumns) raw else current
                                                 }
                                                 GamepadEvent.Direction.RIGHT -> {
-                                                    val candidate = current + 1
-                                                    if (candidate < games.size && candidate / gridColumns == current / gridColumns) candidate else current
+                                                    val raw = current + 1
+                                                    if (raw < state.items.size && raw / gridColumns == current / gridColumns) raw else current
+                                                }
+                                            }
+
+                                            // Si el raw index es un header, seguimos avanzando en la misma dirección (skip)
+                                            if (newIndexRaw != current) {
+                                                candidate = newIndexRaw
+                                                val maxTries = 5
+                                                var tries = 0
+                                                while (candidate in state.items.indices && state.items[candidate] is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.Header && tries < maxTries) {
+                                                    candidate = when (event.direction) {
+                                                        GamepadEvent.Direction.UP -> candidate - gridColumns
+                                                        GamepadEvent.Direction.DOWN -> candidate + gridColumns
+                                                        GamepadEvent.Direction.LEFT -> candidate - 1
+                                                        GamepadEvent.Direction.RIGHT -> candidate + 1
+                                                    }
+                                                    tries++
+                                                }
+                                                // Asegurarnos de que el candidate final es válido y es un GameItem
+                                                if (candidate in state.items.indices && state.items[candidate] !is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.Header) {
+                                                    moved = true
                                                 }
                                             }
     
-                                            if (newIndex != current && newIndex < focusRequesters.size && focusedTopBar == TopBarFocus.NONE) {
-                                                focusedGameIndex = newIndex
-                                                focusRequesters[newIndex].requestFocus()
+                                            if (moved && candidate != current && focusedTopBar == TopBarFocus.NONE) {
+                                                focusedGameIndex = candidate
+                                                focusRequesters[candidate].requestFocus()
                                             }
                                         }
                                     }
@@ -229,12 +258,16 @@ fun HomeScreen(
                                                     when (focusedTopBar) {
                                                         TopBarFocus.SEARCH -> showOSK = true
                                                         TopBarFocus.REFRESH -> viewModel.loadGames()
+                                                        TopBarFocus.VIEW -> showViewSettings = true
                                                         TopBarFocus.SETTINGS -> showPathDialog = true
                                                         else -> {}
                                                     }
-                                                } else if (!showPathDialog && !showOSK && games.isNotEmpty()) {
-                                                    val idx = focusedGameIndex.coerceIn(0, games.size - 1)
-                                                    viewModel.onGameSelected(games[idx])
+                                                } else if (!showPathDialog && !showOSK && !showViewSettings && games.isNotEmpty()) {
+                                                    val idx = focusedGameIndex.coerceIn(0, state.items.size - 1)
+                                                    val item = state.items.getOrNull(idx)
+                                                    if (item is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.GameItem) {
+                                                        viewModel.onGameSelected(item.game)
+                                                    }
                                                 }
                                             }
                                             GamepadEvent.Button.BACK -> {
@@ -252,9 +285,12 @@ fun HomeScreen(
                                                 } else {
                                                     focusedGameIndex
                                                 }
-                                                val targetGame = games.getOrNull(activeIndex)
-                                                if (targetGame != null && !targetGame.image.isNullOrBlank()) {
-                                                    cropTargetGame = targetGame
+                                                val targetItem = state.items.getOrNull(activeIndex)
+                                                if (targetItem is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.GameItem) {
+                                                    val targetGame = targetItem.game
+                                                    if (!targetGame.image.isNullOrBlank()) {
+                                                        cropTargetGame = targetGame
+                                                    }
                                                 }
                                             }
                                             else -> {}
@@ -283,15 +319,34 @@ fun HomeScreen(
                                 verticalArrangement = Arrangement.spacedBy(16.dp),
                                 modifier = Modifier.fillMaxSize()
                             ) {
-                                itemsIndexed(games) { index, game ->
-                                    GameTile(
-                                        game = game,
-                                        focusRequester = focusRequesters[index],
-                                        inputMode = inputMode,
-                                        onClick = { viewModel.onGameSelected(game) },
-                                        onFocus = { focusedGameIndex = index },
-                                        onHover = { hoveredGameIndex = index }
-                                    )
+                                state.items.forEachIndexed { index, item ->
+                                    when (item) {
+                                        is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.Header -> {
+                                            item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+                                                Text(
+                                                    text = item.title.uppercase(),
+                                                    color = Color(0xFF00FFCC),
+                                                    fontSize = 20.sp,
+                                                    fontWeight = FontWeight.Black,
+                                                    fontFamily = FontFamily.SansSerif,
+                                                    letterSpacing = 2.sp,
+                                                    modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+                                                )
+                                            }
+                                        }
+                                        is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.GameItem -> {
+                                            item {
+                                                GameTile(
+                                                    game = item.game,
+                                                    focusRequester = focusRequesters.getOrNull(index) ?: FocusRequester(),
+                                                    inputMode = inputMode,
+                                                    onClick = { viewModel.onGameSelected(item.game) },
+                                                    onFocus = { focusedGameIndex = index },
+                                                    onHover = { hoveredGameIndex = index }
+                                                )
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -426,6 +481,14 @@ fun HomeScreen(
                     showOSK = false
                 },
                 onDismiss = { showOSK = false }
+            )
+        }
+
+        if (showViewSettings && gamepadManager != null) {
+            ViewSettingsDialog(
+                homeViewModel = viewModel,
+                gamepadManager = gamepadManager,
+                onDismiss = { showViewSettings = false }
             )
         }
 

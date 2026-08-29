@@ -223,6 +223,34 @@ class HomeViewModelTest {
         assertIs<HomeUiState.Success>(state)
         assertEquals(1, state.games.size)
         assertFalse(state.games.any { it.name == "Heroic Games" })
+    /**
+     * Verifica que al agrupar por plataforma los items de la interfaz se estructuren con Headers.
+     *
+     * @author Daniel Figueroa Vidal
+     * @since 2026-08-29
+     */
+    @Test
+    fun setGroupingMode_groupsItemsCorrectly() = runTest {
+        val game1 = GameP2("1", "Metal Gear Solid 3", "/iso/mgs3.iso", null, Platforms.PCSX2)
+        val game2 = GameP2("2", "Gran Turismo 4", "/iso/gt4.iso", null, Platforms.PCSX2)
+        fakeGetGamesP2UseCase.games.addAll(listOf(game1, game2))
+        
+        // Asumiremos que el estado inicial carga los juegos
+        homeViewModel.loadGames()
+        advanceUntilIdle()
+        
+        homeViewModel.setGroupingMode(org.example.globalconsole.presesentation.viewModel.home.GroupingMode.PLATFORM)
+        advanceUntilIdle()
+        
+        val state = homeViewModel.uiState.value
+        assertIs<HomeUiState.Success>(state)
+        
+        // Debería haber 1 Header ("PCSX2") + 2 GameItems = 3 items
+        assertEquals(3, state.items.size)
+        val firstItem = state.items[0]
+        assertIs<org.example.globalconsole.presesentation.viewModel.home.HomeListItem.Header>(firstItem)
+        assertEquals("PCSX2", firstItem.title)
     }
 }
 
+}
