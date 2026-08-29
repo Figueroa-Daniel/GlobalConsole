@@ -104,6 +104,87 @@ class HomeViewModel(
      */
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
+    private val _groupingMode = MutableStateFlow(GroupingMode.NONE)
+    val groupingMode: StateFlow<GroupingMode> = _groupingMode.asStateFlow()
+
+    private val _launcherPosition = MutableStateFlow(LauncherPosition.INLINE)
+    val launcherPosition: StateFlow<LauncherPosition> = _launcherPosition.asStateFlow()
+
+    fun setGroupingMode(mode: GroupingMode) {
+        _groupingMode.value = mode
+        refreshItems()
+    }
+
+    fun setLauncherPosition(position: LauncherPosition) {
+        _launcherPosition.value = position
+        refreshItems()
+    }
+
+    private fun refreshItems() {
+        val currentState = _uiState.value
+        if (currentState is HomeUiState.Success) {
+            val items = buildListItems(currentState.filteredGames, _groupingMode.value, _launcherPosition.value)
+            _uiState.value = currentState.copy(items = items)
+        }
+    }
+
+    private fun buildListItems(games: List<Game>, grouping: GroupingMode, position: LauncherPosition): List<HomeListItem> {
+        val items = mutableListOf<HomeListItem>()
+        
+        // Separamos emuladores (launchers) de los juegos normales
+        val launchers = games.filter { it.id.contains("-launcher", ignoreCase = true) || it.platform == Platforms.HEORIC_GAMES_LAUCHER || it.platform == Platforms.PS3 }
+        val normalGames = games.filterNot { launchers.contains(it) }
+
+        if (position == LauncherPosition.TOP && launchers.isNotEmpty()) {
+            items.add(HomeListItem.Header("Emuladores"))
+            items.addAll(launchers.sortedBy { it.name }.map { HomeListItem.GameItem(it) })
+        }
+
+        if (grouping == GroupingMode.NONE) {
+            val gamesToRender = if (position == LauncherPosition.TOP) normalGames else games
+            if (gamesToRender.isNotEmpty()) {
+                if (position == LauncherPosition.TOP) {
+                    items.add(HomeListItem.Header("Juegos"))
+                }
+                items.addAll(gamesToRender.sortedBy { it.name }.map { HomeListItem.GameItem(it) })
+            }
+            return items
+        }
+
+        // Agrupación (Platform o Series)
+        val groupedMap = mutableMapOf<String, MutableList<Game>>()
+        val gamesToGroup = if (position == LauncherPosition.TOP) normalGames else games
+        
+        gamesToGroup.forEach { game ->
+            val groupName = when (grouping) {
+                GroupingMode.PLATFORM -> game.platform.name
+                GroupingMode.CONSOLE_SERIES -> {
+                    when (game.platform) {
+                        Platforms.PCSX2, Platforms.DUCKSTATION, Platforms.PS3 -> "PlayStation"
+                        Platforms.MELONDS, Platforms.AZAHAR, Platforms.DOLPHIN -> "Nintendo"
+                        Platforms.HEORIC_GAMES_LAUCHER, Platforms.LOCALGAME -> "PC"
+                    }
+                }
+                else -> ""
+            }
+            groupedMap.getOrPut(groupName) { mutableListOf() }.add(game)
+        }
+
+        // Ordenamos las categorías por nombre
+        groupedMap.keys.sorted().forEach { groupName ->
+            val groupGames = groupedMap[groupName]!!
+            items.add(HomeListItem.Header(groupName))
+            
+            val groupLaunchers = groupGames.filter { launchers.contains(it) }.sortedBy { it.name }
+            val groupNormalGames = groupGames.filterNot { launchers.contains(it) }.sortedBy { it.name }
+            
+            items.addAll(groupLaunchers.map { HomeListItem.GameItem(it) })
+            items.addAll(groupNormalGames.map { HomeListItem.GameItem(it) })
+        }
+        
+        return items
+    }
+
     /**
      * Carga todos los juegos de todas las fuentes disponibles y actualiza [uiState].
      * Combina las listas de cada plataforma en una lista única ordenada por nombre.
@@ -209,7 +290,8 @@ class HomeViewModel(
                 _uiState.value = if (allGames.isEmpty()) {
                     HomeUiState.Empty
                 } else {
-                    HomeUiState.Success(games = allGames, filteredGames = allGames)
+                    val items = buildListItems(allGames, _groupingMode.value, _launcherPosition.value)
+                    HomeUiState.Success(games = allGames, filteredGames = allGames, items = items)
                 }
             } catch (e: Exception) {
                 _uiState.value = HomeUiState.Error(message = e.message ?: "Error desconocido al cargar juegos")
@@ -238,7 +320,8 @@ class HomeViewModel(
                     game.name.contains(query, ignoreCase = true)
                 }
             }
-            _uiState.value = currentState.copy(filteredGames = filtered)
+            val items = buildListItems(filtered, _groupingMode.value, _launcherPosition.value)
+            _uiState.value = currentState.copy(filteredGames = filtered, items = items)
         }
     }
 

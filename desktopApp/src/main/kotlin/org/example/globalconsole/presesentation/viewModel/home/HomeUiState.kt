@@ -31,7 +31,8 @@ sealed interface HomeUiState {
      */
     data class Success(
         val games: List<Game>,
-        val filteredGames: List<Game>
+        val filteredGames: List<Game>,
+        val items: List<HomeListItem> = emptyList()
     ) : HomeUiState
 
     /**

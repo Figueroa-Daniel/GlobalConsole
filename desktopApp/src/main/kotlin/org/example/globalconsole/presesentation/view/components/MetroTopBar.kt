@@ -22,7 +22,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.hoverable
 
-enum class TopBarFocus { NONE, SEARCH, REFRESH, SETTINGS }
+enum class TopBarFocus { NONE, SEARCH, REFRESH, VIEW, SETTINGS }
 
 /**
  * Barra de navegación superior estilo Metro.
@@ -46,6 +46,7 @@ fun MetroTopBar(
     inputMode: org.example.globalconsole.presesentation.input.InputMode = org.example.globalconsole.presesentation.input.InputMode.GAMEPAD,
     onSearchClick: () -> Unit,
     onRefreshClick: () -> Unit,
+    onViewClick: () -> Unit,
     onSettingsClick: () -> Unit
 ) {
     Row(
@@ -126,6 +127,16 @@ fun MetroTopBar(
             isFocused = focusedButton == TopBarFocus.REFRESH,
             inputMode = inputMode,
             onClick = onRefreshClick
+        )
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        // Botón Vista
+        MetroButton(
+            text = "VISTA",
+            isFocused = focusedButton == TopBarFocus.VIEW,
+            inputMode = inputMode,
+            onClick = onViewClick
         )
 
         Spacer(modifier = Modifier.width(8.dp))
