@@ -145,15 +145,15 @@ fun HomeScreen(
                     is HomeUiState.Success -> {
                         val games = state.filteredGames
 
-                        // Un FocusRequester por cada tile del grid
-                        val focusRequesters = remember(games.size) {
-                            List(games.size) { FocusRequester() }
+                        // Un FocusRequester por cada elemento de la lista (incluyendo headers para mantener los índices alineados)
+                        val focusRequesters = remember(state.items.size) {
+                            List(state.items.size) { FocusRequester() }
                         }
 
                         // Ajustar índice si la lista se reduce (ej: búsqueda filtra juegos)
-                        LaunchedEffect(games.size) {
-                            if (focusedGameIndex >= games.size && games.isNotEmpty()) {
-                                focusedGameIndex = games.size - 1
+                        LaunchedEffect(state.items.size) {
+                            if (focusedGameIndex >= state.items.size && state.items.isNotEmpty()) {
+                                focusedGameIndex = state.items.size - 1
                             }
                         }
 
@@ -162,7 +162,7 @@ fun HomeScreen(
                         // como keys para que este LaunchedEffect se reinicie y se detenga cuando algún diálogo modal
                         // está abierto, evitando fugas de eventos del mando (Regla #1).
                         LaunchedEffect(
-                            gamepadManager, games.size, gridColumns,
+                            gamepadManager, state.items.size, gridColumns,
                             cropTargetGame != null, showOSK, showPathDialog, showViewSettings
                         ) {
                             // Si algún diálogo está abierto, no procesar eventos aquí (aislamiento de foco)
@@ -171,7 +171,7 @@ fun HomeScreen(
                             gamepadManager?.events?.collectLatest { event ->
                                 when (event) {
                                     is GamepadEvent.DirectionPressed -> {
-                                        if (games.isEmpty()) return@collectLatest
+                                        if (state.items.isEmpty()) return@collectLatest
                                         
                                         if (focusedTopBar != TopBarFocus.NONE) {
                                             when (event.direction) {
@@ -262,7 +262,7 @@ fun HomeScreen(
                                                         TopBarFocus.SETTINGS -> showPathDialog = true
                                                         else -> {}
                                                     }
-                                                } else if (!showPathDialog && !showOSK && !showViewSettings && games.isNotEmpty()) {
+                                                } else if (!showPathDialog && !showOSK && !showViewSettings && state.items.isNotEmpty()) {
                                                     val idx = focusedGameIndex.coerceIn(0, state.items.size - 1)
                                                     val item = state.items.getOrNull(idx)
                                                     if (item is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.GameItem) {
