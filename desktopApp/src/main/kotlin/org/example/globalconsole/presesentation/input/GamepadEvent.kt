@@ -26,7 +26,11 @@ sealed class GamepadEvent {
         /** Botón de sistema / central (Xbox Guide, PS Button). Usado para cerrar juegos o salir. */
         HOME,
         /** Botón de opciones / configuración (Y en Xbox, Triángulo en PlayStation). Usado para abrir el recortador de carátula. */
-        OPTIONS
+        OPTIONS,
+        /** Bumper izquierdo (L1 / LB). Usado para avanzar página / scroll rápido arriba. */
+        PAGE_UP,
+        /** Bumper derecho (R1 / RB). Usado para retroceder página / scroll rápido abajo. */
+        PAGE_DOWN
     }
 
     /**
