@@ -12,7 +12,7 @@ fun GameDsDto.toDomain() =
         name = this.name,
         urlGameExecute = this.urlGameExecute,
         image = this.image,
-        platform = Platforms.PCSX2
+        platform = Platforms.MELONDS
     )
 
 

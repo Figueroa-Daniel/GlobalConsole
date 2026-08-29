@@ -19,6 +19,10 @@ import org.example.globalconsole.juegosPcsx2.domain.usecase.ExecuteGameP2UseCase
 import org.example.globalconsole.juegosPcsx2.domain.usecase.GetGamesP2UseCase
 import org.example.globalconsole.melonDS.domain.usecase.ExecuteGameMelonDSUseCase
 import org.example.globalconsole.melonDS.domain.usecase.GetGamesDSUseCase
+import org.example.globalconsole.PS3Launcher.domain.usecase.ExecutePS3LauncherUseCase
+import org.example.globalconsole.PS3Launcher.domain.usecase.FindPS3LauncherUseCase
+import org.example.globalconsole.PS3Launcher.domain.usecase.ShowPS3LauncherUseCase
+import org.example.globalconsole.PS3Launcher.domain.usecase.ClosePS3LauncherUseCase
 
 /**
  * ViewModel centralizado de la pantalla principal de GlobalConsole.
@@ -58,7 +62,18 @@ class HomeViewModel(
     private val executeLauncherDolphinUseCase: org.example.globalconsole.dolphin.domain.usecase.ExecuteLauncherDolphinUseCase? = null,
     private val closeLauncherDolphinUseCase: org.example.globalconsole.dolphin.domain.usecase.CloseLauncherDolphinUseCase? = null,
     private val findDolphinLauncherUseCase: org.example.globalconsole.dolphin.domain.usecase.FindDolphinLauncherUseCase? = null,
-    private val showDolphinLauncherUseCase: org.example.globalconsole.dolphin.domain.usecase.ShowDolphinLauncherUseCase? = null
+    private val showDolphinLauncherUseCase: org.example.globalconsole.dolphin.domain.usecase.ShowDolphinLauncherUseCase? = null,
+    private val executePS3LauncherUseCase: ExecutePS3LauncherUseCase? = null,
+    private val findPS3LauncherUseCase: FindPS3LauncherUseCase? = null,
+    private val showPS3LauncherUseCase: ShowPS3LauncherUseCase? = null,
+    private val closePS3LauncherUseCase: ClosePS3LauncherUseCase? = null,
+    private val executeGame3DSUseCase: org.example.globalconsole.azahar.domain.usecase.ExecuteGame3DSUseCase? = null,
+    private val executeLauncherAzaharUseCase: org.example.globalconsole.azahar.domain.usecase.ExecuteLauncherAzaharUseCase? = null,
+    private val findAzaharLauncherUseCase: org.example.globalconsole.azahar.domain.usecase.FindAzaharLauncherUseCase? = null,
+    private val showAzaharLauncherUseCase: org.example.globalconsole.azahar.domain.usecase.ShowAzaharLauncherUseCase? = null,
+    private val getGames3DSUseCase: org.example.globalconsole.azahar.domain.usecase.GetGames3DSUseCase? = null,
+    private val closeGame3DSUseCase: org.example.globalconsole.azahar.domain.usecase.CloseGame3DSUseCase? = null,
+    private val closeLauncherAzaharUseCase: org.example.globalconsole.azahar.domain.usecase.CloseLauncherAzaharUseCase? = null
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
@@ -118,7 +133,7 @@ class HomeViewModel(
                         id = gameDs.id,
                         name = gameDs.name,
                         urlGameExecute = gameDs.urlGameExecute,
-                        image = null,
+                        image = gameDs.image,
                         platform = Platforms.MELONDS
                     )
                 } ?: emptyList()
@@ -135,12 +150,36 @@ class HomeViewModel(
                         id = gameDolphin.id,
                         name = gameDolphin.name,
                         urlGameExecute = gameDolphin.urlGameExecute,
-                        image = null,
+                        image = gameDolphin.image,
                         platform = Platforms.DOLPHIN
                     )
                 } ?: emptyList()
 
-                val allGames: List<Game> = (pcsx2Games + heroicEntry + melonDSEntry + dsGames + dolphinEntry + dolphinGames).sortedBy { it.name }
+                val ps3Entry: List<Game> = if (findPS3LauncherUseCase?.invoke() == true) {
+                    val launcher = showPS3LauncherUseCase?.invoke()
+                    if (launcher != null) listOf(launcher) else emptyList()
+                } else {
+                    emptyList()
+                }
+
+                val azaharEntry: List<Game> = if (findAzaharLauncherUseCase?.invoke() == true) {
+                    val launcher = showAzaharLauncherUseCase?.invoke()
+                    if (launcher != null) listOf(launcher) else emptyList()
+                } else {
+                    emptyList()
+                }
+
+                val azaharGames = getGames3DSUseCase?.invoke()?.map { game3ds ->
+                    Game(
+                        id = game3ds.id,
+                        name = game3ds.name,
+                        urlGameExecute = game3ds.urlGameExecute,
+                        image = game3ds.image,
+                        platform = Platforms.AZAHAR
+                    )
+                } ?: emptyList()
+
+                val allGames: List<Game> = (pcsx2Games + heroicEntry + melonDSEntry + dsGames + dolphinEntry + dolphinGames + ps3Entry + azaharEntry + azaharGames).sortedBy { it.name }
 
                 _uiState.value = if (allGames.isEmpty()) {
                     HomeUiState.Empty
@@ -219,6 +258,14 @@ class HomeViewModel(
                         executeGameDolphinUseCase?.invoke(game.id) ?: false
                     }
                 }
+                Platforms.PS3 -> executePS3LauncherUseCase?.invoke() ?: false
+                Platforms.AZAHAR -> {
+                    if (game.id == "azahar-launcher") {
+                        executeLauncherAzaharUseCase?.invoke() ?: false
+                    } else {
+                        executeGame3DSUseCase?.invoke(game.urlGameExecute) ?: false
+                    }
+                }
             }
             
             // Al terminar la ejecución, volvemos a cargar la vista
@@ -253,6 +300,14 @@ class HomeViewModel(
                         closeGameDolphinUseCase?.invoke()
                     }
                 }
+                Platforms.PS3 -> closePS3LauncherUseCase?.invoke()
+                Platforms.AZAHAR -> {
+                    if (game.id == "azahar-launcher") {
+                        closeLauncherAzaharUseCase?.invoke()
+                    } else {
+                        closeGame3DSUseCase?.invoke()
+                    }
+                }
             }
         }
     }
@@ -284,6 +339,12 @@ class HomeViewModel(
                 }
                 Platforms.DOLPHIN -> {
                     // TODO: Implementar eliminación de juego de Dolphin
+                }
+                Platforms.PS3 -> {
+                    // TODO: Implementar eliminación de entrada de PS3
+                }
+                Platforms.AZAHAR -> {
+                    // TODO: Implementar eliminación de juego de Azahar
                 }
             }
         }

@@ -48,6 +48,18 @@ class GamepadManager {
     private val _inputMode = MutableStateFlow(InputMode.GAMEPAD)
     val inputMode: StateFlow<InputMode> = _inputMode.asStateFlow()
 
+    // Ejes del stick izquierdo expuestos para el recortador de imagen
+    private val _leftStickX = MutableStateFlow(0f)
+    private val _leftStickY = MutableStateFlow(0f)
+    val leftStickX: StateFlow<Float> = _leftStickX.asStateFlow()
+    val leftStickY: StateFlow<Float> = _leftStickY.asStateFlow()
+
+    // Ejes de los triggers expuestos para el zoom en el recortador
+    private val _leftTrigger = MutableStateFlow(0f)
+    private val _rightTrigger = MutableStateFlow(0f)
+    val leftTrigger: StateFlow<Float> = _leftTrigger.asStateFlow()
+    val rightTrigger: StateFlow<Float> = _rightTrigger.asStateFlow()
+
     private var pollingJob: Job? = null
     private var isInitialized = false
     private var selectedGamepadId: Int = -1
@@ -180,6 +192,22 @@ class GamepadManager {
         lastButtonsState[GLFW_GAMEPAD_BUTTON_START] = startPressed
         lastButtonsState[GLFW_GAMEPAD_BUTTON_BACK] = backPressed
 
+        // 3. Combo de ocultación manual del ratón: X + BACK simultáneamente
+        val xPressed = buttons.get(GLFW_GAMEPAD_BUTTON_X).toInt() == GLFW_PRESS
+        val wasXPressed = lastButtonsState[GLFW_GAMEPAD_BUTTON_X] ?: false
+        if (xPressed && backPressed && !(wasXPressed && wasBackPressed)) {
+            isMouseAllowedWhenSuspended = !isMouseAllowedWhenSuspended
+            if (!isMouseAllowedWhenSuspended) {
+                // Mandar a la esquina inferior derecha extrema para que el OS lo atrape en el borde final y quede oculto
+                awtRobot?.mouseMove(9999, 9999)
+            } else {
+                // Al reactivarlo, mandarlo al centro de la pantalla principal
+                val screenSize = java.awt.Toolkit.getDefaultToolkit().screenSize
+                awtRobot?.mouseMove(screenSize.width / 2, screenSize.height / 2)
+            }
+        }
+        lastButtonsState[GLFW_GAMEPAD_BUTTON_X] = xPressed
+
         if (isMouseAllowedWhenSuspended) {
             val axes = state.axes()
             moveMouseWithRightStick(axes)
@@ -223,8 +251,15 @@ class GamepadManager {
         checkButtonPress(buttons, GLFW_GAMEPAD_BUTTON_START, GamepadEvent.Button.MENU)
         checkButtonPress(buttons, GLFW_GAMEPAD_BUTTON_X, GamepadEvent.Button.DELETE)
         checkButtonPress(buttons, GLFW_GAMEPAD_BUTTON_GUIDE, GamepadEvent.Button.HOME)
+        checkButtonPress(buttons, GLFW_GAMEPAD_BUTTON_Y, GamepadEvent.Button.OPTIONS)
 
-        // 2. Stick derecho → ratón (estilo PS4 Remote Play)
+        // 2. Actualizar valores del stick izquierdo y triggers para el recortador de imagen
+        _leftStickX.value = axes.get(GLFW_GAMEPAD_AXIS_LEFT_X)
+        _leftStickY.value = axes.get(GLFW_GAMEPAD_AXIS_LEFT_Y)
+        _leftTrigger.value = axes.get(GLFW_GAMEPAD_AXIS_LEFT_TRIGGER)
+        _rightTrigger.value = axes.get(GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER)
+
+        // 3. Stick derecho → ratón (estilo PS4 Remote Play)
         moveMouseWithRightStick(axes)
 
         // 3. (Eliminado handleMouseLeftClick individual para evitar conflicto de estado)

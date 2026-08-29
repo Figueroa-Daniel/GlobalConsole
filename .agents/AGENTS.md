@@ -7,4 +7,5 @@ Por favor, lee y aplica estrictamente las reglas definidas en los siguientes arc
 - [Protocolo de Git y Commits](file:///home/figue/Documentos/GlobalConsole/.agents/rules/git_rules.md)
 - [Instrucciones Estándar de Código](file:///home/figue/Documentos/GlobalConsole/.agents/rules/instrucciones_estandar.md)
 - [Rol de IA y Arquitectura del Proyecto](file:///home/figue/Documentos/GlobalConsole/.agents/rules/instrucciones_proyecto.md)
+- [Manejo de Gamepad y Focos](file:///home/figue/Documentos/GlobalConsole/.agents/rules/gamepad_input_rules.md)
 - [Stack Tecnológico](file:///home/figue/Documentos/GlobalConsole/.agents/rules/technologies.md)

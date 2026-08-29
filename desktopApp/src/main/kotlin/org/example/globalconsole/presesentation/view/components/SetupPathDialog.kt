@@ -32,9 +32,12 @@ private enum class DialogButton {
     HEROIC_TOGGLE, 
     MELONDS_TOGGLE, 
     DOLPHIN_TOGGLE,
+    PS3_TOGGLE,
+    AZAHAR_TOGGLE,
     PCSX2_BROWSE, 
     MELONDS_GAMES_BROWSE, 
     DOLPHIN_GAMES_BROWSE,
+    AZAHAR_GAMES_BROWSE,
     CANCEL, 
     CONFIRM 
 }
@@ -53,11 +56,15 @@ fun SetupPathDialog(
     val pcsx2PathState by settingsViewModel.pcsx2Path.collectAsState()
     val melonDSGamesPathState by settingsViewModel.melonDSGamesPath.collectAsState()
     val dolphinEnabled by settingsViewModel.dolphinEnabled.collectAsState()
+    val ps3Enabled by settingsViewModel.ps3Enabled.collectAsState()
     val dolphinGamesPathState by settingsViewModel.dolphinGamesPath.collectAsState()
+    val azaharEnabled by settingsViewModel.azaharEnabled.collectAsState()
+    val azaharGamesPathState by settingsViewModel.azaharGamesPath.collectAsState()
 
     var pathTextPcsx2 by remember(pcsx2PathState) { mutableStateOf(pcsx2PathState) }
     var pathTextMelonGames by remember(melonDSGamesPathState) { mutableStateOf(melonDSGamesPathState) }
     var pathTextDolphinGames by remember(dolphinGamesPathState) { mutableStateOf(dolphinGamesPathState) }
+    var pathTextAzaharGames by remember(azaharGamesPathState) { mutableStateOf(azaharGamesPathState) }
     
     var errorMessage by remember { mutableStateOf("") }
     var focusedButton by remember { mutableStateOf(DialogButton.CONFIRM) }
@@ -68,6 +75,8 @@ fun SetupPathDialog(
         settingsViewModel.loadHeroicEnabled()
         settingsViewModel.loadMelonDSEnabled()
         settingsViewModel.loadDolphinEnabled()
+        settingsViewModel.loadPs3Enabled()
+        settingsViewModel.loadAzaharEnabled()
         settingsViewModel.loadMouseSensitivity()
     }
 
@@ -82,20 +91,26 @@ fun SetupPathDialog(
                             DialogButton.HEROIC_TOGGLE -> DialogButton.SENSITIVITY_SLIDER
                             DialogButton.MELONDS_TOGGLE -> DialogButton.HEROIC_TOGGLE
                             DialogButton.DOLPHIN_TOGGLE -> DialogButton.MELONDS_TOGGLE
-                            DialogButton.PCSX2_BROWSE -> DialogButton.DOLPHIN_TOGGLE
+                            DialogButton.PS3_TOGGLE -> DialogButton.DOLPHIN_TOGGLE
+                            DialogButton.AZAHAR_TOGGLE -> DialogButton.PS3_TOGGLE
+                            DialogButton.PCSX2_BROWSE -> DialogButton.AZAHAR_TOGGLE
                             DialogButton.MELONDS_GAMES_BROWSE -> DialogButton.PCSX2_BROWSE
                             DialogButton.DOLPHIN_GAMES_BROWSE -> DialogButton.MELONDS_GAMES_BROWSE
-                            DialogButton.CONFIRM, DialogButton.CANCEL -> DialogButton.DOLPHIN_GAMES_BROWSE
+                            DialogButton.AZAHAR_GAMES_BROWSE -> DialogButton.DOLPHIN_GAMES_BROWSE
+                            DialogButton.CONFIRM, DialogButton.CANCEL -> DialogButton.AZAHAR_GAMES_BROWSE
                             else -> focusedButton
                         }
                         GamepadEvent.Direction.DOWN -> when (focusedButton) {
                             DialogButton.SENSITIVITY_SLIDER -> DialogButton.HEROIC_TOGGLE
                             DialogButton.HEROIC_TOGGLE -> DialogButton.MELONDS_TOGGLE
                             DialogButton.MELONDS_TOGGLE -> DialogButton.DOLPHIN_TOGGLE
-                            DialogButton.DOLPHIN_TOGGLE -> DialogButton.PCSX2_BROWSE
+                            DialogButton.DOLPHIN_TOGGLE -> DialogButton.PS3_TOGGLE
+                            DialogButton.PS3_TOGGLE -> DialogButton.AZAHAR_TOGGLE
+                            DialogButton.AZAHAR_TOGGLE -> DialogButton.PCSX2_BROWSE
                             DialogButton.PCSX2_BROWSE -> DialogButton.MELONDS_GAMES_BROWSE
                             DialogButton.MELONDS_GAMES_BROWSE -> DialogButton.DOLPHIN_GAMES_BROWSE
-                            DialogButton.DOLPHIN_GAMES_BROWSE -> DialogButton.CONFIRM
+                            DialogButton.DOLPHIN_GAMES_BROWSE -> DialogButton.AZAHAR_GAMES_BROWSE
+                            DialogButton.AZAHAR_GAMES_BROWSE -> DialogButton.CONFIRM
                             else -> focusedButton
                         }
                         GamepadEvent.Direction.LEFT -> when (focusedButton) {
@@ -124,16 +139,20 @@ fun SetupPathDialog(
                             DialogButton.HEROIC_TOGGLE -> settingsViewModel.setHeroicEnabled(!heroicEnabled)
                             DialogButton.MELONDS_TOGGLE -> settingsViewModel.setMelonDSEnabled(!melonDSEnabled)
                             DialogButton.DOLPHIN_TOGGLE -> settingsViewModel.setDolphinEnabled(!dolphinEnabled)
+                            DialogButton.PS3_TOGGLE -> settingsViewModel.setPs3Enabled(!ps3Enabled)
+                            DialogButton.AZAHAR_TOGGLE -> settingsViewModel.setAzaharEnabled(!azaharEnabled)
                             DialogButton.SENSITIVITY_SLIDER -> {}
                             DialogButton.PCSX2_BROWSE -> showFolderPickerFor = DialogButton.PCSX2_BROWSE
                             DialogButton.MELONDS_GAMES_BROWSE -> showFolderPickerFor = DialogButton.MELONDS_GAMES_BROWSE
                             DialogButton.DOLPHIN_GAMES_BROWSE -> showFolderPickerFor = DialogButton.DOLPHIN_GAMES_BROWSE
+                            DialogButton.AZAHAR_GAMES_BROWSE -> showFolderPickerFor = DialogButton.AZAHAR_GAMES_BROWSE
                             DialogButton.CANCEL -> onDismiss()
                             DialogButton.CONFIRM -> {
                                 // Validaciones básicas
                                 settingsViewModel.savePath("pcsx2", pathTextPcsx2)
                                 settingsViewModel.savePath("melonds", pathTextMelonGames)
                                 settingsViewModel.savePath("dolphinGames", pathTextDolphinGames)
+                                settingsViewModel.savePath("azahar", pathTextAzaharGames)
                                 onConfirm()
                             }
                         }
@@ -249,6 +268,40 @@ fun SetupPathDialog(
                     }
                     Spacer(modifier = Modifier.height(20.dp))
 
+                    // PS3 Launcher Toggle
+                    val ps3ToggleBorderColor = if (focusedButton == DialogButton.PS3_TOGGLE) Color(0xFF00FFCC) else Color(0xFF333333)
+                    Column(
+                        modifier = Modifier.fillMaxWidth().border(1.dp, ps3ToggleBorderColor, RectangleShape).padding(12.dp)
+                    ) {
+                        Text("PS3 LAUNCHER (RPCS3)", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text("Mostrar el launcher de PS3 en la biblioteca.", color = Color(0xFFAAAAAA), fontSize = 12.sp)
+                        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(if (ps3Enabled) "HABILITADO" else "DESHABILITADO", color = if (ps3Enabled) Color(0xFF00FFCC) else Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Switch(
+                                checked = ps3Enabled, onCheckedChange = { settingsViewModel.setPs3Enabled(it) },
+                                colors = SwitchDefaults.colors(checkedThumbColor = Color.Black, checkedTrackColor = Color(0xFF00FFCC), uncheckedThumbColor = Color.Gray, uncheckedTrackColor = Color(0xFF333333))
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    // Azahar Launcher Toggle
+                    val azaharToggleBorderColor = if (focusedButton == DialogButton.AZAHAR_TOGGLE) Color(0xFF00FFCC) else Color(0xFF333333)
+                    Column(
+                        modifier = Modifier.fillMaxWidth().border(1.dp, azaharToggleBorderColor, RectangleShape).padding(12.dp)
+                    ) {
+                        Text("AZAHAR LAUNCHER (3DS)", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text("Mostrar el launcher de Azahar en la biblioteca.", color = Color(0xFFAAAAAA), fontSize = 12.sp)
+                        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(if (azaharEnabled) "HABILITADO" else "DESHABILITADO", color = if (azaharEnabled) Color(0xFF00FFCC) else Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Switch(
+                                checked = azaharEnabled, onCheckedChange = { settingsViewModel.setAzaharEnabled(it) },
+                                colors = SwitchDefaults.colors(checkedThumbColor = Color.Black, checkedTrackColor = Color(0xFF00FFCC), uncheckedThumbColor = Color.Gray, uncheckedTrackColor = Color(0xFF333333))
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(20.dp))
+
                     // PCSX2 Path
                     Text("RUTA DE JUEGOS (PCSX2)", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -286,6 +339,19 @@ fun SetupPathDialog(
                         Spacer(modifier = Modifier.width(8.dp))
                         MetroButton(text = "EXAMINAR", isPrimary = focusedButton == DialogButton.DOLPHIN_GAMES_BROWSE, isFocused = focusedButton == DialogButton.DOLPHIN_GAMES_BROWSE, onClick = { showFolderPickerFor = DialogButton.DOLPHIN_GAMES_BROWSE })
                     }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    // Azahar Games Path
+                    Text("RUTA DE JUEGOS (AZAHAR 3DS)", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        TextField(
+                            value = pathTextAzaharGames, onValueChange = { pathTextAzaharGames = it }, modifier = Modifier.weight(1f).border(1.dp, Color.Gray, RectangleShape),
+                            colors = TextFieldDefaults.colors(focusedContainerColor = Color(0xFF161616), unfocusedContainerColor = Color(0xFF161616), disabledContainerColor = Color(0xFF161616), focusedTextColor = Color.White, unfocusedTextColor = Color.White),
+                            singleLine = true, textStyle = TextStyle(fontSize = 14.sp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        MetroButton(text = "EXAMINAR", isPrimary = focusedButton == DialogButton.AZAHAR_GAMES_BROWSE, isFocused = focusedButton == DialogButton.AZAHAR_GAMES_BROWSE, onClick = { showFolderPickerFor = DialogButton.AZAHAR_GAMES_BROWSE })
+                    }
                 }
 
                 if (errorMessage.isNotEmpty()) {
@@ -301,6 +367,7 @@ fun SetupPathDialog(
                             settingsViewModel.savePath("pcsx2", pathTextPcsx2)
                             settingsViewModel.savePath("melonds", pathTextMelonGames)
                             settingsViewModel.savePath("dolphinGames", pathTextDolphinGames)
+                            settingsViewModel.savePath("azahar", pathTextAzaharGames)
                             onConfirm()
                         }
                     )
@@ -314,6 +381,7 @@ fun SetupPathDialog(
             DialogButton.PCSX2_BROWSE -> pathTextPcsx2
             DialogButton.MELONDS_GAMES_BROWSE -> pathTextMelonGames
             DialogButton.DOLPHIN_GAMES_BROWSE -> pathTextDolphinGames
+            DialogButton.AZAHAR_GAMES_BROWSE -> pathTextAzaharGames
             else -> ""
         }
         val safeInitial = if (initialPath.isNotBlank() && File(initialPath).exists()) initialPath else System.getProperty("user.home")
@@ -326,6 +394,7 @@ fun SetupPathDialog(
                     DialogButton.PCSX2_BROWSE -> pathTextPcsx2 = selectedPath
                     DialogButton.MELONDS_GAMES_BROWSE -> pathTextMelonGames = selectedPath
                     DialogButton.DOLPHIN_GAMES_BROWSE -> pathTextDolphinGames = selectedPath
+                    DialogButton.AZAHAR_GAMES_BROWSE -> pathTextAzaharGames = selectedPath
                     else -> {}
                 }
                 errorMessage = ""

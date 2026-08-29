@@ -43,6 +43,8 @@ class FakeGameP2Repository : GameP2Repository {
      */
     override suspend fun executeGameP2(id: String): Boolean = false
 
+    override suspend fun closeGame(): Boolean = false
+
     /**
      * No implementado en el fake; devuelve lista vacía.
      *

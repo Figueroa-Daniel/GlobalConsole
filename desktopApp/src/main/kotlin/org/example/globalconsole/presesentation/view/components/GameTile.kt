@@ -29,6 +29,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.example.globalconsole.generalDomain.entititys.Game
+import org.example.globalconsole.generalDomain.entititys.Platforms
+import coil3.compose.AsyncImage
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+import org.jetbrains.compose.resources.painterResource
+import globalconsole.shared.generated.resources.Res
+import globalconsole.shared.generated.resources.*
+import java.io.File
 
 /**
  * Representa una tarjeta (Tile) estilo Metro de un juego.
@@ -37,8 +45,11 @@ import org.example.globalconsole.generalDomain.entititys.Game
  * enfocarlo mediante teclado o gamepad.
  *
  * @param game Datos del juego a renderizar.
- * @param onClick Acción ejecutada al seleccionar el juego.
- * @param onFocus Acción ejecutada al recibir el foco del teclado o gamepad.
+ * @param focusRequester Requester para control de foco externo (gamepad).
+ * @param inputMode Modo de entrada activo (gamepad o ratón).
+ * @param onClick Acción ejecutada al seleccionar el juego (click primario o botón A del mando).
+ * @param onFocus Acción ejecutada al recibir el foco del teclado o gamepad (modo GAMEPAD).
+ * @param onHover Acción ejecutada cuando el cursor del ratón entra en el tile (modo MOUSE).
  *
  * @author Daniel Figueroa Vidal
  * @since 2026-08-09
@@ -49,7 +60,8 @@ fun GameTile(
     focusRequester: FocusRequester = remember { FocusRequester() },
     inputMode: org.example.globalconsole.presesentation.input.InputMode = org.example.globalconsole.presesentation.input.InputMode.GAMEPAD,
     onClick: () -> Unit,
-    onFocus: () -> Unit = {}
+    onFocus: () -> Unit = {},
+    onHover: () -> Unit = {}
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
@@ -60,11 +72,14 @@ fun GameTile(
     val isVirtualFocused = isFocused && inputMode == org.example.globalconsole.presesentation.input.InputMode.GAMEPAD
     val isActive = isHovered || isVirtualFocused
 
-    // Notificar al componente madre cuando este juego obtenga el foco por cualquier medio
+    // Notificar al componente madre cuando este juego obtenga el foco por gamepad
     LaunchedEffect(isFocused) {
-        if (isFocused) {
-            onFocus()
-        }
+        if (isFocused) onFocus()
+    }
+
+    // Notificar al componente madre cuando el cursor del ratón entra en este tile (modo MOUSE)
+    LaunchedEffect(isHovered) {
+        if (isHovered) onHover()
     }
 
     // Animación de escala suave
@@ -94,6 +109,41 @@ fun GameTile(
                 onClick = onClick
             )
     ) {
+        // Imagen del juego o por defecto
+        val imagePath = game.image
+        if (imagePath != null && File(imagePath).exists()) {
+            AsyncImage(
+                model = File(imagePath),
+                contentDescription = "Carátula de ${game.name}",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+        } else {
+            val defaultImage = when (game.platform) {
+                Platforms.PCSX2 -> Res.drawable.play2Logo
+                Platforms.HEORIC_GAMES_LAUCHER -> Res.drawable.heroicLogo
+                Platforms.MELONDS -> {
+                    if (game.id == "melonds-launcher") Res.drawable.melonDSLogo else Res.drawable.dsLogo
+                }
+                Platforms.DOLPHIN -> {
+                    if (game.id == "dolphin-launcher-id") Res.drawable.dolphinLogo else Res.drawable.wiiLogo
+                }
+                Platforms.PS3 -> Res.drawable.play3_logo_launcher
+                Platforms.AZAHAR -> {
+                    if (game.id == "azahar-launcher") Res.drawable.azhar_logo else Res.drawable._3dsJuegos
+                }
+                else -> null
+            }
+            if (defaultImage != null) {
+                Image(
+                    painter = painterResource(defaultImage),
+                    contentDescription = "Logo por defecto",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+        }
+
         // Fondo con un sutil degradado oscuro
         Box(
             modifier = Modifier

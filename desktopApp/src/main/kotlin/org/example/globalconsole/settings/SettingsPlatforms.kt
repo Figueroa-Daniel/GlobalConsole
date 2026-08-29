@@ -1,8 +1,5 @@
 package org.example.globalconsole.settings
 
-
-
-
 /**
  * Ruta del directorio local donde se encuentran almacenados los archivos ISO de juegos de PS2.
  * Configurable en tiempo de ejecución.
@@ -53,3 +50,20 @@ var ROUTE_DOLPHIN_GAMES: String? = null
  * @since 2026-08-16
  */
 var ROUTE_DOLPHIN_EXECUTABLE: String? = null
+
+/**
+ * Ruta del directorio local donde se encuentran almacenados los juegos de Nintendo 3DS (Azahar).
+ * Configurable en tiempo de ejecución.
+ *
+ * @author Daniel Figueroa Vidal
+ * @since 2026-08-26
+ */
+var ROUTE_AZAHAR_GAMES: String? = null
+
+/**
+ * Ruta de instalación o binario ejecutable de Azahar (si aplica para Windows).
+ *
+ * @author Daniel Figueroa Vidal
+ * @since 2026-08-26
+ */
+var ROUTE_AZAHAR_EXECUTABLE: String? = null

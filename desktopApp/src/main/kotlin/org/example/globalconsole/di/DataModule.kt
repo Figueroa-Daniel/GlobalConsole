@@ -65,4 +65,31 @@ val dataModule = module {
             gameAdapter = get()
         )
     }
+
+    // Adaptador de PS3 Launcher
+    single { org.example.globalconsole.PS3Launcher.data.database.LauncherPS3Adapter() }
+
+    // Repositorio de PS3 Launcher
+    single<org.example.globalconsole.PS3Launcher.data.repository.PS3LauncherRepository> { 
+        org.example.globalconsole.PS3Launcher.data.repositoryImpl.PS3LauncherRepositoryImpl(adapter = get()) 
+    }
+
+    // Adaptadores de Azahar (Nintendo 3DS)
+    single { org.example.globalconsole.azahar.data.database.Game3DSAzaharAdapter() }
+    single { org.example.globalconsole.azahar.data.database.LauncherAzaharAdapter() }
+    single { org.example.globalconsole.azahar.data.database.Game3DSFileSystemAdapter(getEmulatorPathUseCase = get()) }
+
+    // Repositorios de Azahar
+    single<org.example.globalconsole.azahar.data.repository.Game3DSRepository> {
+        org.example.globalconsole.azahar.data.repositoryImpl.Game3DSRepositoryImpl(
+            dataSourceFile = get(),
+            dataSourceAzahar = get()
+        )
+    }
+    single<org.example.globalconsole.azahar.data.repository.AzaharRepository> {
+        org.example.globalconsole.azahar.data.repositoryImpl.AzaharRepositoryImpl(
+            launcherAdapter = get(),
+            gameAdapter = get()
+        )
+    }
 }
