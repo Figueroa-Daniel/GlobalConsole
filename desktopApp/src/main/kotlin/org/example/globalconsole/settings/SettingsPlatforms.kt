@@ -67,3 +67,23 @@ var ROUTE_AZAHAR_GAMES: String? = null
  * @since 2026-08-26
  */
 var ROUTE_AZAHAR_EXECUTABLE: String? = null
+
+/**
+ * Ruta del directorio local donde se encuentran almacenados los juegos de PlayStation 1 (DuckStation).
+ * Se escanea recursivamente buscando extensiones .bin, .cue, .iso, .img, .chd.
+ * Configurable en tiempo de ejecución.
+ *
+ * @author Daniel Figueroa Vidal
+ * @since 2026-08-29
+ */
+var ROUTE_DUCKSTATION_GAMES: String? = null
+
+/**
+ * Ruta del AppImage, binario ejecutable o instalación personalizada de DuckStation.
+ * En Linux: si está definida se usa como AppImage; en caso contrario se usa Flatpak como fallback.
+ * En Windows: ruta al ejecutable DuckStation.exe.
+ *
+ * @author Daniel Figueroa Vidal
+ * @since 2026-08-29
+ */
+var ROUTE_DUCKSTATION_EXECUTABLE: String? = null
