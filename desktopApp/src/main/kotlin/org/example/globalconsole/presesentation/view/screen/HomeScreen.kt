@@ -230,6 +230,7 @@ fun HomeScreen(
                                                 }
                                                 GamepadEvent.Direction.UP -> {}
                                             }
+                                        } else {
                                             var candidateIndex = focusedGameIndex
                                             val currentLayout = gridLayout.getOrNull(focusedGameIndex)
                                             
