@@ -151,10 +151,46 @@ fun HomeScreen(
                             List(state.items.size) { FocusRequester() }
                         }
 
-                        // Ajustar índice si la lista se reduce (ej: búsqueda filtra juegos)
-                        LaunchedEffect(state.items.size) {
-                            if (focusedGameIndex >= state.items.size && state.items.isNotEmpty()) {
-                                focusedGameIndex = state.items.size - 1
+                        // Rastrea el ID del juego actualmente enfocado para restaurarlo si la vista cambia
+                        var previousFocusedGameId by remember { mutableStateOf<String?>(null) }
+                        
+                        LaunchedEffect(focusedGameIndex, state.items) {
+                            val currentItem = state.items.getOrNull(focusedGameIndex)
+                            if (currentItem is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.GameItem) {
+                                previousFocusedGameId = currentItem.game.id
+                            }
+                        }
+
+                        // Restaurar foco inteligentemente cuando la lista cambie (ej: cambio de vista o búsqueda)
+                        LaunchedEffect(state.items) {
+                            if (state.items.isNotEmpty()) {
+                                // Buscar dónde está ahora el juego que teníamos seleccionado
+                                val restoreIndex = state.items.indexOfFirst { 
+                                    it is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.GameItem && it.game.id == previousFocusedGameId 
+                                }
+                                
+                                val newIndex = if (restoreIndex != -1) {
+                                    restoreIndex
+                                } else {
+                                    // Si no existe (filtro), buscar la posición más cercana segura saltando Headers
+                                    val safeIndex = focusedGameIndex.coerceIn(0, state.items.size - 1)
+                                    var candidate = safeIndex
+                                    while (candidate < state.items.size && state.items[candidate] is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.Header) {
+                                        candidate++
+                                    }
+                                    if (candidate >= state.items.size) {
+                                        candidate = safeIndex
+                                        while (candidate >= 0 && state.items[candidate] is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.Header) {
+                                            candidate--
+                                        }
+                                    }
+                                    candidate.coerceAtLeast(0)
+                                }
+                                
+                                if (newIndex != focusedGameIndex && newIndex in state.items.indices && state.items[newIndex] !is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.Header) {
+                                    focusedGameIndex = newIndex
+                                    focusRequesters[newIndex].requestFocus()
+                                }
                             }
                         }
 
@@ -333,32 +369,6 @@ fun HomeScreen(
                                                     val targetGame = targetItem.game
                                                     if (!targetGame.image.isNullOrBlank()) {
                                                         cropTargetGame = targetGame
-                                                    }
-                                                }
-                                            }
-                                            GamepadEvent.Button.PAGE_DOWN -> {
-                                                if (focusedTopBar == TopBarFocus.NONE && state.items.isNotEmpty()) {
-                                                    var candidate = (focusedGameIndex + gridColumns * 3).coerceAtMost(state.items.size - 1)
-                                                    while (candidate in state.items.indices && state.items[candidate] is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.Header) {
-                                                        candidate = (candidate + 1).coerceAtMost(state.items.size - 1)
-                                                        if (candidate == state.items.size - 1) break
-                                                    }
-                                                    if (candidate in state.items.indices && state.items[candidate] !is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.Header) {
-                                                        focusedGameIndex = candidate
-                                                        focusRequesters[candidate].requestFocus()
-                                                    }
-                                                }
-                                            }
-                                            GamepadEvent.Button.PAGE_UP -> {
-                                                if (focusedTopBar == TopBarFocus.NONE && state.items.isNotEmpty()) {
-                                                    var candidate = (focusedGameIndex - gridColumns * 3).coerceAtLeast(0)
-                                                    while (candidate in state.items.indices && state.items[candidate] is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.Header) {
-                                                        candidate = (candidate - 1).coerceAtLeast(0)
-                                                        if (candidate == 0) break
-                                                    }
-                                                    if (candidate in state.items.indices && state.items[candidate] !is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.Header) {
-                                                        focusedGameIndex = candidate
-                                                        focusRequesters[candidate].requestFocus()
                                                     }
                                                 }
                                             }
