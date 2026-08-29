@@ -92,4 +92,23 @@ val dataModule = module {
             gameAdapter = get()
         )
     }
+
+    // Adaptadores de DuckStation (PS1)
+    single { org.example.globalconsole.duckstation.data.database.GameDuckStationAdapter() }
+    single { org.example.globalconsole.duckstation.data.database.LauncherDuckStationAdapter() }
+    single { org.example.globalconsole.duckstation.data.database.GameDuckStationFileSystemAdapter(getEmulatorPathUseCase = get()) }
+
+    // Repositorios de DuckStation
+    single<org.example.globalconsole.duckstation.data.repository.GameDuckStationRepository> {
+        org.example.globalconsole.duckstation.data.repositoryImpl.GameDuckStationRepositoryImpl(
+            dataSourceFile = get(),
+            dataSourceDuckStation = get()
+        )
+    }
+    single<org.example.globalconsole.duckstation.data.repository.DuckStationRepository> {
+        org.example.globalconsole.duckstation.data.repositoryImpl.DuckStationRepositoryImpl(
+            launcherAdapter = get(),
+            gameAdapter = get()
+        )
+    }
 }
