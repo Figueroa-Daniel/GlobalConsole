@@ -252,6 +252,8 @@ class GamepadManager {
         checkButtonPress(buttons, GLFW_GAMEPAD_BUTTON_X, GamepadEvent.Button.DELETE)
         checkButtonPress(buttons, GLFW_GAMEPAD_BUTTON_GUIDE, GamepadEvent.Button.HOME)
         checkButtonPress(buttons, GLFW_GAMEPAD_BUTTON_Y, GamepadEvent.Button.OPTIONS)
+        checkButtonPress(buttons, GLFW_GAMEPAD_BUTTON_LEFT_BUMPER, GamepadEvent.Button.PAGE_UP)
+        checkButtonPress(buttons, GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER, GamepadEvent.Button.PAGE_DOWN)
 
         // 2. Actualizar valores del stick izquierdo y triggers para el recortador de imagen
         _leftStickX.value = axes.get(GLFW_GAMEPAD_AXIS_LEFT_X)

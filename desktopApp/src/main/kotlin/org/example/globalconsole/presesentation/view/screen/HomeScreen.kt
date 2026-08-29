@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -157,6 +158,15 @@ fun HomeScreen(
                             }
                         }
 
+                        val gridState = rememberLazyGridState()
+
+                        // Auto-scroll para mantener el juego enfocado a la vista
+                        LaunchedEffect(focusedGameIndex) {
+                            if (state.items.isNotEmpty() && focusedGameIndex in state.items.indices) {
+                                gridState.animateScrollToItem(focusedGameIndex)
+                            }
+                        }
+
                         // Navegación por gamepad confinada al grid por índice.
                         // IMPORTANTE: Se incluyen los estados de diálogos (cropTargetGame, showOSK, showPathDialog)
                         // como keys para que este LaunchedEffect se reinicie y se detenga cuando algún diálogo modal
@@ -293,6 +303,32 @@ fun HomeScreen(
                                                     }
                                                 }
                                             }
+                                            GamepadEvent.Button.PAGE_DOWN -> {
+                                                if (focusedTopBar == TopBarFocus.NONE && state.items.isNotEmpty()) {
+                                                    var candidate = (focusedGameIndex + gridColumns * 3).coerceAtMost(state.items.size - 1)
+                                                    while (candidate in state.items.indices && state.items[candidate] is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.Header) {
+                                                        candidate = (candidate + 1).coerceAtMost(state.items.size - 1)
+                                                        if (candidate == state.items.size - 1) break
+                                                    }
+                                                    if (candidate in state.items.indices && state.items[candidate] !is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.Header) {
+                                                        focusedGameIndex = candidate
+                                                        focusRequesters[candidate].requestFocus()
+                                                    }
+                                                }
+                                            }
+                                            GamepadEvent.Button.PAGE_UP -> {
+                                                if (focusedTopBar == TopBarFocus.NONE && state.items.isNotEmpty()) {
+                                                    var candidate = (focusedGameIndex - gridColumns * 3).coerceAtLeast(0)
+                                                    while (candidate in state.items.indices && state.items[candidate] is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.Header) {
+                                                        candidate = (candidate - 1).coerceAtLeast(0)
+                                                        if (candidate == 0) break
+                                                    }
+                                                    if (candidate in state.items.indices && state.items[candidate] !is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.Header) {
+                                                        focusedGameIndex = candidate
+                                                        focusRequesters[candidate].requestFocus()
+                                                    }
+                                                }
+                                            }
                                             else -> {}
                                         }
                                     }
@@ -315,6 +351,7 @@ fun HomeScreen(
                         ) {
                             LazyVerticalGrid(
                                 columns = GridCells.Adaptive(minSize = 180.dp),
+                                state = gridState,
                                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                                 verticalArrangement = Arrangement.spacedBy(16.dp),
                                 modifier = Modifier.fillMaxSize()
