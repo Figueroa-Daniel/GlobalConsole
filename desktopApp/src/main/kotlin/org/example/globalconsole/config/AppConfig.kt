@@ -15,12 +15,14 @@ import kotlinx.serialization.Serializable
  * - `heroicEnabled` → `HGLauncherRepositoryImpl` (módulo `HeroicGames`)
  * - `melonDSEnabled` → `MelonDSRepositoryImpl` (módulo `melonDS`)
  * - `azaharEnabled` → `AzaharRepositoryImpl` (módulo `azahar`)
+ * - `duckStationEnabled` → `DuckStationRepositoryImpl` (módulo `duckstation`)
  *
  * @param emulatorPaths Mapa de identificadores de emulador (ej. "pcsx2") a rutas absolutas.
  * @param heroicEnabled True si Heroic Games Launcher debe aparecer en la biblioteca principal.
  * @param melonDSEnabled True si Melon DS Launcher debe aparecer en la biblioteca principal.
  * @param ps3Enabled True si PS3 Launcher (RPCS3) debe aparecer en la biblioteca principal.
  * @param azaharEnabled True si Azahar Launcher (3DS) debe aparecer en la biblioteca principal.
+ * @param duckStationEnabled True si DuckStation debe aparecer en la biblioteca principal.
  * @param mouseSensitivity Velocidad de movimiento del ratón con el gamepad (por defecto 14f).
  *
  * @author Daniel Figueroa Vidal
@@ -28,11 +30,12 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class AppConfig(
-        val emulatorPaths: Map<String, String> = emptyMap(),
-        val heroicEnabled: Boolean = false,
-        val melonDSEnabled: Boolean = false,
-        val dolphinEnabled: Boolean = false,
-        val ps3Enabled: Boolean = false,
-        val azaharEnabled: Boolean = false,
-        val mouseSensitivity: Float = 14f
+    val emulatorPaths: Map<String, String> = emptyMap(),
+    val heroicEnabled: Boolean = false,
+    val melonDSEnabled: Boolean = false,
+    val dolphinEnabled: Boolean = false,
+    val ps3Enabled: Boolean = false,
+    val azaharEnabled: Boolean = false,
+    val duckStationEnabled: Boolean = false,
+    val mouseSensitivity: Float = 14f
 )

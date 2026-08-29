@@ -73,7 +73,15 @@ class HomeViewModel(
     private val showAzaharLauncherUseCase: org.example.globalconsole.azahar.domain.usecase.ShowAzaharLauncherUseCase? = null,
     private val getGames3DSUseCase: org.example.globalconsole.azahar.domain.usecase.GetGames3DSUseCase? = null,
     private val closeGame3DSUseCase: org.example.globalconsole.azahar.domain.usecase.CloseGame3DSUseCase? = null,
-    private val closeLauncherAzaharUseCase: org.example.globalconsole.azahar.domain.usecase.CloseLauncherAzaharUseCase? = null
+    private val closeLauncherAzaharUseCase: org.example.globalconsole.azahar.domain.usecase.CloseLauncherAzaharUseCase? = null,
+    private val getGamesDuckStationUseCase: org.example.globalconsole.duckstation.domain.usecase.GetGamesDuckStationUseCase? = null,
+    private val executeGameDuckStationUseCase: org.example.globalconsole.duckstation.domain.usecase.ExecuteGameDuckStationUseCase? = null,
+    private val closeGameDuckStationUseCase: org.example.globalconsole.duckstation.domain.usecase.CloseGameDuckStationUseCase? = null,
+    private val executeLauncherDuckStationUseCase: org.example.globalconsole.duckstation.domain.usecase.ExecuteLauncherDuckStationUseCase? = null,
+    private val closeLauncherDuckStationUseCase: org.example.globalconsole.duckstation.domain.usecase.CloseLauncherDuckStationUseCase? = null,
+    private val findDuckStationLauncherUseCase: org.example.globalconsole.duckstation.domain.usecase.FindDuckStationLauncherUseCase? = null,
+    private val showDuckStationLauncherUseCase: org.example.globalconsole.duckstation.domain.usecase.ShowDuckStationLauncherUseCase? = null,
+    private val deleteGameDuckStationUseCase: org.example.globalconsole.duckstation.domain.usecase.DeleteGameDuckStationUseCase? = null
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
@@ -128,12 +136,12 @@ class HomeViewModel(
                     emptyList()
                 }
 
-                val dsGames = getGamesDSUseCase?.invoke()?.map { gameDs -> 
+                val dsGames = getGamesDSUseCase?.invoke()?.map { gameDs ->
                     Game(
                         id = gameDs.id,
                         name = gameDs.name,
                         urlGameExecute = gameDs.urlGameExecute,
-                        image = gameDs.image,
+                        image = null,
                         platform = Platforms.MELONDS
                     )
                 } ?: emptyList()
@@ -145,7 +153,7 @@ class HomeViewModel(
                     emptyList()
                 }
 
-                val dolphinGames = getGamesDolphinUseCase?.invoke()?.map { gameDolphin -> 
+                val dolphinGames = getGamesDolphinUseCase?.invoke()?.map { gameDolphin ->
                     Game(
                         id = gameDolphin.id,
                         name = gameDolphin.name,
@@ -179,7 +187,24 @@ class HomeViewModel(
                     )
                 } ?: emptyList()
 
-                val allGames: List<Game> = (pcsx2Games + heroicEntry + melonDSEntry + dsGames + dolphinEntry + dolphinGames + ps3Entry + azaharEntry + azaharGames).sortedBy { it.name }
+                val duckStationEntry: List<Game> = if (findDuckStationLauncherUseCase?.invoke() == true) {
+                    val launcher = showDuckStationLauncherUseCase?.invoke()
+                    if (launcher != null) listOf(launcher) else emptyList()
+                } else {
+                    emptyList()
+                }
+
+                val duckStationGames = getGamesDuckStationUseCase?.invoke()?.map { gameDuckStation ->
+                    Game(
+                        id = gameDuckStation.id,
+                        name = gameDuckStation.name,
+                        urlGameExecute = gameDuckStation.urlGameExecute,
+                        image = null,
+                        platform = Platforms.DUCKSTATION
+                    )
+                } ?: emptyList()
+
+                val allGames: List<Game> = (pcsx2Games + heroicEntry + melonDSEntry + dsGames + dolphinEntry + dolphinGames + ps3Entry + azaharEntry + azaharGames + duckStationEntry + duckStationGames).sortedBy { it.name }
 
                 _uiState.value = if (allGames.isEmpty()) {
                     HomeUiState.Empty
@@ -221,10 +246,6 @@ class HomeViewModel(
      * Lanza la ejecución del juego seleccionado delegando al UseCase correspondiente
      * según la plataforma del juego ([Game.platform]).
      *
-     * Nota: Actualmente solo PCSX2 está implementado. Este método crecerá con cada
-     * nueva plataforma. En un futuro se valorará refactorizar a un UseCase genérico
-     * (ver docs/sugestiones/ejecutar-juego-dispatch.md).
-     *
      * @param game Juego seleccionado por el usuario en la biblioteca.
      * @return Unit
      * @author Daniel Figueroa Vidal
@@ -236,7 +257,7 @@ class HomeViewModel(
         viewModelScope.launch {
             // Entramos en estado de suspensión
             _uiState.value = HomeUiState.GameRunning(game)
-            
+
             val success = when (game.platform) {
                 Platforms.PCSX2 -> executeGameP2UseCase?.invoke(game.id) ?: false
                 Platforms.LOCALGAME -> {
@@ -266,8 +287,15 @@ class HomeViewModel(
                         executeGame3DSUseCase?.invoke(game.urlGameExecute) ?: false
                     }
                 }
+                Platforms.DUCKSTATION -> {
+                    if (game.id == "duckstation-launcher-id") {
+                        executeLauncherDuckStationUseCase?.invoke() ?: false
+                    } else {
+                        executeGameDuckStationUseCase?.invoke(game.id) ?: false
+                    }
+                }
             }
-            
+
             // Al terminar la ejecución, volvemos a cargar la vista
             loadGames()
         }
@@ -308,6 +336,13 @@ class HomeViewModel(
                         closeGame3DSUseCase?.invoke()
                     }
                 }
+                Platforms.DUCKSTATION -> {
+                    if (game.id == "duckstation-launcher-id") {
+                        closeLauncherDuckStationUseCase?.invoke()
+                    } else {
+                        closeGameDuckStationUseCase?.invoke()
+                    }
+                }
             }
         }
     }
@@ -315,9 +350,6 @@ class HomeViewModel(
     /**
      * Elimina el juego indicado del sistema de almacenamiento.
      * La acción delega al UseCase de la plataforma correspondiente.
-     *
-     * Nota: La acción de eliminación está preparada en el ViewModel pero aún no está
-     * conectada a ningún flujo de UI. Se activará cuando se diseñe el flujo de confirmación.
      *
      * @param game Juego a eliminar del sistema.
      * @return Unit
@@ -346,6 +378,7 @@ class HomeViewModel(
                 Platforms.AZAHAR -> {
                     // TODO: Implementar eliminación de juego de Azahar
                 }
+                Platforms.DUCKSTATION -> deleteGameDuckStationUseCase?.invoke(game.id)
             }
         }
     }
