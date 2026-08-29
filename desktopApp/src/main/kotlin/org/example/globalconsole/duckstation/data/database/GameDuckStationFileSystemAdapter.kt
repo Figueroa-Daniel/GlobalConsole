@@ -25,7 +25,7 @@ class GameDuckStationFileSystemAdapter(
      * @since 2026-08-29
      */
     suspend fun getGamesFromDirectory(): List<GameDuckStation> {
-        val path = getEmulatorPathUseCase("duckstationGames") ?: return emptyList()
+        val path = getEmulatorPathUseCase("duckstation") ?: return emptyList()
         val directory = File(path)
 
         if (!directory.exists() || !directory.isDirectory) {

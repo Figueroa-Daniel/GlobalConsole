@@ -140,11 +140,22 @@ fun GameTile(
             if (defaultImage != null) {
                 // Para Azahar u otras que necesiten fit en vez de crop
                 val needsFit = defaultImage == Res.drawable._3dsJuegos || defaultImage == Res.drawable.playLogoGames
+                val needsWhiteBg = defaultImage == Res.drawable._3dsJuegos
+                
+                var imgModifier = Modifier.fillMaxSize()
+                if (needsWhiteBg) {
+                    imgModifier = imgModifier.background(Color.White)
+                }
+                if (needsFit) {
+                    // Reducimos el padding para que no quede tan desampliado
+                    imgModifier = imgModifier.padding(12.dp)
+                }
+
                 Image(
                     painter = painterResource(defaultImage),
                     contentDescription = "Logo por defecto",
                     contentScale = if (needsFit) ContentScale.Fit else ContentScale.Crop,
-                    modifier = if (needsFit) Modifier.fillMaxSize().padding(24.dp) else Modifier.fillMaxSize()
+                    modifier = imgModifier
                 )
             }
         }
