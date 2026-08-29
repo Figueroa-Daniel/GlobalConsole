@@ -9,8 +9,10 @@ package org.example.globalconsole.generalDomain.entititys
 enum class Platforms {
     /** Emulador PCSX2 para juegos de PlayStation 2. */
     PCSX2,
+
     /** Juego local ejecutable de PC. */
     LOCALGAME,
+
     /** Launcher local Heroic Games Launcher. */
     HEORIC_GAMES_LAUCHER,
 
@@ -24,5 +26,8 @@ enum class Platforms {
     PS3,
 
     /** Emulador Azahar para juegos de Nintendo 3DS. */
-    AZAHAR
+    AZAHAR,
+
+    /** Emulador DuckStation para juegos de PlayStation 1. */
+    DUCKSTATION
 }
