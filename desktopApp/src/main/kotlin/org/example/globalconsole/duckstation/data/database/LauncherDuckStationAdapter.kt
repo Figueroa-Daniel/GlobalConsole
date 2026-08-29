@@ -42,7 +42,12 @@ class LauncherDuckStationAdapter {
         val command = if (!ROUTE_DUCKSTATION_EXECUTABLE.isNullOrBlank()) {
             listOf(ROUTE_DUCKSTATION_EXECUTABLE!!)
         } else {
-            listOf("flatpak", "run", "org.duckstation.DuckStation")
+            val appImage = java.io.File("/home/figue/Descargas/DuckStation-x64.AppImage")
+            if (appImage.exists()) {
+                listOf(appImage.absolutePath)
+            } else {
+                listOf("flatpak", "run", "org.duckstation.DuckStation")
+            }
         }
         return launchProcess(command)
     }

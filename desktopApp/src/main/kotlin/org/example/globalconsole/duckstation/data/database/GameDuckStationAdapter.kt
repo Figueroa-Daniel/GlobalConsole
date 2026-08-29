@@ -85,7 +85,12 @@ class GameDuckStationAdapter {
         val command = if (!ROUTE_DUCKSTATION_EXECUTABLE.isNullOrBlank()) {
             listOf(ROUTE_DUCKSTATION_EXECUTABLE!!, "-fullscreen", executeUrl)
         } else {
-            listOf("flatpak", "run", "org.duckstation.DuckStation", "-fullscreen", executeUrl)
+            val appImage = java.io.File("/home/figue/Descargas/DuckStation-x64.AppImage")
+            if (appImage.exists()) {
+                listOf(appImage.absolutePath, "-fullscreen", executeUrl)
+            } else {
+                listOf("flatpak", "run", "org.duckstation.DuckStation", "-fullscreen", executeUrl)
+            }
         }
         return executeCommand(command)
     }
