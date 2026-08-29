@@ -132,14 +132,19 @@ fun GameTile(
                 Platforms.AZAHAR -> {
                     if (game.id == "azahar-launcher") Res.drawable.azhar_logo else Res.drawable._3dsJuegos
                 }
+                Platforms.DUCKSTATION -> {
+                    if (game.id == "duckstation-launcher-id") Res.drawable.playLogo else Res.drawable.playLogoGames
+                }
                 else -> null
             }
             if (defaultImage != null) {
+                // Para Azahar u otras que necesiten fit en vez de crop
+                val needsFit = game.platform == Platforms.AZAHAR || defaultImage == Res.drawable.playLogoGames
                 Image(
                     painter = painterResource(defaultImage),
                     contentDescription = "Logo por defecto",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
+                    contentScale = if (needsFit) ContentScale.Fit else ContentScale.Crop,
+                    modifier = if (needsFit) Modifier.fillMaxSize().padding(24.dp) else Modifier.fillMaxSize()
                 )
             }
         }

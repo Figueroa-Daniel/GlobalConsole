@@ -58,7 +58,10 @@ class SettingsViewModel(
     private val hidePS3LauncherUseCase: HidePS3LauncherUseCase? = null,
     private val findAzaharLauncherUseCase: org.example.globalconsole.azahar.domain.usecase.FindAzaharLauncherUseCase? = null,
     private val enableAzaharLauncherUseCase: org.example.globalconsole.azahar.domain.usecase.EnableAzaharLauncherUseCase? = null,
-    private val hideAzaharLauncherUseCase: org.example.globalconsole.azahar.domain.usecase.HideAzaharLauncherUseCase? = null
+    private val hideAzaharLauncherUseCase: org.example.globalconsole.azahar.domain.usecase.HideAzaharLauncherUseCase? = null,
+    private val findDuckStationLauncherUseCase: org.example.globalconsole.duckstation.domain.usecase.FindDuckStationLauncherUseCase? = null,
+    private val enableDuckStationLauncherUseCase: org.example.globalconsole.duckstation.domain.usecase.EnableDuckStationLauncherUseCase? = null,
+    private val hideDuckStationLauncherUseCase: org.example.globalconsole.duckstation.domain.usecase.HideDuckStationLauncherUseCase? = null
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<SettingsUiState>(SettingsUiState.Idle)
@@ -116,6 +119,12 @@ class SettingsViewModel(
     private val _azaharGamesPath = MutableStateFlow("")
     val azaharGamesPath: StateFlow<String> = _azaharGamesPath.asStateFlow()
 
+    private val _duckStationEnabled = MutableStateFlow(false)
+    val duckStationEnabled: StateFlow<Boolean> = _duckStationEnabled.asStateFlow()
+
+    private val _duckstationGamesPath = MutableStateFlow("")
+    val duckstationGamesPath: StateFlow<String> = _duckstationGamesPath.asStateFlow()
+
     private val _mouseSensitivity = MutableStateFlow(14f)
 
     /**
@@ -148,6 +157,7 @@ class SettingsViewModel(
                     "melonds" -> _melonDSGamesPath.value = path ?: ""
                     "dolphinGames" -> _dolphinGamesPath.value = path ?: ""
                     "azahar" -> _azaharGamesPath.value = path ?: ""
+                    "duckstation" -> _duckstationGamesPath.value = path ?: ""
                 }
             } catch (e: Exception) {
                 _uiState.value = SettingsUiState.Error(e.message ?: "Error al cargar la ruta")
@@ -163,6 +173,7 @@ class SettingsViewModel(
         loadCurrentPath("melonds")
         loadCurrentPath("dolphinGames")
         loadCurrentPath("azahar")
+        loadCurrentPath("duckstation")
     }
 
     /**
@@ -188,6 +199,7 @@ class SettingsViewModel(
                     "melonds" -> _melonDSGamesPath.value = path
                     "dolphinGames" -> _dolphinGamesPath.value = path
                     "azahar" -> _azaharGamesPath.value = path
+                    "duckstation" -> _duckstationGamesPath.value = path
                 }
             } catch (e: IllegalArgumentException) {
                 _uiState.value = SettingsUiState.Error(e.message ?: "Ruta no válida")
@@ -339,6 +351,23 @@ class SettingsViewModel(
                 hideAzaharLauncherUseCase?.invoke()
             }
             _azaharEnabled.value = enabled
+        }
+    }
+
+    fun loadDuckStationEnabled() {
+        viewModelScope.launch {
+            _duckStationEnabled.value = findDuckStationLauncherUseCase?.invoke() ?: false
+        }
+    }
+
+    fun setDuckStationEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            if (enabled) {
+                enableDuckStationLauncherUseCase?.invoke()
+            } else {
+                hideDuckStationLauncherUseCase?.invoke()
+            }
+            _duckStationEnabled.value = enabled
         }
     }
 }
