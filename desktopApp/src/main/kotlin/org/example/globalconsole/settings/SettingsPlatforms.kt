@@ -1,8 +1,5 @@
 package org.example.globalconsole.settings
 
-
-
-
 /**
  * Ruta del directorio local donde se encuentran almacenados los archivos ISO de juegos de PS2.
  * Configurable en tiempo de ejecución.

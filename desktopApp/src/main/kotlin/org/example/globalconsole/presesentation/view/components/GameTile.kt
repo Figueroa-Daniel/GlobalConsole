@@ -129,6 +129,9 @@ fun GameTile(
                     if (game.id == "dolphin-launcher-id") Res.drawable.dolphinLogo else Res.drawable.wiiLogo
                 }
                 Platforms.PS3 -> Res.drawable.play3_logo_launcher
+                Platforms.AZAHAR -> {
+                    if (game.id == "azahar-launcher") Res.drawable.azhar_logo else Res.drawable._3dsJuegos
+                }
                 else -> null
             }
             if (defaultImage != null) {
