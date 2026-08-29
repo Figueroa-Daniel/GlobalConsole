@@ -115,6 +115,7 @@ fun GamepadOSK(
                     GamepadEvent.Button.MENU -> onConfirm(inputText)
                     GamepadEvent.Button.HOME -> {}
                     GamepadEvent.Button.OPTIONS -> {} // No aplica en el OSK
+                    else -> {} // Ignorar otros botones
                 }
             }
         }
