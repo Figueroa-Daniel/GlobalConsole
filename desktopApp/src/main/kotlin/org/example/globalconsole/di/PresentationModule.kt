@@ -46,7 +46,15 @@ val presentationModule = module {
             showAzaharLauncherUseCase = get(),
             getGames3DSUseCase = get(),
             closeGame3DSUseCase = get(),
-            closeLauncherAzaharUseCase = get()
+            closeLauncherAzaharUseCase = get(),
+            getGamesDuckStationUseCase = get(),
+            executeGameDuckStationUseCase = get(),
+            closeGameDuckStationUseCase = get(),
+            executeLauncherDuckStationUseCase = get(),
+            closeLauncherDuckStationUseCase = get(),
+            findDuckStationLauncherUseCase = get(),
+            showDuckStationLauncherUseCase = get(),
+            deleteGameDuckStationUseCase = get()
         )
     }
     factory {
@@ -69,7 +77,10 @@ val presentationModule = module {
             hidePS3LauncherUseCase = get(),
             findAzaharLauncherUseCase = get(),
             enableAzaharLauncherUseCase = get(),
-            hideAzaharLauncherUseCase = get()
+            hideAzaharLauncherUseCase = get(),
+            findDuckStationLauncherUseCase = get(),
+            enableDuckStationLauncherUseCase = get(),
+            hideDuckStationLauncherUseCase = get()
         )
     }
 }

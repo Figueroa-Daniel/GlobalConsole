@@ -76,7 +76,6 @@ class GameDuckStationAdapter {
         val command = listOf(
             ROUTE_DUCKSTATION_EXECUTABLE ?: "DuckStation.exe",
             "-fullscreen",
-            "--",
             executeUrl
         )
         return executeCommand(command)
@@ -84,9 +83,9 @@ class GameDuckStationAdapter {
 
     private fun executeGameForLinux(executeUrl: String): Boolean {
         val command = if (!ROUTE_DUCKSTATION_EXECUTABLE.isNullOrBlank()) {
-            listOf(ROUTE_DUCKSTATION_EXECUTABLE!!, "-fullscreen", "--", executeUrl)
+            listOf(ROUTE_DUCKSTATION_EXECUTABLE!!, "-fullscreen", executeUrl)
         } else {
-            listOf("flatpak", "run", "org.duckstation.DuckStation", "-fullscreen", "--", executeUrl)
+            listOf("flatpak", "run", "org.duckstation.DuckStation", "-fullscreen", executeUrl)
         }
         return executeCommand(command)
     }
