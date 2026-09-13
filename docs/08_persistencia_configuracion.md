@@ -131,7 +131,7 @@ Se usa `FakeSettingsRepository` (implementación en memoria) para aislar los tes
 - Tecnologías (kotlinx.serialization): [02_tecnologias.md](02_tecnologias.md)
 - Módulos del proyecto: [03_modulos.md](03_modulos.md)
 - Persistencia propia de Heroic Games Launcher: [09_heroic_games_launcher.md](09_heroic_games_launcher.md)
-- Contexto IA: [05_contexto_ia.md](05_contexto_ia.md)
+- Contexto IA: [19_contexto_ia.md](19_contexto_ia.md)
 
 @author Daniel Figueroa Vidal
 @since 2026-08-10

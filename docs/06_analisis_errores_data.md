@@ -58,7 +58,7 @@ override suspend fun deleteGameP2(id: String): Boolean {
 
 ## 🔗 Referencias Cruzadas
 - Arquitectura Clean: [01_arquitectura.md](01_arquitectura.md)
-- Contexto de la IA: [05_contexto_ia.md](05_contexto_ia.md)
+- Contexto de la IA: [19_contexto_ia.md](19_contexto_ia.md)
 
 @author Daniel Figueroa Vidal
 @since 2026-08-03

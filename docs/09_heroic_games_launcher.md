@@ -339,7 +339,7 @@ y delega a `ExecuteHGLauncherUseCase`.
 - Patrón de ejecución de proceso nativo (referencia PCSX2): [04_pcsx2.md](04_pcsx2.md)
 - Guía de inyección de dependencias Koin: [07_inyeccion_dependencias_koin.md](07_inyeccion_dependencias_koin.md)
 - Persistencia de configuración del proyecto: [08_persistencia_configuracion.md](08_persistencia_configuracion.md)
-- Contexto general de la IA: [05_contexto_ia.md](05_contexto_ia.md)
+- Contexto general de la IA: [19_contexto_ia.md](19_contexto_ia.md)
 
 ---
 
