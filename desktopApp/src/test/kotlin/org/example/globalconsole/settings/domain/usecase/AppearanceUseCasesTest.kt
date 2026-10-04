@@ -30,9 +30,13 @@ class AppearanceUseCasesTest {
             assertEquals(AppearanceSettings(), GetAppearanceSettingsUseCase(repo)())
             for (color in AppearanceSettings.COLORS) {
                 for (intensity in listOf(0, 45, 100)) {
+                    val previousView = GetViewSettingsUseCase(repo)()
+                    val previousPath = GetEmulatorPathUseCase(repo)("pcsx2")
                     val expected = AppearanceSettings(color, intensity)
                     SaveAppearanceSettingsUseCase(repo)(expected)
                     val restarted = SettingsRepositoryImpl(file)
+                    assertEquals(previousView, GetViewSettingsUseCase(restarted)())
+                    assertEquals(previousPath, GetEmulatorPathUseCase(restarted)("pcsx2"))
                     assertEquals(expected, GetAppearanceSettingsUseCase(restarted)())
                     SaveViewSettingsUseCase(restarted)("CONSOLE_SERIES", "INLINE")
                     SaveEmulatorPathUseCase(restarted)("pcsx2", "/games/new")
@@ -63,6 +67,8 @@ class AppearanceUseCasesTest {
             }
             file.writeText("""{"accentColor":"UNKNOWN","glowIntensity":200}""")
             assertEquals(AppearanceSettings(glowIntensity = 100), GetAppearanceSettingsUseCase(repo)())
+            file.writeText("""{"accentColor":"BLUE","glowIntensity":-20}""")
+            assertEquals(AppearanceSettings("BLUE", 0), GetAppearanceSettingsUseCase(repo)())
         } finally { file.delete() }
     }
 }

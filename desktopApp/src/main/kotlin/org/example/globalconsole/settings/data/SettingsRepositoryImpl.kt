@@ -21,6 +21,7 @@ import java.io.File
  * 2. Aplica el cambio únicamente en el campo `emulatorPaths`.
  * 3. Reescribe el objeto completo con todos los demás campos intactos.
  *
+ * @param configFile Archivo compartido o archivo aislado para pruebas.
  * @author Daniel Figueroa Vidal
  * @since 2026-08-10
  * @updated 2026-08-13

@@ -54,3 +54,10 @@ compose.desktop {
         }
     }
 }
+
+// Las pruebas heredadas escriben config.json relativo al directorio de trabajo.
+tasks.withType<Test>().configureEach {
+    val isolatedWorkingDirectory = layout.buildDirectory.dir("test-work/$name")
+    workingDir = isolatedWorkingDirectory.get().asFile
+    doFirst { isolatedWorkingDirectory.get().asFile.mkdirs() }
+}
