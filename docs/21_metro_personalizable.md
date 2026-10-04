@@ -73,7 +73,29 @@ heredada conserva su cobertura con archivo temporal absoluto inyectado.
 Pendiente fuera de este entorno: prueba física de sticks, gatillos y latencia en
 el mando y televisor del usuario; no se ha lanzado ningún juego real.
 
-## 6. Referencias
+## 6. Ampliación de paleta y proporciones
+
+La segunda revisión añade rojo, carmesí, azul marino, cobalto, turquesa y naranja
+sin renombrar los seis identificadores existentes. Los colores oscuros tienen
+un tono original para rellenos/halos y un tono claro derivado para texto/bordes.
+El texto sobre la selección cambia entre claro y oscuro según la luminancia;
+esto permite usar azul marino real sin perder la legibilidad del foco.
+
+La composición sigue una escala de espaciado de 4 px: márgenes exteriores de
+24 dp en ventanas compactas y 32 dp en anchas, separación entre tarjetas de
+20 dp y tarjeta mínima de 200 dp. La fórmula de columnas del mando utiliza las
+mismas constantes que la cuadrícula. Los títulos de juegos suben a 16 sp, con
+espacio interior de 20 dp, mientras las etiquetas de plataforma son secundarias.
+La barra alinea buscador y acciones a una altura común de 48 dp. Los diálogos
+mantienen márgenes exteriores e interiores consistentes; Vista tiene altura
+máxima para evitar espacios vacíos excesivos en pantallas grandes y una muestra
+visual del color seleccionado. No se cambian los recorridos del mando.
+
+Validación: prueba previa de los casos de uso para los nuevos identificadores,
+persistencia de toda la paleta y revisión gráfica de rojo y azul marino en
+1280×800 y 800×600, incluyendo teclado, ajustes y navegación agrupada.
+
+## 7. Referencias
 
 - [Arquitectura](01_arquitectura.md)
 - [Persistencia](08_persistencia_configuracion.md)
