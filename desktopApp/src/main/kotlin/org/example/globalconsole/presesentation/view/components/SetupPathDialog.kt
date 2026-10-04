@@ -253,9 +253,9 @@ fun SetupPathDialog(
                         // Control Gamepad
                         val sensitivityBorderColor = if (inputMode == org.example.globalconsole.presesentation.input.InputMode.GAMEPAD && focusedButton == DialogButton.SENSITIVITY_SLIDER) LocalMetroPalette.current.accent else LocalMetroPalette.current.border
                         Column(
-                            modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.SENSITIVITY_SLIDER]!!).border(1.dp, sensitivityBorderColor, RectangleShape).padding(12.dp)
+                            modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.SENSITIVITY_SLIDER]!!).border(1.dp, sensitivityBorderColor, RectangleShape).padding(16.dp)
                         ) {
-                            Text("CONTROL DEL GAMEPAD", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text("CONTROL DEL GAMEPAD", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                             Text("Sensibilidad del ratón al usar el stick derecho.", color = LocalMetroPalette.current.muted, fontSize = 14.sp)
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                                 Text(String.format("%.0f", mouseSensitivity), color = LocalMetroPalette.current.accent, fontSize = 14.sp, modifier = Modifier.width(30.dp))
@@ -271,9 +271,9 @@ fun SetupPathDialog(
                         // Heroic Games
                         val heroicSectionBorderColor = if (inputMode == org.example.globalconsole.presesentation.input.InputMode.GAMEPAD && focusedButton == DialogButton.HEROIC_TOGGLE) LocalMetroPalette.current.accent else LocalMetroPalette.current.border
                         Column(
-                            modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.HEROIC_TOGGLE]!!).border(1.dp, heroicSectionBorderColor, RectangleShape).padding(12.dp)
+                            modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.HEROIC_TOGGLE]!!).border(1.dp, heroicSectionBorderColor, RectangleShape).padding(16.dp)
                         ) {
-                            Text("HEROIC GAMES LAUNCHER", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text("HEROIC GAMES LAUNCHER", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                             Text("Mostrar Heroic en la biblioteca.", color = LocalMetroPalette.current.muted, fontSize = 14.sp)
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text(if (heroicEnabled) "HABILITADO" else "DESHABILITADO", color = if (heroicEnabled) LocalMetroPalette.current.accent else LocalMetroPalette.current.muted, fontSize = 14.sp, fontWeight = FontWeight.Bold)
@@ -288,9 +288,9 @@ fun SetupPathDialog(
                         // Melon DS
                         val melonToggleBorderColor = if (inputMode == org.example.globalconsole.presesentation.input.InputMode.GAMEPAD && focusedButton == DialogButton.MELONDS_TOGGLE) LocalMetroPalette.current.accent else LocalMetroPalette.current.border
                         Column(
-                            modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.MELONDS_TOGGLE]!!).border(1.dp, melonToggleBorderColor, RectangleShape).padding(12.dp)
+                            modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.MELONDS_TOGGLE]!!).border(1.dp, melonToggleBorderColor, RectangleShape).padding(16.dp)
                         ) {
-                            Text("MELON DS LAUNCHER", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text("MELON DS LAUNCHER", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                             Text("Mostrar Melon DS en la biblioteca.", color = LocalMetroPalette.current.muted, fontSize = 14.sp)
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text(if (melonDSEnabled) "HABILITADO" else "DESHABILITADO", color = if (melonDSEnabled) LocalMetroPalette.current.accent else LocalMetroPalette.current.muted, fontSize = 14.sp, fontWeight = FontWeight.Bold)
@@ -305,9 +305,9 @@ fun SetupPathDialog(
                         // Dolphin
                         val dolphinToggleBorderColor = if (inputMode == org.example.globalconsole.presesentation.input.InputMode.GAMEPAD && focusedButton == DialogButton.DOLPHIN_TOGGLE) LocalMetroPalette.current.accent else LocalMetroPalette.current.border
                         Column(
-                            modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.DOLPHIN_TOGGLE]!!).border(1.dp, dolphinToggleBorderColor, RectangleShape).padding(12.dp)
+                            modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.DOLPHIN_TOGGLE]!!).border(1.dp, dolphinToggleBorderColor, RectangleShape).padding(16.dp)
                         ) {
-                            Text("DOLPHIN LAUNCHER", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text("DOLPHIN LAUNCHER", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                             Text("Mostrar Dolphin en la biblioteca.", color = LocalMetroPalette.current.muted, fontSize = 14.sp)
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text(if (dolphinEnabled) "HABILITADO" else "DESHABILITADO", color = if (dolphinEnabled) LocalMetroPalette.current.accent else LocalMetroPalette.current.muted, fontSize = 14.sp, fontWeight = FontWeight.Bold)
@@ -322,9 +322,9 @@ fun SetupPathDialog(
                         // PS3
                         val ps3ToggleBorderColor = if (inputMode == org.example.globalconsole.presesentation.input.InputMode.GAMEPAD && focusedButton == DialogButton.PS3_TOGGLE) LocalMetroPalette.current.accent else LocalMetroPalette.current.border
                         Column(
-                            modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.PS3_TOGGLE]!!).border(1.dp, ps3ToggleBorderColor, RectangleShape).padding(12.dp)
+                            modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.PS3_TOGGLE]!!).border(1.dp, ps3ToggleBorderColor, RectangleShape).padding(16.dp)
                         ) {
-                            Text("PS3 LAUNCHER (RPCS3)", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text("PS3 LAUNCHER (RPCS3)", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                             Text("Mostrar PS3 en la biblioteca.", color = LocalMetroPalette.current.muted, fontSize = 14.sp)
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text(if (ps3Enabled) "HABILITADO" else "DESHABILITADO", color = if (ps3Enabled) LocalMetroPalette.current.accent else LocalMetroPalette.current.muted, fontSize = 14.sp, fontWeight = FontWeight.Bold)
@@ -339,9 +339,9 @@ fun SetupPathDialog(
                         // Azahar
                         val azaharToggleBorderColor = if (inputMode == org.example.globalconsole.presesentation.input.InputMode.GAMEPAD && focusedButton == DialogButton.AZAHAR_TOGGLE) LocalMetroPalette.current.accent else LocalMetroPalette.current.border
                         Column(
-                            modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.AZAHAR_TOGGLE]!!).border(1.dp, azaharToggleBorderColor, RectangleShape).padding(12.dp)
+                            modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.AZAHAR_TOGGLE]!!).border(1.dp, azaharToggleBorderColor, RectangleShape).padding(16.dp)
                         ) {
-                            Text("AZAHAR LAUNCHER (3DS)", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text("AZAHAR LAUNCHER (3DS)", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                             Text("Mostrar Azahar en la biblioteca.", color = LocalMetroPalette.current.muted, fontSize = 14.sp)
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text(if (azaharEnabled) "HABILITADO" else "DESHABILITADO", color = if (azaharEnabled) LocalMetroPalette.current.accent else LocalMetroPalette.current.muted, fontSize = 14.sp, fontWeight = FontWeight.Bold)
@@ -356,9 +356,9 @@ fun SetupPathDialog(
                         // DuckStation
                         val duckStationToggleBorderColor = if (inputMode == org.example.globalconsole.presesentation.input.InputMode.GAMEPAD && focusedButton == DialogButton.DUCKSTATION_TOGGLE) LocalMetroPalette.current.accent else LocalMetroPalette.current.border
                         Column(
-                            modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.DUCKSTATION_TOGGLE]!!).border(1.dp, duckStationToggleBorderColor, RectangleShape).padding(12.dp)
+                            modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.DUCKSTATION_TOGGLE]!!).border(1.dp, duckStationToggleBorderColor, RectangleShape).padding(16.dp)
                         ) {
-                            Text("DUCKSTATION LAUNCHER (PS1)", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text("DUCKSTATION LAUNCHER (PS1)", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                             Text("Mostrar DuckStation en la biblioteca.", color = LocalMetroPalette.current.muted, fontSize = 14.sp)
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text(if (duckStationEnabled) "HABILITADO" else "DESHABILITADO", color = if (duckStationEnabled) LocalMetroPalette.current.accent else LocalMetroPalette.current.muted, fontSize = 14.sp, fontWeight = FontWeight.Bold)
@@ -376,7 +376,7 @@ fun SetupPathDialog(
 
                         // PCSX2 Path
                         Column(modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.PCSX2_BROWSE]!!)) {
-                            Text("RUTA DE JUEGOS (PCSX2)", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text("RUTA DE JUEGOS (PCSX2)", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.height(8.dp))
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                                 TextField(
@@ -392,7 +392,7 @@ fun SetupPathDialog(
 
                         // Melon DS Path
                         Column(modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.MELONDS_GAMES_BROWSE]!!)) {
-                            Text("RUTA DE JUEGOS (MELON DS)", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text("RUTA DE JUEGOS (MELON DS)", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.height(8.dp))
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                                 TextField(
@@ -408,7 +408,7 @@ fun SetupPathDialog(
 
                         // Dolphin Path
                         Column(modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.DOLPHIN_GAMES_BROWSE]!!)) {
-                            Text("RUTA DE JUEGOS (DOLPHIN)", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text("RUTA DE JUEGOS (DOLPHIN)", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.height(8.dp))
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                                 TextField(
@@ -424,7 +424,7 @@ fun SetupPathDialog(
 
                         // Azahar Path
                         Column(modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.AZAHAR_GAMES_BROWSE]!!)) {
-                            Text("RUTA DE JUEGOS (AZAHAR 3DS)", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text("RUTA DE JUEGOS (AZAHAR 3DS)", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.height(8.dp))
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                                 TextField(
@@ -440,7 +440,7 @@ fun SetupPathDialog(
 
                         // DuckStation Path
                         Column(modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.DUCKSTATION_GAMES_BROWSE]!!)) {
-                            Text("RUTA DE JUEGOS (DUCKSTATION PS1)", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text("RUTA DE JUEGOS (DUCKSTATION PS1)", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.height(8.dp))
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                                 TextField(

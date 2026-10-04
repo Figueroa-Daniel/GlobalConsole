@@ -1,5 +1,6 @@
 package org.example.globalconsole.presesentation.view.screen
 
+import org.example.globalconsole.presesentation.view.components.MetroLayout
 import org.example.globalconsole.presesentation.view.components.platformLabel
 import org.example.globalconsole.presesentation.view.components.LocalMetroPalette
 import androidx.compose.foundation.background
@@ -139,13 +140,15 @@ fun HomeScreen(
         }
     }
 
-    Box(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .background(LocalMetroPalette.current.background)
     ) {
+        val contentMargin = if (maxWidth >= 1100.dp) MetroLayout.wideMargin else MetroLayout.compactMargin
         Column(modifier = Modifier.fillMaxSize()) {
             MetroTopBar(
+                contentMargin = contentMargin,
                 searchQuery = searchQuery,
                 onSearchChanged = { viewModel.onSearchQueryChanged(it) },
                 focusedButton = focusedTopBar,
@@ -160,7 +163,7 @@ fun HomeScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .weight(1f)
-                    .padding(24.dp)
+                    .padding(contentMargin)
             ) {
                 when (val state = uiState) {
                     is HomeUiState.Loading -> {
@@ -254,8 +257,18 @@ fun HomeScreen(
                         }
 
                         // Auto-scroll para mantener el juego enfocado a la vista
-                        LaunchedEffect(focusedGameIndex) {
-                            if (state.items.isNotEmpty() && focusedGameIndex in state.items.indices) {
+                        LaunchedEffect(focusedGameIndex, state.items, gridColumns) {
+                            if (focusedGameIndex !in state.items.indices) return@LaunchedEffect
+                            withFrameNanos { }
+                            val layout = gridState.layoutInfo
+                            val visible = layout.visibleItemsInfo.firstOrNull { it.index == focusedGameIndex }
+                            val firstGame = state.items.indexOfFirst {
+                                it is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.GameItem
+                            }
+                            if (focusedGameIndex == firstGame) {
+                                gridState.animateScrollToItem(0)
+                            } else if (visible == null || visible.offset.y < layout.viewportStartOffset ||
+                                visible.offset.y + visible.size.height > layout.viewportEndOffset) {
                                 gridState.animateScrollToItem(focusedGameIndex)
                             }
                         }
@@ -422,8 +435,8 @@ fun HomeScreen(
                                 .onSizeChanged { size ->
                                     with(density) {
                                         // Misma fórmula que GridCells.Adaptive: (ancho + espaciado) / (mínimo + espaciado)
-                                        val spacingPx = 16.dp.toPx()
-                                        val newCols = ((size.width + spacingPx) / (180.dp.toPx() + spacingPx))
+                                        val spacingPx = MetroLayout.tileGap.toPx()
+                                        val newCols = ((size.width + spacingPx) / (MetroLayout.tileMinimum.toPx() + spacingPx))
                                             .toInt()
                                             .coerceAtLeast(1)
                                         if (newCols != gridColumns) gridColumns = newCols
@@ -437,10 +450,10 @@ fun HomeScreen(
                                 }
                             }
                             LazyVerticalGrid(
-                                columns = GridCells.Adaptive(minSize = 180.dp),
+                                columns = GridCells.Adaptive(minSize = MetroLayout.tileMinimum),
                                 state = gridState,
-                                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                                verticalArrangement = Arrangement.spacedBy(16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(MetroLayout.tileGap),
+                                verticalArrangement = Arrangement.spacedBy(MetroLayout.tileGap),
                                 modifier = Modifier.fillMaxSize()
                             ) {
                                 state.items.forEachIndexed { index, item ->
@@ -450,11 +463,11 @@ fun HomeScreen(
                                                 Text(
                                                     text = platformLabel(item.title).uppercase(),
                                                     color = LocalMetroPalette.current.accent,
-                                                    fontSize = 20.sp,
-                                                    fontWeight = FontWeight.Black,
+                                                    fontSize = 16.sp,
+                                                    fontWeight = FontWeight.SemiBold,
                                                     fontFamily = FontFamily.SansSerif,
-                                                    letterSpacing = 2.sp,
-                                                    modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+                                                    letterSpacing = 1.5.sp,
+                                                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
                                                 )
                                             }
                                         }

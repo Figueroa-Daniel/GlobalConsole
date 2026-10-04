@@ -85,7 +85,7 @@ fun GameTile(
 
     // Animación de escala suave
     val scaleFactor by animateFloatAsState(
-        targetValue = if (isActive) 1.03f else 1.0f,
+        targetValue = if (isActive) 1.015f else 1.0f,
         animationSpec = tween(durationMillis = 200)
     )
 
@@ -170,6 +170,7 @@ fun GameTile(
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
+                .padding(12.dp)
                 .background(palette.raised, RectangleShape)
                 .padding(horizontal = 12.dp, vertical = 6.dp)
         ) {
@@ -178,8 +179,8 @@ fun GameTile(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 color = palette.accent,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Black,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
                 fontFamily = FontFamily.Monospace
             )
         }
@@ -189,13 +190,13 @@ fun GameTile(
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(MetroLayout.tileInset)
         ) {
             Text(
                 text = game.name.uppercase(),
                 color = Color.White,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
                 fontFamily = FontFamily.SansSerif,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
@@ -205,11 +206,11 @@ fun GameTile(
 
             // Subtexto / Acción interactiva
             Text(
-                text = if (isActive) "A · ABRIR" else platformLabel(game.platform.name),
+                text = if (isActive) "A · ABRIR" else "LISTO PARA JUGAR",
                 color = if (isActive) palette.accent else LocalMetroPalette.current.muted,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = FontFamily.Monospace
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                fontFamily = FontFamily.SansSerif
             )
         }
     }
