@@ -12,6 +12,7 @@ data class AppearanceSettings(
 ) {
     companion object {
         val COLORS = listOf("CYAN", "BLUE", "VIOLET", "PINK", "AMBER", "GREEN",
-            "RED", "CRIMSON", "NAVY", "COBALT", "TEAL", "ORANGE")
+            "RED", "CRIMSON", "NAVY", "COBALT", "TEAL", "ORANGE",
+            "ELECTRIC_PURPLE", "NEON_PURPLE", "ULTRAVIOLET")
     }
 }

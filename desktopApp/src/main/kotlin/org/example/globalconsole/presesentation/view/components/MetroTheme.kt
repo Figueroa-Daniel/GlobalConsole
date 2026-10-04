@@ -1,6 +1,8 @@
 package org.example.globalconsole.presesentation.view.components
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.background
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.*
@@ -28,10 +30,10 @@ data class MetroPalette(
     val selection: Color = accent
 ) {
     val onSelection = if (selection.luminance() > .179f) Color.Black else Color.White
-    val background = Color(0xFF090C11)
-    val surface = Color(0xFF121821)
-    val raised = Color(0xFF1B2430)
-    val border = Color(0xFF344151)
+    val background = Color(0xFF08090E)
+    val surface = Color(0xFF11131B)
+    val raised = Color(0xFF1A1D29)
+    val border = Color(0xFF303443)
     val text = Color(0xFFF2F5FA)
     val muted = Color(0xFFA6B3C4)
 }
@@ -50,7 +52,8 @@ val LocalMetroPalette = staticCompositionLocalOf { MetroPalette() }
 @Composable
 fun MetroTheme(settings: AppearanceSettings, content: @Composable () -> Unit) {
     val selection = metroAccentColor(settings.accentColor)
-    val accent = if (selection.luminance() < .32f) lerp(selection, Color.White, .5f) else selection
+    val accent = (0..10).asSequence().map { lerp(selection, Color.White, it * .05f) }
+        .firstOrNull { it.luminance() >= .30f } ?: Color.White
     val palette = MetroPalette(accent, settings.glowIntensity.coerceIn(0, 100) / 100f, selection)
     CompositionLocalProvider(LocalMetroPalette provides palette) {
         MaterialTheme(colorScheme = darkColorScheme(
@@ -74,10 +77,10 @@ fun MetroTheme(settings: AppearanceSettings, content: @Composable () -> Unit) {
 fun Modifier.metroFocus(active: Boolean, palette: MetroPalette): Modifier =
     drawBehind {
         if (active && palette.glow > 0f) {
-            for (step in 1..6) {
-                val spread = step.dp.toPx()
+            for (step in 1..10) {
+                val spread = (step * 1.4f).dp.toPx()
                 drawRect(
-                    color = palette.selection.copy(alpha = (7 - step) * .014f * palette.glow),
+                    color = palette.selection.copy(alpha = (11 - step) * .015f * palette.glow),
                     topLeft = Offset(-spread, -spread),
                     size = Size(size.width + spread * 2, size.height + spread * 2),
                     style = Stroke(2.dp.toPx())
@@ -125,6 +128,9 @@ fun metroAccentColor(name: String): Color = when (name) {
     "COBALT" -> Color(0xFF244EB5)
     "TEAL" -> Color(0xFF008B87)
     "ORANGE" -> Color(0xFFEE8949)
+    "ELECTRIC_PURPLE" -> Color(0xFF9F20FF)
+    "NEON_PURPLE" -> Color(0xFFD400FF)
+    "ULTRAVIOLET" -> Color(0xFF6F00FF)
     else -> Color(0xFF53E0CF)
 }
 
@@ -148,6 +154,9 @@ fun metroAccentLabel(name: String): String = when (name) {
     "COBALT" -> "Azul cobalto"
     "TEAL" -> "Turquesa"
     "ORANGE" -> "Naranja"
+    "ELECTRIC_PURPLE" -> "Morado eléctrico"
+    "NEON_PURPLE" -> "Morado neón"
+    "ULTRAVIOLET" -> "Ultravioleta"
     else -> "Cian"
 }
 
@@ -163,3 +172,40 @@ object MetroLayout {
     val controlHeight = 48.dp
     val tileInset = 20.dp
 }
+
+/**
+ * Iluminación ambiental estática sobre negro; nunca cambia el contraste de contenido.
+ * @param palette Paleta e intensidad guardadas.
+ * @return Fondo con luz localizada, apagada al establecer brillo cero.
+ * @throws Nothing No lanza excepciones.
+ * @author Daniel Figueroa Vidal
+ * @since 2026-10-04
+ */
+fun Modifier.metroAtmosphere(palette: MetroPalette): Modifier = background(palette.background).drawBehind {
+    if (palette.glow > 0f) {
+        drawRect(Brush.radialGradient(
+            listOf(palette.selection.copy(alpha = .24f * palette.glow), Color.Transparent),
+            center = Offset(size.width * .88f, 0f), radius = size.width * .8f
+        ))
+        drawRect(Brush.radialGradient(
+            listOf(palette.selection.copy(alpha = .10f * palette.glow), Color.Transparent),
+            center = Offset(0f, size.height), radius = size.width * .65f
+        ))
+    }
+}
+
+/**
+ * Superficie de panel con borde discreto y remate superior del acento elegido.
+ * @param palette Paleta del usuario.
+ * @return Marco Metro compartido por los diálogos.
+ * @throws Nothing No lanza excepciones.
+ * @author Daniel Figueroa Vidal
+ * @since 2026-10-04
+ */
+fun Modifier.metroPanel(palette: MetroPalette): Modifier =
+    background(Brush.verticalGradient(listOf(palette.raised, palette.surface)))
+        .border(1.dp, palette.border)
+        .drawBehind {
+            drawRect(Brush.horizontalGradient(listOf(palette.selection, palette.accent, Color.Transparent)),
+                size = Size(size.width, 3.dp.toPx()))
+        }

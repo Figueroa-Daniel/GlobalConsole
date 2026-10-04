@@ -91,4 +91,25 @@ class AppearanceUseCasesTest {
             }
         } finally { file.delete() }
     }
+    /**
+     * Los morados saturados se conservan al reiniciar con cualquier intensidad.
+     * @return Unit.
+     * @throws Exception Si falla el archivo temporal.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-04
+     */
+    @Test
+    fun neonPurples_surviveRestartAtEveryGlowBoundary() = runTest {
+        val file = Files.createTempFile("metro-neon", ".json").toFile()
+        try {
+            file.writeText("{}")
+            for (color in listOf("ELECTRIC_PURPLE", "NEON_PURPLE", "ULTRAVIOLET")) {
+                for (glow in listOf(0, 45, 100)) {
+                    val expected = AppearanceSettings(color, glow)
+                    SaveAppearanceSettingsUseCase(SettingsRepositoryImpl(file))(expected)
+                    assertEquals(expected, GetAppearanceSettingsUseCase(SettingsRepositoryImpl(file))())
+                }
+            }
+        } finally { file.delete() }
+    }
 }
