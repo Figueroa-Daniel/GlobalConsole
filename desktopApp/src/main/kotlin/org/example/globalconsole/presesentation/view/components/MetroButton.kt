@@ -10,7 +10,9 @@ import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
 import org.example.globalconsole.presesentation.input.InputMode
 import androidx.compose.runtime.getValue
@@ -45,42 +47,27 @@ fun MetroButton(
     modifier: Modifier = Modifier,
     isPrimary: Boolean = false,
     isFocused: Boolean = false,
-    inputMode: InputMode = InputMode.GAMEPAD
+    inputMode: InputMode = InputMode.GAMEPAD,
+    onHover: () -> Unit = {}
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
+    LaunchedEffect(isHovered) { if (isHovered) onHover() }
     val isComposeFocused by interactionSource.collectIsFocusedAsState()
     
-    // Solo aplicar el brillo de isFocused si el modo de entrada es GAMEPAD.
-    // Si es MOUSE, ignoramos el isFocused virtual y usamos solo el hover real del ratón.
-    val isVirtualFocused = isFocused && inputMode == InputMode.GAMEPAD
-    val isActive = isHovered || isComposeFocused || isVirtualFocused
-
-    val bgColor = if (isActive) {
-        if (isPrimary) Color(0xFFCCCCCC) else Color.White
-    } else {
-        if (isPrimary) Color.White else Color(0xFF161616)
-    }
-    
-    val textColor = if (isActive) {
-        Color.Black
-    } else {
-        if (isPrimary) Color.Black else Color.White
-    }
-    
-    val borderColor = if (isActive) {
-        Color.White
-    } else {
-        if (isPrimary) Color.White else Color(0xFF444444)
-    }
+    val palette = LocalMetroPalette.current
+    val isVirtualFocused = (isFocused || isComposeFocused) && inputMode == InputMode.GAMEPAD
+    val isActive = isHovered || isVirtualFocused
+    val bgColor = if (isActive) palette.accent else if (isPrimary) palette.raised else palette.surface
+    val textColor = if (isActive) palette.background else if (isPrimary) palette.accent else palette.text
 
     Box(
         modifier = modifier
+            .defaultMinSize(minHeight = 46.dp)
             .background(bgColor)
-            .border(1.dp, borderColor, RectangleShape)
+            .metroFocus(isActive, palette)
             .hoverable(interactionSource)
-            .focusable(interactionSource = interactionSource)
-            .clickable(
+                        .clickable(
                 interactionSource = interactionSource,
                 indication = null,
                 onClick = onClick
@@ -91,7 +78,7 @@ fun MetroButton(
         Text(
             text = text,
             color = textColor,
-            fontSize = 11.sp,
+            fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             fontFamily = FontFamily.SansSerif
         )

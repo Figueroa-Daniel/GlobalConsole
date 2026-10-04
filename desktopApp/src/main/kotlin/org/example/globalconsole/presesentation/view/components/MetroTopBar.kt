@@ -49,14 +49,16 @@ fun MetroTopBar(
     onViewClick: () -> Unit,
     onSettingsClick: () -> Unit
 ) {
+    val palette = LocalMetroPalette.current
+    Column {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF0F0F0F))
+            .background(LocalMetroPalette.current.surface)
             .drawBehind {
                 // Dibujar línea inferior
                 drawLine(
-                    color = Color(0xFF222222),
+                    color = palette.border,
                     start = Offset(0f, size.height),
                     end = Offset(size.width, size.height),
                     strokeWidth = 1.dp.toPx()
@@ -67,7 +69,7 @@ fun MetroTopBar(
     ) {
         // Título Estilo Metro
         Text(
-            text = "GLOBAL // CONSOLE",
+            text = "GLOBAL / CONSOLE",
             color = Color.White,
             fontSize = 20.sp,
             fontWeight = FontWeight.Black,
@@ -76,14 +78,19 @@ fun MetroTopBar(
             modifier = Modifier.padding(end = 32.dp)
         )
 
-        Spacer(modifier = Modifier.weight(1f))
+    }
+    Row(
+        modifier = Modifier.fillMaxWidth().background(palette.surface).padding(horizontal = 24.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
 
         // Caja de búsqueda Metro
         Row(
             modifier = Modifier
-                .width(300.dp)
-                .background(Color(0xFF161616))
-                .border(1.dp, Color(0xFF444444), RectangleShape)
+                .weight(1f)
+                .background(LocalMetroPalette.current.surface)
+                .border(1.dp, LocalMetroPalette.current.border, RectangleShape)
                 .padding(horizontal = 12.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -91,17 +98,19 @@ fun MetroTopBar(
                 if (searchQuery.isEmpty()) {
                     Text(
                         text = "BUSCAR JUEGO...",
-                        color = Color.Gray,
-                        fontSize = 12.sp,
+                        color = LocalMetroPalette.current.muted,
+                        fontSize = 14.sp,
                         fontFamily = FontFamily.Monospace
                     )
                 }
                 BasicTextField(
                     value = searchQuery,
+                    singleLine = true,
+                    cursorBrush = androidx.compose.ui.graphics.SolidColor(palette.accent),
                     onValueChange = onSearchChanged,
                     textStyle = TextStyle(
                         color = Color.White,
-                        fontSize = 12.sp,
+                        fontSize = 14.sp,
                         fontFamily = FontFamily.Monospace
                     ),
                     modifier = Modifier.fillMaxWidth()
@@ -143,10 +152,11 @@ fun MetroTopBar(
 
         // Botón Ajustes
         MetroButton(
-            text = "CONFIGURACIÓN",
+            text = "AJUSTES",
             isFocused = focusedButton == TopBarFocus.SETTINGS,
             inputMode = inputMode,
             onClick = onSettingsClick
         )
     }
+}
 }

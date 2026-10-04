@@ -63,6 +63,7 @@ fun GameTile(
     onFocus: () -> Unit = {},
     onHover: () -> Unit = {}
 ) {
+    val palette = LocalMetroPalette.current
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
     val isFocused by interactionSource.collectIsFocusedAsState()
@@ -90,7 +91,7 @@ fun GameTile(
 
     // Animación de brillo/glow del borde blanco Metro
     val borderColor by animateColorAsState(
-        targetValue = if (isActive) Color.White else Color(0xFF222222),
+        targetValue = if (isActive) palette.accent else palette.border,
         animationSpec = tween(durationMillis = 200)
     )
 
@@ -98,8 +99,8 @@ fun GameTile(
         modifier = Modifier
             .scale(scaleFactor)
             .aspectRatio(1f) // Cuadrado estilo Metro
-            .background(Color(0xFF111111))
-            .border(1.dp, borderColor, RectangleShape)
+            .background(LocalMetroPalette.current.surface)
+            .metroFocus(isActive, palette)
             .hoverable(interactionSource)
             .focusRequester(focusRequester)
             .focusable(interactionSource = interactionSource)
@@ -175,13 +176,13 @@ fun GameTile(
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .background(Color.White, RectangleShape)
+                .background(palette.raised, RectangleShape)
                 .padding(horizontal = 12.dp, vertical = 6.dp)
         ) {
             Text(
                 text = game.platform.name,
-                color = Color.Black,
-                fontSize = 12.sp,
+                color = palette.accent,
+                fontSize = 14.sp,
                 fontWeight = FontWeight.Black,
                 fontFamily = FontFamily.Monospace
             )
@@ -208,9 +209,9 @@ fun GameTile(
 
             // Subtexto / Acción interactiva
             Text(
-                text = if (isActive) "EJECUTAR >" else "${game.platform.name} SYSTEM",
-                color = if (isActive) Color.White else Color.Gray,
-                fontSize = 11.sp,
+                text = if (isActive) "A · JUGAR" else "${game.platform.name}",
+                color = if (isActive) palette.accent else LocalMetroPalette.current.muted,
+                fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily.Monospace
             )

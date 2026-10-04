@@ -1,5 +1,6 @@
 package org.example.globalconsole
 
+import org.example.globalconsole.presesentation.view.components.MetroTheme
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -65,12 +66,15 @@ fun main() = application {
         }
 
         val navController = rememberNavController()
+        val appearance by viewModel.appearance.collectAsState()
+        MetroTheme(appearance) {
         AppNavHost(
             navController = navController,
             viewModel = viewModel,
             settingsViewModel = settingsViewModel,
             gamepadManager = gamepadManager
         )
+        }
     }
 }
 

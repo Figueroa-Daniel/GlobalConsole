@@ -16,6 +16,8 @@ val presentationModule = module {
         HomeViewModel(
             getViewSettingsUseCase = get(),
             saveViewSettingsUseCase = get(),
+            getAppearanceSettingsUseCase = get(),
+            saveAppearanceSettingsUseCase = get(),
             getGamesP2UseCase = get(),
             executeGameP2UseCase = get(),
             deleteGameP2UseCase = get(),
