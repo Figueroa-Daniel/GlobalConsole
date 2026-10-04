@@ -52,3 +52,8 @@ Ver también [Arquitectura](01_arquitectura.md) y [Búsqueda y OSK](15_busqueda_
 Cuando se ejecuta un juego externo o un launcher (ej. RPCS3, MelonDS), la lectura general del mando se "suspende" para que la entrada vaya al emulador. En este estado suspendido, `GamepadManager` escucha combinaciones especiales críticas:
 - **`START + SELECT (BACK)`**: Comando universal de cierre. Obliga a GlobalConsole a matar el proceso del juego/emulador y volver al menú principal.
 - **`X + SELECT (BACK)`**: Alternador manual del modo ratón (`isMouseAllowedWhenSuspended`). Si se desactiva por esta vía, el cursor físico se transporta a `(0, 0)` para quedar oculto fuera de la vista principal del juego. Resulta útil en emuladores que requieren ratón en la interfaz pero donde molesta durante el gameplay.
+
+## Ciclo de Vida de los Launchers de Emuladores
+El estado `HomeUiState.GameRunning` (que suspende el mando y bloquea la UI) dura lo que tarda en retornar el `executeLauncher()` del UseCase. Por ello, los adaptadores de launcher (`LauncherMelonDSAdapter`, `LauncherDolphinAdapter`, `LauncherAzaharAdapter`, `LauncherDuckStationAdapter`) **deben bloquear con `process.waitFor()`** (siempre bajo `Dispatchers.IO` en el repositorio) hasta que el emulador se cierre, igual que los adaptadores de juegos y Heroic/PS3. Si retornan al instante, la aplicación se desbloquea mientras el emulador sigue abierto. Al cerrarse el proceso, el ViewModel vuelve a cargar la biblioteca y reactiva el mando.
+
+Ver también [05_melonds.md](05_melonds.md), [16_dolphin.md](16_dolphin.md), [17_duckstation.md](17_duckstation.md) y [18_azahar_3ds.md](18_azahar_3ds.md).
