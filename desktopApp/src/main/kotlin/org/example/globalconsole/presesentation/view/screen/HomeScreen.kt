@@ -34,6 +34,7 @@ import org.example.globalconsole.generalDomain.entititys.Game
 import org.example.globalconsole.presesentation.view.components.GameTile
 import org.example.globalconsole.presesentation.view.components.GamepadOSK
 import org.example.globalconsole.presesentation.view.components.ImageCropperDialog
+import org.example.globalconsole.presesentation.view.components.metroAtmosphere
 import org.example.globalconsole.presesentation.view.components.MetroTopBar
 import org.example.globalconsole.presesentation.view.components.MetroButton
 import org.example.globalconsole.presesentation.view.components.SetupPathDialog
@@ -143,12 +144,15 @@ fun HomeScreen(
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
-            .background(LocalMetroPalette.current.background)
+            .metroAtmosphere(LocalMetroPalette.current)
     ) {
         val contentMargin = if (maxWidth >= 1100.dp) MetroLayout.wideMargin else MetroLayout.compactMargin
+        val compactHeader = maxWidth < 1000.dp || maxHeight < 700.dp
         Column(modifier = Modifier.fillMaxSize()) {
             MetroTopBar(
                 contentMargin = contentMargin,
+                compact = compactHeader,
+                itemCount = (uiState as? HomeUiState.Success)?.filteredGames?.size ?: 0,
                 searchQuery = searchQuery,
                 onSearchChanged = { viewModel.onSearchQueryChanged(it) },
                 focusedButton = focusedTopBar,
@@ -460,21 +464,22 @@ fun HomeScreen(
                                     when (item) {
                                         is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.Header -> {
                                             item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
-                                                Text(
-                                                    text = platformLabel(item.title).uppercase(),
-                                                    color = LocalMetroPalette.current.accent,
-                                                    fontSize = 16.sp,
-                                                    fontWeight = FontWeight.SemiBold,
-                                                    fontFamily = FontFamily.SansSerif,
-                                                    letterSpacing = 1.5.sp,
-                                                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
-                                                )
+                                                Row(Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 4.dp),
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                                                    Box(Modifier.size(3.dp, 18.dp).background(LocalMetroPalette.current.selection))
+                                                    Text(platformLabel(item.title).uppercase(),
+                                                        color = LocalMetroPalette.current.text, fontSize = 14.sp,
+                                                        fontWeight = FontWeight.SemiBold, letterSpacing = 2.sp)
+                                                    Box(Modifier.weight(1f).height(1.dp).background(LocalMetroPalette.current.border))
+                                                }
                                             }
                                         }
                                         is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.GameItem -> {
                                             item {
                                                 GameTile(
                                                     game = item.game,
+                                                    selected = focusedTopBar == TopBarFocus.NONE && focusedGameIndex == index,
                                                     focusRequester = focusRequesters.getOrNull(index) ?: FocusRequester(),
                                                     inputMode = inputMode,
                                                     onClick = { viewModel.onGameSelected(item.game) },

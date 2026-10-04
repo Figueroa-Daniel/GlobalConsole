@@ -29,6 +29,8 @@ enum class TopBarFocus { NONE, SEARCH, REFRESH, VIEW, SETTINGS }
  * @param onRefreshClick Recarga los juegos.
  * @param onViewClick Abre la personalización.
  * @param onSettingsClick Abre los ajustes.
+ * @param compact Reduce la cabecera en ventanas pequeñas.
+ * @param itemCount Número de elementos visibles.
  * @param contentMargin Margen compartido con la cuadrícula.
  * @return Unit.
  * @throws Nothing No lanza excepciones.
@@ -45,20 +47,36 @@ fun MetroTopBar(
     onRefreshClick: () -> Unit,
     onViewClick: () -> Unit,
     onSettingsClick: () -> Unit,
+    compact: Boolean = false,
+    itemCount: Int = 0,
     contentMargin: Dp = MetroLayout.compactMargin
 ) {
     val palette = LocalMetroPalette.current
-    Column(Modifier.fillMaxWidth().background(palette.surface)
-        .padding(horizontal = contentMargin, vertical = 20.dp)) {
+    Column(Modifier.fillMaxWidth()
+        .padding(horizontal = contentMargin, vertical = if (compact) 16.dp else 24.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(4.dp, 32.dp).background(palette.accent))
+            Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                repeat(2) { row ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                        repeat(2) { col -> Box(Modifier.size(10.dp).background(
+                            palette.selection.copy(alpha = if (row == col) 1f else .45f))) }
+                    }
+                }
+            }
             Spacer(Modifier.width(12.dp))
-            Text("GLOBAL / CONSOLE", color = palette.text, fontSize = 20.sp,
-                fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
+            Text("GLOBAL / CONSOLE", color = palette.text, fontSize = 15.sp,
+                fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
             Spacer(Modifier.weight(1f))
-            Text("BIBLIOTECA", color = palette.muted, fontSize = 12.sp, letterSpacing = 2.sp)
+            Text("$itemCount ELEMENTOS", color = palette.accent, fontSize = 11.sp, letterSpacing = 2.sp)
         }
-        Spacer(Modifier.height(20.dp))
+        if (!compact) {
+            Spacer(Modifier.height(24.dp))
+            Text("Tu biblioteca.", color = palette.text, fontSize = 40.sp,
+                fontWeight = FontWeight.Light, letterSpacing = (-1).sp)
+            Text("Tus mundos, en un solo lugar", color = palette.muted, fontSize = 14.sp,
+                modifier = Modifier.padding(top = 4.dp))
+        }
+        Spacer(Modifier.height(if (compact) 16.dp else 24.dp))
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Box(Modifier.weight(1f).height(MetroLayout.controlHeight)
