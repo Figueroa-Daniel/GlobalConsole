@@ -51,12 +51,20 @@ Todos los repositorios que persisten datos en este archivo utilizan el modelo co
 // config/AppConfig.kt
 @Serializable
 data class AppConfig(
-    val emulatorPaths: Map<String, String> = emptyMap(),  // gestionado por SettingsRepositoryImpl
-    val heroicEnabled: Boolean = false                     // gestionado por HGLauncherRepositoryImpl
+    val emulatorPaths: Map<String, String> = emptyMap(),
+    val heroicEnabled: Boolean = false,
+    val melonDSEnabled: Boolean = false,
+    val dolphinEnabled: Boolean = false,
+    val ps3Enabled: Boolean = false,
+    val azaharEnabled: Boolean = false,
+    val duckStationEnabled: Boolean = false,
+    val mouseSensitivity: Float = 14f,
+    val groupingMode: String = "NONE",
+    val launcherPosition: String = "INLINE"
 )
 ```
 
-Ejemplo del archivo con ambos campos presentes:
+Ejemplo del archivo con múltiples campos presentes:
 
 ```json
 {
@@ -64,7 +72,10 @@ Ejemplo del archivo con ambos campos presentes:
     "pcsx2": "/home/usuario/ISOs"
   },
   "heroicEnabled": true,
-  "mouseSensitivity": 14.0
+  "dolphinEnabled": false,
+  "mouseSensitivity": 14.0,
+  "groupingMode": "PLATFORM",
+  "launcherPosition": "FIRST"
 }
 ```
 
