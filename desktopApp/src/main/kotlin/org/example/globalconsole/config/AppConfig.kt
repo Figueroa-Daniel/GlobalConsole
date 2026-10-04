@@ -25,6 +25,8 @@ import kotlinx.serialization.Serializable
  * @param duckStationEnabled True si DuckStation debe aparecer en la biblioteca principal.
  * @param mouseSensitivity Velocidad de movimiento del ratón con el gamepad (por defecto 14f).
  * @param groupingMode Nombre del modo de agrupación de la biblioteca (por defecto "NONE").
+ * @param accentColor Identificador del acento Metro.
+ * @param glowIntensity Intensidad del halo (0–100).
  * @param launcherPosition Nombre de la posición de los launchers en la vista (por defecto "INLINE").
  *
  * @author Daniel Figueroa Vidal
@@ -41,5 +43,7 @@ data class AppConfig(
     val duckStationEnabled: Boolean = false,
     val mouseSensitivity: Float = 14f,
     val groupingMode: String = "NONE",
-    val launcherPosition: String = "INLINE"
+    val launcherPosition: String = "INLINE",
+    val accentColor: String = "CYAN",
+    val glowIntensity: Int = 45
 )

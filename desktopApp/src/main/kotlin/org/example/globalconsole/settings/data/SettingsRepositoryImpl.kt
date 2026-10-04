@@ -5,6 +5,7 @@ import kotlinx.serialization.json.Json
 import org.example.globalconsole.config.AppConfig
 import org.example.globalconsole.settings.domain.SettingsRepository
 import org.example.globalconsole.settings.domain.ViewSettings
+import org.example.globalconsole.settings.domain.AppearanceSettings
 import java.io.File
 
 /**
@@ -24,9 +25,7 @@ import java.io.File
  * @since 2026-08-10
  * @updated 2026-08-13
  */
-class SettingsRepositoryImpl : SettingsRepository {
-
-    private val configFile = File("config.json")
+class SettingsRepositoryImpl(private val configFile: File = File("config.json")) : SettingsRepository {
 
     private val json = Json {
         prettyPrint = true
@@ -108,6 +107,34 @@ class SettingsRepositoryImpl : SettingsRepository {
     override suspend fun getViewSettings(): ViewSettings {
         val config = readConfig()
         return ViewSettings(config.groupingMode, config.launcherPosition)
+    }
+
+    /**
+     * Recupera los campos visuales del archivo compartido.
+     * @return Apariencia persistida.
+     * @throws Exception Si falla el acceso al archivo.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-04
+     */
+    override suspend fun getAppearanceSettings(): AppearanceSettings {
+        val config = readConfig()
+        return AppearanceSettings(config.accentColor, config.glowIntensity)
+    }
+
+    /**
+     * Modifica únicamente la apariencia, preservando rutas y agrupación.
+     * @param settings Preferencias validadas por el caso de uso.
+     * @return Unit.
+     * @throws java.io.IOException Si no se puede guardar.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-04
+     */
+    override suspend fun saveAppearanceSettings(settings: AppearanceSettings) {
+        val updated = readConfig().copy(
+            accentColor = settings.accentColor,
+            glowIntensity = settings.glowIntensity
+        )
+        configFile.writeText(json.encodeToString(updated))
     }
 
     /**

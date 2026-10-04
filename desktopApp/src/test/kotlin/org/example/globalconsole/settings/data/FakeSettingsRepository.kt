@@ -49,4 +49,9 @@ class FakeSettingsRepository : SettingsRepository {
     }
 
     override suspend fun getViewSettings(): ViewSettings = viewSettings
+    private var appearance = org.example.globalconsole.settings.domain.AppearanceSettings()
+    override suspend fun getAppearanceSettings() = appearance
+    override suspend fun saveAppearanceSettings(settings: org.example.globalconsole.settings.domain.AppearanceSettings) {
+        appearance = settings
+    }
 }
