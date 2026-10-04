@@ -1,45 +1,53 @@
-# 09. Búsqueda Reactiva y Teclado en Pantalla (OSK)
+# 15. Búsqueda reactiva y teclado en pantalla
 
-Este documento detalla la arquitectura implementada para la funcionalidad de búsqueda dentro de GlobalConsole, la cual ha sido diseñada para ser navegable 100% mediante Gamepad sin requerir el uso de teclado físico ni simulación de ratón.
+## 1. Arquitectura
 
-## 1. Búsqueda Reactiva (`HomeViewModel`)
+`HomeViewModel` filtra los juegos en memoria al cambiar `searchQuery`.
+`GamepadOSK` presenta el texto y delega las operaciones en `KeyboardInputUseCase`,
+un caso de uso puro sin dependencias de Compose ni GLFW. `KeyboardState` conserva
+texto, mayúsculas, fila, columna y columna preferida. Mando y clic comparten la
+misma operación para evitar diferencias al escribir o confirmar.
 
-La lógica de búsqueda reside íntegramente en la capa de presentación dentro del `HomeViewModel`. Se ha optado por un enfoque reactivo utilizando Kotlin `StateFlow`.
+## 2. Distribución y controles
 
-### Flujo de Estado
-1. El ViewModel mantiene un `MutableStateFlow<String>` llamado `searchQuery`.
-2. La lista de juegos cargada de los distintos emuladores reside en memoria dentro del estado `HomeUiState.Success`.
-3. Al invocar `onSearchQueryChanged(query: String)`:
-   - Se actualiza el `searchQuery`.
-   - Se filtra la lista original de juegos reteniendo aquellos cuyo `name` contenga el `query` (case-insensitive).
-   - Se emite un nuevo estado `HomeUiState.Success` que incluye tanto la lista completa original (`games`) como la lista resultante (`filteredGames`).
-4. La UI (`HomeScreen`) observa estos cambios y repinta automáticamente el grid de juegos usando la lista filtrada.
+1. Números 1–0, guion y borrar.
+2. QWERTY y á/é.
+3. ASDF, ñ, í/ó.
+4. Mayúsculas, ZXCV, ú/ü, punto y barra.
+5. Coma, espacio e Intro.
 
-Esta aproximación evita hacer consultas de disco o I/O continuas mientras el usuario teclea, asegurando cero latencia en la interfaz.
+Cruceta o stick izquierdo mueve el foco con recorrido circular. Al atravesar la
+última fila se conserva la columna horizontal preferida, y todos los índices se
+actualizan atómicamente. La fila enfocada se desplaza automáticamente a la vista.
 
-## 2. Teclado Virtual: `GamepadOSK`
+- **A:** pulsar la tecla seleccionada, incluida Intro para confirmar.
+- **X / Cuadrado:** borrar el último punto de código, sin romper pares UTF-16.
+- **Y / Triángulo:** alternar mayúsculas inmediatamente.
+- **START:** confirmar y cerrar.
+- **B:** cerrar conservando la búsqueda reactiva actual.
+- **Stick derecho:** ratón; clic y hover usan los mismos botones Metro.
 
-Para proveer una experiencia de consola ("10-foot UI"), se descartaron los teclados del sistema operativo por requerir manejo del ratón. En su lugar, se implementó `GamepadOSK`, un componente `@Composable` nativo.
+## 3. Apariencia y seguridad de entrada
 
-### Diseño de la Cuadrícula
-El teclado se estructura como una lista bidimensional (`List<List<String>>`) siguiendo la disposición QWERTY tradicional:
-- **Fila 0:** Letras de la fila superior + `⌫` (Backspace).
-- **Fila 1:** Letras de la fila central + `↵` (Intro/Dummy).
-- **Fila 2:** Letra de la fila inferior + `SHIFT` (Alternancia de capas).
-- **Fila 3:** Tecla gigante `ESPACIO`.
+El teclado hereda el acento y halo del tema global, mantiene el fondo oscuro y
+se adapta a ventanas de 800×600 y superiores. La biblioteca deja de recoger
+entrada mientras el teclado está abierto. Una búsqueda sin resultados mantiene
+accesible la barra superior para volver a buscar.
 
-### Navegación
-La navegación intercepta directamente el `SharedFlow` de `GamepadManager`.
-- El teclado mantiene el foco lógico con `focusedRow` y `focusedCol`.
-- **Wrap-around:** Moverse a la izquierda en la primera columna lleva al foco a la última columna de esa misma fila, y viceversa. Arriba/Abajo también hacen wrap-around entre filas.
-- Las teclas especiales ("ESPACIO", "SHIFT") no rompen el foco por columna porque la lógica del grid confina dinámicamente la columna máxima a la longitud de la fila actual (`layout[focusedRow].size - 1`).
+## 4. Pruebas
 
-### Integración de Eventos GLFW
-- **Direcciones (Cruceta/Stick):** Mueven el cursor (`focusedRow` y `focusedCol`).
-- **Botón A (`CONFIRM`):** Escribe el carácter actualmente enfocado. Si el foco está en "SHIFT", invierte el booleano `isUpperCase` y renderiza el array superior de teclas.
-- **Botón X / Cuadrado (`DELETE`):** Borra el último carácter del texto. Se implementó directamente desde `GamepadManager` para dar inmediatez sin requerir que el usuario navegue hasta la tecla `⌫` en pantalla.
-- **Botón B (`BACK`):** Cierra el teclado descartando la operación de búsqueda (o dejándola como estaba).
-- **Botón START (`MENU`):** Confirma la búsqueda actual, cierra el modal, y el texto filtrado permanece activo en la pantalla principal.
+`KeyboardInputUseCaseTest` recorre cada posición y sus cuatro direcciones, verifica
+recuperación de columna, mayúsculas, números, ñ, espacio, borrado vacío, borrado de
+un carácter suplementario e Intro mediante A. La revisión gráfica adicional
+simula los eventos del mando sobre la pantalla real en una ventana aislada.
+No sustituye una prueba con un mando físico.
 
-### Sincronización en Tiempo Real
-El OSK recibe como parámetro `initialText = searchQuery` y un callback `onTextChanged`. A medida que el usuario pulsa botones en el OSK, el callback actualiza el `HomeViewModel`, de forma que el usuario puede ver los resultados en el fondo oscurecido de la pantalla mientras escribe.
+## 5. Referencias
+
+- [Arquitectura](01_arquitectura.md)
+- [Mando y foco](12_manejo_gamepad_y_foco.md)
+- [Metro personalizable](21_metro_personalizable.md)
+- [Contexto](19_contexto_ia.md)
+
+@author Daniel Figueroa Vidal
+@since 2026-10-04

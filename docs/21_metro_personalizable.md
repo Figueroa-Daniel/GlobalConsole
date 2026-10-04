@@ -37,10 +37,43 @@ preferida al pasar por la barra espaciadora.
 TDD exclusivamente en casos de uso: valores por defecto, colores, límites,
 rechazo de datos inválidos, persistencia tras recrear el repositorio y conservación
 de los campos existentes. Ejecutar la suite existente y compilar el escritorio.
+La tarea `desktopApp:test` utiliza `build/test-work/test` como directorio de trabajo:
+además, la prueba heredada de configuración inyecta un archivo temporal absoluto
+en ambos repositorios. Su limpieza nunca apunta al archivo personal.
 Revisar todas las rutas de entrada de mando y los tamaños de ventana. Registrar
 por separado las comprobaciones automatizadas y las que requieran mando físico.
 
-## 5. Referencias
+## 5. Revisión gráfica y regresiones
+
+Se ejecutó la interfaz real con Compose en Xvfb, sin arrancar GLFW ni emuladores,
+con biblioteca ficticia y configuración temporal. Se enviaron eventos al mismo
+flujo que utiliza el mando y se inspeccionaron capturas a 1280×800 y 800×600:
+
+| Recorrido | Resultado |
+| --- | --- |
+| Biblioteca → Vista → color/intensidad → cerrar | Tema actualizado y JSON persistido |
+| Vista en ventana pequeña | Desplazamiento automático hasta la fila activa |
+| Buscar → Y → A → X → START | Mayúsculas, escritura, borrado y confirmación correctos |
+| Búsqueda sin resultados → volver a Buscar | Barra accesible sin elementos en la cuadrícula |
+| Ajustes → carpeta → X → volver | Modal anidado aislado y cancelación directa |
+| Biblioteca → recortador → B | Previsualización y botones visibles en 800×600 |
+| Estados vacío y error | Acción principal y barra accesibles por mando |
+
+La revisión detectó y corrigió doble foco causado por el foco nativo de Compose
+y hover de un cursor inmóvil: los botones con selección lógica explícita dan
+prioridad a dicha selección en modo mando; el hover pertenece al modo ratón.
+Se corrigió también la navegación izquierda de Vista y el Intro del OSK.
+
+Resultado final: 88 pruebas superadas (86 de escritorio y 2 compartidas), sin
+fallos ni omisiones.
+
+Validación reproducible: `./gradlew :desktopApp:test :shared:jvmTest --offline`.
+Las nuevas pruebas automáticas se limitan a casos de uso. La prueba de integración
+heredada conserva su cobertura con archivo temporal absoluto inyectado.
+Pendiente fuera de este entorno: prueba física de sticks, gatillos y latencia en
+el mando y televisor del usuario; no se ha lanzado ningún juego real.
+
+## 6. Referencias
 
 - [Arquitectura](01_arquitectura.md)
 - [Persistencia](08_persistencia_configuracion.md)
