@@ -24,3 +24,4 @@ Este directorio contiene la documentación técnica oficial del proyecto GlobalC
 16. **[17_duckstation.md](17_duckstation.md)**: Integración con el emulador DuckStation (PS1).
 17. **[18_azahar_3ds.md](18_azahar_3ds.md)**: Integración con el emulador Azahar (Nintendo 3DS).
 18. **[19_contexto_ia.md](19_contexto_ia.md)**: Archivo de contexto continuo de la IA para mantener la consistencia entre sesiones.
+19. **[20_persistencia_vista.md](20_persistencia_vista.md)**: Persistencia de la configuración de vista (agrupación y posición de launchers).
