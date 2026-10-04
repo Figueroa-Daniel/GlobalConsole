@@ -36,6 +36,8 @@ import org.example.globalconsole.PS3Launcher.domain.usecase.ClosePS3LauncherUseC
  * @param executeHGLauncherUseCase UseCase para lanzar Heroic Games Launcher.
  * @param findHGLauncherUseCase UseCase para consultar si Heroic debe aparecer en la biblioteca.
  * @param showHGLauncherUseCase UseCase para obtener los datos de Heroic Games Launcher como entidad de dominio.
+ * @param getViewSettingsUseCase UseCase opcional para recuperar la configuración de vista guardada.
+ * @param saveViewSettingsUseCase UseCase opcional para persistir la configuración de vista.
  *
  * @author Daniel Figueroa Vidal
  * @since 2026-08-05
@@ -81,7 +83,9 @@ class HomeViewModel(
     private val closeLauncherDuckStationUseCase: org.example.globalconsole.duckstation.domain.usecase.CloseLauncherDuckStationUseCase? = null,
     private val findDuckStationLauncherUseCase: org.example.globalconsole.duckstation.domain.usecase.FindDuckStationLauncherUseCase? = null,
     private val showDuckStationLauncherUseCase: org.example.globalconsole.duckstation.domain.usecase.ShowDuckStationLauncherUseCase? = null,
-    private val deleteGameDuckStationUseCase: org.example.globalconsole.duckstation.domain.usecase.DeleteGameDuckStationUseCase? = null
+    private val deleteGameDuckStationUseCase: org.example.globalconsole.duckstation.domain.usecase.DeleteGameDuckStationUseCase? = null,
+    private val getViewSettingsUseCase: org.example.globalconsole.settings.domain.usecase.GetViewSettingsUseCase? = null,
+    private val saveViewSettingsUseCase: org.example.globalconsole.settings.domain.usecase.SaveViewSettingsUseCase? = null
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
@@ -110,14 +114,40 @@ class HomeViewModel(
     private val _launcherPosition = MutableStateFlow(LauncherPosition.INLINE)
     val launcherPosition: StateFlow<LauncherPosition> = _launcherPosition.asStateFlow()
 
+    private var viewSettingsLoaded = false
+
+    /**
+     * Carga una única vez la configuración de vista persistida (agrupación y posición de launchers).
+     * Los valores desconocidos o ausentes se ignoran y se conservan los valores por defecto.
+     *
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-04
+     */
+    private suspend fun loadViewSettingsIfNeeded() {
+        if (viewSettingsLoaded) return
+        viewSettingsLoaded = true
+        val settings = getViewSettingsUseCase?.invoke() ?: return
+        GroupingMode.entries.firstOrNull { it.name == settings.groupingMode }?.let { _groupingMode.value = it }
+        LauncherPosition.entries.firstOrNull { it.name == settings.launcherPosition }?.let { _launcherPosition.value = it }
+    }
+
+    private fun persistViewSettings() {
+        val save = saveViewSettingsUseCase ?: return
+        val grouping = _groupingMode.value.name
+        val position = _launcherPosition.value.name
+        viewModelScope.launch { save(grouping, position) }
+    }
+
     fun setGroupingMode(mode: GroupingMode) {
         _groupingMode.value = mode
         refreshItems()
+        persistViewSettings()
     }
 
     fun setLauncherPosition(position: LauncherPosition) {
         _launcherPosition.value = position
         refreshItems()
+        persistViewSettings()
     }
 
     private fun refreshItems() {
@@ -199,6 +229,7 @@ class HomeViewModel(
         viewModelScope.launch {
             _uiState.value = HomeUiState.Loading
             try {
+                loadViewSettingsIfNeeded()
                 val pcsx2Games = getGamesP2UseCase()
 
                 // Si Heroic Games Launcher está habilitado por el usuario, se añade

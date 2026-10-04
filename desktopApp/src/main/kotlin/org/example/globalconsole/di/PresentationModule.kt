@@ -14,6 +14,8 @@ import org.koin.dsl.module
 val presentationModule = module {
     factory {
         HomeViewModel(
+            getViewSettingsUseCase = get(),
+            saveViewSettingsUseCase = get(),
             getGamesP2UseCase = get(),
             executeGameP2UseCase = get(),
             deleteGameP2UseCase = get(),
