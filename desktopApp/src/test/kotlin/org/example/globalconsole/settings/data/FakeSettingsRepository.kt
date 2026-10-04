@@ -1,6 +1,7 @@
 package org.example.globalconsole.settings.data
 
 import org.example.globalconsole.settings.domain.SettingsRepository
+import org.example.globalconsole.settings.domain.ViewSettings
 
 /**
  * Implementación falsa de [SettingsRepository] para uso exclusivo en tests.
@@ -13,6 +14,7 @@ class FakeSettingsRepository : SettingsRepository {
 
     private val paths = mutableMapOf<String, String>()
     private var mouseSensitivity: Float = 14f
+    private var viewSettings = ViewSettings()
 
     /**
      * Guarda la ruta asociada al emulador indicado en memoria.
@@ -41,4 +43,10 @@ class FakeSettingsRepository : SettingsRepository {
     }
 
     override suspend fun getMouseSensitivity(): Float = mouseSensitivity
+
+    override suspend fun saveViewSettings(groupingMode: String, launcherPosition: String) {
+        viewSettings = ViewSettings(groupingMode, launcherPosition)
+    }
+
+    override suspend fun getViewSettings(): ViewSettings = viewSettings
 }
