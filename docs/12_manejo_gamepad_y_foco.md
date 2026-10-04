@@ -56,4 +56,6 @@ Cuando se ejecuta un juego externo o un launcher (ej. RPCS3, MelonDS), la lectur
 ## Ciclo de Vida de los Launchers de Emuladores
 El estado `HomeUiState.GameRunning` (que suspende el mando y bloquea la UI) dura lo que tarda en retornar el `executeLauncher()` del UseCase. Por ello, los adaptadores de launcher (`LauncherMelonDSAdapter`, `LauncherDolphinAdapter`, `LauncherAzaharAdapter`, `LauncherDuckStationAdapter`) **deben bloquear con `process.waitFor()`** (siempre bajo `Dispatchers.IO` en el repositorio) hasta que el emulador se cierre, igual que los adaptadores de juegos y Heroic/PS3. Si retornan al instante, la aplicación se desbloquea mientras el emulador sigue abierto. Al cerrarse el proceso, el ViewModel vuelve a cargar la biblioteca y reactiva el mando.
 
+**Ratón en launchers:** mientras un launcher está en ejecución, `HomeScreen` activa `isMouseAllowedWhenSuspended` para cualquier juego cuyo id contenga `-launcher` (y para MelonDS, PS3 y Heroic), de modo que el stick derecho siga moviendo el cursor dentro del emulador. Se puede alternar con `X + SELECT`.
+
 Ver también [05_melonds.md](05_melonds.md), [16_dolphin.md](16_dolphin.md), [17_duckstation.md](17_duckstation.md) y [18_azahar_3ds.md](18_azahar_3ds.md).
