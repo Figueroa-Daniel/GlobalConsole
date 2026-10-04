@@ -15,7 +15,8 @@ normalizan valores antiguos/desconocidos y validan la intensidad (0–100).
 `SettingsRepository` conserva agrupación, rutas y launchers al guardar apariencia.
 `HomeViewModel` expone el estado y los errores de guardado; un tema Compose común
 propaga los colores a toda la aplicación y los diálogos, con vista previa inmediata.
-Los campos JSON son `accentColor` (CYAN, BLUE, VIOLET, PINK, AMBER, GREEN) y
+Los campos JSON son `accentColor` (CYAN, BLUE, VIOLET, PINK, AMBER, GREEN, RED,
+CRIMSON, NAVY, COBALT, TEAL, ORANGE) y
 `glowIntensity` (0–100, 45 por defecto). Un archivo anterior obtiene CYAN/45.
 
 ## 3. Interacción
@@ -64,7 +65,7 @@ y hover de un cursor inmóvil: los botones con selección lógica explícita dan
 prioridad a dicha selección en modo mando; el hover pertenece al modo ratón.
 Se corrigió también la navegación izquierda de Vista y el Intro del OSK.
 
-Resultado final: 88 pruebas superadas (86 de escritorio y 2 compartidas), sin
+Resultado final: 89 pruebas superadas (87 de escritorio y 2 compartidas), sin
 fallos ni omisiones.
 
 Validación reproducible: `./gradlew :desktopApp:test :shared:jvmTest --offline`.
@@ -89,11 +90,15 @@ espacio interior de 20 dp, mientras las etiquetas de plataforma son secundarias.
 La barra alinea buscador y acciones a una altura común de 48 dp. Los diálogos
 mantienen márgenes exteriores e interiores consistentes; Vista tiene altura
 máxima para evitar espacios vacíos excesivos en pantallas grandes y una muestra
-visual del color seleccionado. No se cambian los recorridos del mando.
+visual del color seleccionado. No se cambian los recorridos del mando. El desplazamiento de la biblioteca solo
+se activa si la tarjeta no está completamente visible; al enfocar el primer juego
+se conserva el encabezado inicial para evitar saltos que rompan la composición.
 
 Validación: prueba previa de los casos de uso para los nuevos identificadores,
 persistencia de toda la paleta y revisión gráfica de rojo y azul marino en
 1280×800 y 800×600, incluyendo teclado, ajustes y navegación agrupada.
+Los seis nuevos rellenos dan un contraste texto/fondo entre 5,04:1 y 12,04:1;
+los acentos derivados sobre el panel oscuro quedan entre 6,26:1 y 9,07:1.
 
 ## 7. Referencias
 
