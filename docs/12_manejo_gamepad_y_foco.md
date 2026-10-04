@@ -39,6 +39,15 @@ LaunchedEffect(gamepadManager, games.size, gridColumns, cropTargetGame != null) 
 ```
 Esto garantiza que los inputs del usuario solo afecten al elemento activo superior y no atraviesen hacia el fondo.
 
+## Navegación en Vista Agrupada
+Con agrupación activa (`GroupingMode.PLATFORM` / `CONSOLE_SERIES`) la lista contiene `Header` intercalados con tiles. Para que el mando navegue correctamente:
+1. **Columnas reales:** `gridColumns` se calcula con la misma fórmula que `GridCells.Adaptive`: `(ancho + espaciado) / (mínimo + espaciado)`. Ignorar el espaciado desalinea las filas lógicas respecto a las visuales.
+2. **Keys del efecto:** el `LaunchedEffect` del mando usa `state.items` (no solo `size`) como key; al reagrupar con el mismo número de elementos, de lo contrario se usaría una lista obsoleta.
+3. **Ancla de hover:** `onHover` actualiza también `focusedGameIndex`, de modo que al pasar de ratón a mando la navegación parte del tile sobrevolado.
+4. **Foco seguro:** si el tile destino no está compuesto (fuera de pantalla) se hace `scrollToItem` antes de `requestFocus`, protegido con `runCatching` para no cancelar el colector de eventos.
+
+Ver también [Arquitectura](01_arquitectura.md) y [Búsqueda y OSK](15_busqueda_y_osk.md).
+
 ## Atajos en Estado Suspendido
 Cuando se ejecuta un juego externo o un launcher (ej. RPCS3, MelonDS), la lectura general del mando se "suspende" para que la entrada vaya al emulador. En este estado suspendido, `GamepadManager` escucha combinaciones especiales críticas:
 - **`START + SELECT (BACK)`**: Comando universal de cierre. Obliga a GlobalConsole a matar el proceso del juego/emulador y volver al menú principal.

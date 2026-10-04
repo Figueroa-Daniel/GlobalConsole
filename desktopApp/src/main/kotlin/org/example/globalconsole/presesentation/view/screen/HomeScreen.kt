@@ -189,7 +189,7 @@ fun HomeScreen(
                                 
                                 if (newIndex != focusedGameIndex && newIndex in state.items.indices && state.items[newIndex] !is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.Header) {
                                     focusedGameIndex = newIndex
-                                    focusRequesters[newIndex].requestFocus()
+                                    runCatching { focusRequesters[newIndex].requestFocus() }
                                 }
                             }
                         }
@@ -233,7 +233,7 @@ fun HomeScreen(
                         // como keys para que este LaunchedEffect se reinicie y se detenga cuando algún diálogo modal
                         // está abierto, evitando fugas de eventos del mando (Regla #1).
                         LaunchedEffect(
-                            gamepadManager, state.items.size, gridColumns,
+                            gamepadManager, state.items, gridColumns,
                             cropTargetGame != null, showOSK, showPathDialog, showViewSettings
                         ) {
                             // Si algún diálogo está abierto, no procesar eventos aquí (aislamiento de foco)
@@ -324,7 +324,9 @@ fun HomeScreen(
                                                 
                                                 if (candidateIndex != focusedGameIndex && focusedTopBar == TopBarFocus.NONE) {
                                                     focusedGameIndex = candidateIndex
-                                                    focusRequesters[candidateIndex].requestFocus()
+                                                    val isVisible = gridState.layoutInfo.visibleItemsInfo.any { it.index == candidateIndex }
+                                                    if (!isVisible) gridState.scrollToItem(candidateIndex)
+                                                    runCatching { focusRequesters[candidateIndex].requestFocus() }
                                                 }
                                             }
                                         }
@@ -385,7 +387,9 @@ fun HomeScreen(
                                 .fillMaxSize()
                                 .onSizeChanged { size ->
                                     with(density) {
-                                        val newCols = (size.width / 180.dp.toPx())
+                                        // Misma fórmula que GridCells.Adaptive: (ancho + espaciado) / (mínimo + espaciado)
+                                        val spacingPx = 16.dp.toPx()
+                                        val newCols = ((size.width + spacingPx) / (180.dp.toPx() + spacingPx))
                                             .toInt()
                                             .coerceAtLeast(1)
                                         if (newCols != gridColumns) gridColumns = newCols
@@ -422,7 +426,10 @@ fun HomeScreen(
                                                     inputMode = inputMode,
                                                     onClick = { viewModel.onGameSelected(item.game) },
                                                     onFocus = { focusedGameIndex = index },
-                                                    onHover = { hoveredGameIndex = index }
+                                                    onHover = {
+                                                        hoveredGameIndex = index
+                                                        focusedGameIndex = index
+                                                    }
                                                 )
                                             }
                                         }
