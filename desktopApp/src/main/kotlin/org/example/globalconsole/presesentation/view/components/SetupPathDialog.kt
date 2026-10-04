@@ -224,8 +224,7 @@ fun SetupPathDialog(
                 modifier = Modifier
                     .widthIn(max = 980.dp).fillMaxWidth(.94f) // Ampliado para dos columnas
                     .fillMaxHeight(0.9f)
-                    .background(LocalMetroPalette.current.surface, RectangleShape)
-                    .border(1.dp, LocalMetroPalette.current.accent.copy(alpha = .6f), RectangleShape)
+                    .metroPanel(LocalMetroPalette.current)
                     .padding(24.dp)
             ) {
                 Text(

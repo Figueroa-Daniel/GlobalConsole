@@ -83,7 +83,7 @@ fun ViewSettingsDialog(homeViewModel: HomeViewModel, gamepadManager: GamepadMana
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Box(Modifier.fillMaxSize().background(palette.background.copy(alpha = .92f)), contentAlignment = Alignment.Center) {
             Column(Modifier.widthIn(max = 760.dp).fillMaxWidth(.94f).heightIn(max = 780.dp).fillMaxHeight(.94f)
-                .background(palette.surface).border(1.dp, palette.accent.copy(alpha = .6f)).padding(24.dp)) {
+                .metroPanel(palette).padding(24.dp)) {
                 Text("TU BIBLIOTECA, A TU ESTILO", color = palette.accent, fontSize = 13.sp, letterSpacing = 2.sp)
                 Text("Vista y apariencia", color = palette.text, fontSize = 28.sp, fontWeight = FontWeight.Light)
                 Text("Fondo oscuro · cambios guardados automáticamente", color = palette.muted, fontSize = 14.sp,
@@ -91,8 +91,8 @@ fun ViewSettingsDialog(homeViewModel: HomeViewModel, gamepadManager: GamepadMana
                 Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     labels.forEachIndexed { index, label ->
                         Column(Modifier.fillMaxWidth().bringIntoViewRequester(requesters[index])
-                            .background(palette.raised).metroFocus(focusedRow == index && inputMode == org.example.globalconsole.presesentation.input.InputMode.GAMEPAD, palette).padding(16.dp)) {
-                            Text(label.uppercase(), color = palette.muted, fontSize = 12.sp, letterSpacing = 1.sp)
+                            .background(palette.background.copy(alpha = .65f)).metroFocus(focusedRow == index && inputMode == org.example.globalconsole.presesentation.input.InputMode.GAMEPAD, palette).padding(16.dp)) {
+                            Text("0${index + 1}  /  ${label.uppercase()}", color = palette.muted, fontSize = 12.sp, letterSpacing = 1.sp)
                             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                 MetroButton("‹", { focusedRow = index; change(index, -1) }, inputMode = inputMode)
                                 if (index == 2) {

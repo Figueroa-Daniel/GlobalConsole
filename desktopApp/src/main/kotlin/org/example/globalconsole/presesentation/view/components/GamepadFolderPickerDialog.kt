@@ -143,8 +143,7 @@ fun GamepadFolderPickerDialog(
                 modifier = Modifier
                     .widthIn(max = 860.dp).fillMaxWidth(.94f)
                     .fillMaxHeight(0.8f)
-                    .background(LocalMetroPalette.current.surface, RectangleShape)
-                    .border(1.dp, LocalMetroPalette.current.accent.copy(alpha = .6f), RectangleShape)
+                    .metroPanel(LocalMetroPalette.current)
                     .padding(24.dp)
             ) {
                 Text(

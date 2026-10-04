@@ -82,7 +82,7 @@ fun GamepadOSK(
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Box(Modifier.fillMaxSize().background(palette.background.copy(alpha = .8f)).padding(16.dp), contentAlignment = Alignment.BottomCenter) {
             Column(Modifier.widthIn(max = 1100.dp).fillMaxWidth().heightIn(max = 520.dp).fillMaxHeight(.92f)
-                .background(palette.surface).border(1.dp, palette.accent.copy(alpha = .6f)).padding(20.dp)) {
+                .metroPanel(palette).padding(20.dp)) {
                 Text("BUSCAR EN TU BIBLIOTECA", color = palette.accent, fontSize = 14.sp, letterSpacing = 2.sp)
                 Text(if (state.text.isEmpty()) "Escribe para buscar…" else state.text + "│",
                     color = if (state.text.isEmpty()) palette.muted else palette.text,
