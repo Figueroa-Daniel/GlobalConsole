@@ -100,7 +100,30 @@ persistencia de toda la paleta y revisión gráfica de rojo y azul marino en
 Los seis nuevos rellenos dan un contraste texto/fondo entre 5,04:1 y 12,04:1;
 los acentos derivados sobre el panel oscuro quedan entre 6,26:1 y 9,07:1.
 
-## 7. Referencias
+## 7. Rediseño Metro neón
+
+La tercera revisión cambia la composición, no solo el espaciado: cabecera de
+biblioteca con jerarquía editorial, fondo negro con iluminación ambiental tenue,
+tarjetas verticales con carátula y pie opaco separado, separadores de plataforma
+con línea y paneles con cabecera luminosa. La geometría permanece rectangular.
+El texto no se superpone a logos o imágenes: el pie reserva su propio espacio y
+la imagen de sustitución se encuadra sobre una composición geométrica oscura.
+
+Se añaden ELECTRIC_PURPLE (morado eléctrico), NEON_PURPLE (morado neón) y
+ULTRAVIOLET (ultravioleta). El tono saturado se mantiene en rellenos, indicadores
+y halos; el tono del texto se aclara solo lo necesario para conservar contraste.
+El brillo ambiental y el halo responden a la intensidad guardada y se apagan con
+valor cero. No hay animaciones continuas, efectos que desenfoquen texto ni nuevas
+dependencias. La lógica sigue en los casos de uso existentes.
+
+En ventanas grandes, la cabecera ofrece una introducción y recuento de elementos;
+en 800×600 se reduce para dar prioridad a los juegos. La navegación conserva las
+columnas calculadas a partir del ancho real y los mismos eventos aislados por
+modal. Las tarjetas reservan altura estable para dos líneas del nombre.
+La validación incluye TDD de persistencia de los tres morados y revisión de la
+interfaz real con imágenes presentes/ausentes y distintas resoluciones.
+
+## 8. Referencias
 
 - [Arquitectura](01_arquitectura.md)
 - [Persistencia](08_persistencia_configuracion.md)
