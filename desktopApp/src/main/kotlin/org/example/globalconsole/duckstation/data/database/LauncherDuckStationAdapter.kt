@@ -58,6 +58,9 @@ class LauncherDuckStationAdapter {
             processBuilder.inheritIO()
             currentProcess = processBuilder.start()
             println("Launched DuckStation Launcher with command: ${command.joinToString(" ")}")
+            // Bloquea el hilo actual hasta que el emulador se cierre
+            currentProcess?.waitFor()
+            currentProcess = null
             true
         } catch (e: Exception) {
             System.err.println("Error launching DuckStation Launcher: ${e.message}")

@@ -41,6 +41,9 @@ class LauncherMelonDSAdapter {
             processBuilder.inheritIO()
             currentProcess = processBuilder.start()
             println("Launched MelonDS Launcher with command: ${command.joinToString(" ")}")
+            // Bloquea el hilo actual hasta que el emulador se cierre
+            currentProcess?.waitFor()
+            currentProcess = null
             true
         } catch (e: Exception) {
             System.err.println("Error launching MelonDS on Windows: ${e.message}")
@@ -60,6 +63,9 @@ class LauncherMelonDSAdapter {
             processBuilder.inheritIO()
             currentProcess = processBuilder.start()
             println("Launched MelonDS Launcher with command: ${command.joinToString(" ")}")
+            // Bloquea el hilo actual hasta que el emulador se cierre
+            currentProcess?.waitFor()
+            currentProcess = null
             true
         } catch (e: Exception) {
             System.err.println("Error launching MelonDS Flatpak: ${e.message}")
