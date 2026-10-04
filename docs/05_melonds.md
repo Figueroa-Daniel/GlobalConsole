@@ -21,9 +21,8 @@ El juego se lanza de forma análoga a [PCSX2](04_pcsx2.md):
 Dado que Melon DS cuenta con un launcher propio que resulta útil abrir, se permite lanzarlo directamente:
 ```
 [GlobalConsole UI] ──> Lanza Proceso Launcher MelonDS ──>
-                     [El proceso se guarda en memoria (currentProcess)]
-                     ──> Usuario pulsa botón Home en el Mando ──>
-                     ──> Se invoca closeLauncher() destruyendo el proceso ──>
+                     [UI de GlobalConsole queda en segundo plano (bloqueada)]
+                     ──> Espera a la terminación del Proceso (waitFor) ──>
                      [Retorno limpio a GlobalConsole UI]
 ```
 
@@ -48,7 +47,7 @@ Los adaptadores `GameMelonDSAdapter` y `LauncherMelonDSAdapter` detectan automá
 ## 🗄️ 3. Adaptadores de Datos de Melon DS
 
 - **GameMelonDSAdapter:** Responsable del lanzamiento y control de la ejecución del juego a pantalla completa. Bloquea el hilo con `waitFor()`.
-- **LauncherMelonDSAdapter:** Responsable de lanzar el emulador sin un juego específico. Guarda la referencia del proceso instanciado y permite su cierre manual a través de `closeLauncher()` para que sea invocado posteriormente por un evento de interfaz (ej. Botón Home del mando).
+- **LauncherMelonDSAdapter:** Responsable de lanzar el emulador sin un juego específico. Bloquea el hilo con `waitFor()` de la misma forma que los juegos, permitiendo que GlobalConsole suspenda sus inputs hasta que el launcher finalice. Sigue permitiendo `closeLauncher()` en caso de cierre forzado.
 - **MelonDSRepositoryImpl:** Une los adaptadores y provee los métodos a los *UseCases* de la capa de dominio respetando Clean Architecture.
 
 ---

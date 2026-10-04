@@ -7,8 +7,8 @@ DuckStation se incorpora siguiendo los principios de Clean Architecture del proy
 
 El modelo de ejecución replica la gestión por procesos nativos utilizada en otros módulos como Heroic Games Launcher o PCSX2 (ver [09_heroic_games_launcher.md](09_heroic_games_launcher.md) y [04_pcsx2.md](04_pcsx2.md)).
 Las fases principales son:
-1. **Lanzamiento:** Invocación del ejecutable de DuckStation de forma nativa enviando los parámetros necesarios (pantalla completa, ruta de ISO, etc.).
-2. **Espera:** Pausado asíncrono con Coroutines hasta que la ventana y el proceso del juego finalicen.
+1. **Lanzamiento:** Invocación del ejecutable de DuckStation de forma nativa enviando los parámetros necesarios (tanto para arrancar la ISO como para arrancar su launcher).
+2. **Espera:** Pausado asíncrono con Coroutines y `Process.waitFor()` hasta que la ventana y el proceso finalicen.
 3. **Retorno de Foco:** Manejo específico para recuperar la UI y devolver el control al gamepad (ver [12_manejo_gamepad_y_foco.md](12_manejo_gamepad_y_foco.md)).
 
 ## Tecnologías Implicadas

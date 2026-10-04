@@ -6,8 +6,8 @@ Este documento describe la integración del emulador Dolphin en GlobalConsole pa
 La integración de Dolphin sigue la misma estructura Clean Architecture definida para el proyecto (ver [01_arquitectura.md](01_arquitectura.md) y [03_modulos.md](03_modulos.md)).
 
 La ejecución se realiza mediante procesos nativos del sistema operativo de manera similar a PCSX2 (ver [04_pcsx2.md](04_pcsx2.md)), asegurando el correcto ciclo de vida:
-1. **Lanzamiento:** Creación de un proceso mediante comandos de consola para invocar a Dolphin.
-2. **Espera:** Se bloquea el hilo con Coroutines para esperar a que el emulador se cierre de forma natural o forzada.
+1. **Lanzamiento:** Creación de un proceso mediante comandos de consola para invocar a Dolphin (tanto para un juego específico como para su launcher independiente).
+2. **Espera:** Se bloquea el hilo con Coroutines (`waitFor()`) para esperar a que el emulador se cierre de forma natural o forzada.
 3. **Retorno:** Devolución limpia del foco a la interfaz principal de GlobalConsole (ver [12_manejo_gamepad_y_foco.md](12_manejo_gamepad_y_foco.md)).
 
 ## Tecnologías Implicadas
