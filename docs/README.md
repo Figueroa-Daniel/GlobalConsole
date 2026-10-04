@@ -25,3 +25,5 @@ Este directorio contiene la documentación técnica oficial del proyecto GlobalC
 17. **[18_azahar_3ds.md](18_azahar_3ds.md)**: Integración con el emulador Azahar (Nintendo 3DS).
 18. **[19_contexto_ia.md](19_contexto_ia.md)**: Archivo de contexto continuo de la IA para mantener la consistencia entre sesiones.
 19. **[20_persistencia_vista.md](20_persistencia_vista.md)**: Persistencia de la configuración de vista (agrupación y posición de launchers).
+
+20. **[21_metro_personalizable.md](21_metro_personalizable.md)**: Tema oscuro, brillos configurables y usabilidad con mando.
