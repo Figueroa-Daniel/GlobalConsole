@@ -11,6 +11,7 @@ data class AppearanceSettings(
     val glowIntensity: Int = 45
 ) {
     companion object {
-        val COLORS = listOf("CYAN", "BLUE", "VIOLET", "PINK", "AMBER", "GREEN")
+        val COLORS = listOf("CYAN", "BLUE", "VIOLET", "PINK", "AMBER", "GREEN",
+            "RED", "CRIMSON", "NAVY", "COBALT", "TEAL", "ORANGE")
     }
 }

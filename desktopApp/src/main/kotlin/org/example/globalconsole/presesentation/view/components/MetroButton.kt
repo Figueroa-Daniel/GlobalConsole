@@ -62,12 +62,12 @@ fun MetroButton(
     val palette = LocalMetroPalette.current
     val isVirtualFocused = (isFocused ?: isComposeFocused) && inputMode == InputMode.GAMEPAD
     val isActive = if (inputMode == InputMode.MOUSE) isHovered else isVirtualFocused
-    val bgColor = if (isActive) palette.accent else if (isPrimary) palette.raised else palette.surface
-    val textColor = if (isActive) palette.background else if (isPrimary) palette.accent else palette.text
+    val bgColor = if (isActive) palette.selection else if (isPrimary) palette.raised else palette.surface
+    val textColor = if (isActive) palette.onSelection else if (isPrimary) palette.accent else palette.text
 
     Box(
         modifier = modifier
-            .defaultMinSize(minHeight = 46.dp)
+            .defaultMinSize(minHeight = MetroLayout.controlHeight)
             .background(bgColor)
             .metroFocus(isActive, palette)
             .hoverable(interactionSource)

@@ -43,12 +43,11 @@ fun ViewSettingsDialog(homeViewModel: HomeViewModel, gamepadManager: GamepadMana
     val palette = LocalMetroPalette.current
     var focusedRow by remember { mutableStateOf(0) }
     val requesters = remember { List(5) { BringIntoViewRequester() } }
-    val colorNames = listOf("Cian", "Azul", "Violeta", "Rosa", "Ámbar", "Verde")
     val labels = listOf("Agrupación", "Emuladores", "Color del brillo", "Intensidad del brillo")
     val values = listOf(
         when (grouping) { GroupingMode.NONE -> "Sin agrupar"; GroupingMode.PLATFORM -> "Por plataforma"; GroupingMode.CONSOLE_SERIES -> "Por familia" },
         if (position == LauncherPosition.TOP) "Arriba del todo" else "Junto a los juegos",
-        colorNames[AppearanceSettings.COLORS.indexOf(appearance.accentColor).coerceAtLeast(0)],
+        metroAccentLabel(appearance.accentColor),
         if (appearance.glowIntensity == 0) "Sin halo · foco visible" else "${appearance.glowIntensity}%"
     )
     val change by rememberUpdatedState<(Int, Int) -> Unit> { row, delta ->
@@ -83,7 +82,7 @@ fun ViewSettingsDialog(homeViewModel: HomeViewModel, gamepadManager: GamepadMana
     }
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Box(Modifier.fillMaxSize().background(palette.background.copy(alpha = .92f)), contentAlignment = Alignment.Center) {
-            Column(Modifier.widthIn(max = 760.dp).fillMaxWidth(.94f).fillMaxHeight(.92f)
+            Column(Modifier.widthIn(max = 760.dp).fillMaxWidth(.94f).heightIn(max = 780.dp).fillMaxHeight(.94f)
                 .background(palette.surface).border(1.dp, palette.accent.copy(alpha = .6f)).padding(24.dp)) {
                 Text("TU BIBLIOTECA, A TU ESTILO", color = palette.accent, fontSize = 13.sp, letterSpacing = 2.sp)
                 Text("Vista y apariencia", color = palette.text, fontSize = 28.sp, fontWeight = FontWeight.Light)
@@ -92,10 +91,13 @@ fun ViewSettingsDialog(homeViewModel: HomeViewModel, gamepadManager: GamepadMana
                 Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     labels.forEachIndexed { index, label ->
                         Column(Modifier.fillMaxWidth().bringIntoViewRequester(requesters[index])
-                            .background(palette.raised).metroFocus(focusedRow == index && inputMode == org.example.globalconsole.presesentation.input.InputMode.GAMEPAD, palette).padding(14.dp)) {
+                            .background(palette.raised).metroFocus(focusedRow == index && inputMode == org.example.globalconsole.presesentation.input.InputMode.GAMEPAD, palette).padding(16.dp)) {
                             Text(label.uppercase(), color = palette.muted, fontSize = 12.sp, letterSpacing = 1.sp)
                             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                 MetroButton("‹", { focusedRow = index; change(index, -1) }, inputMode = inputMode)
+                                if (index == 2) {
+                                    Box(Modifier.size(24.dp).background(palette.selection).border(1.dp, palette.accent))
+                                }
                                 Text(values[index], color = palette.text, fontSize = 18.sp, modifier = Modifier.weight(1f))
                                 MetroButton("›", { focusedRow = index; change(index, 1) }, inputMode = inputMode)
                             }

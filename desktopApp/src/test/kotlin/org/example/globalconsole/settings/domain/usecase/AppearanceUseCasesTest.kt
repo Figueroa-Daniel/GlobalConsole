@@ -71,4 +71,24 @@ class AppearanceUseCasesTest {
             assertEquals(AppearanceSettings("BLUE", 0), GetAppearanceSettingsUseCase(repo)())
         } finally { file.delete() }
     }
+    /**
+     * Los nuevos colores se aceptan y conservan al reiniciar el repositorio.
+     * @return Unit.
+     * @throws Exception Si falla el archivo temporal.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-04
+     */
+    @Test
+    fun expandedPalette_preservesRedAndDeepBlueSelections() = runTest {
+        val file = Files.createTempFile("metro-expanded", ".json").toFile()
+        try {
+            file.writeText("{}")
+            val repo = SettingsRepositoryImpl(file)
+            for (color in listOf("RED", "CRIMSON", "NAVY", "COBALT", "TEAL", "ORANGE")) {
+                val expected = AppearanceSettings(color, 70)
+                SaveAppearanceSettingsUseCase(repo)(expected)
+                assertEquals(expected, GetAppearanceSettingsUseCase(SettingsRepositoryImpl(file))())
+            }
+        } finally { file.delete() }
+    }
 }
