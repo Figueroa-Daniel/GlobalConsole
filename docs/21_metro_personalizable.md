@@ -16,7 +16,7 @@ normalizan valores antiguos/desconocidos y validan la intensidad (0–100).
 `HomeViewModel` expone el estado y los errores de guardado; un tema Compose común
 propaga los colores a toda la aplicación y los diálogos, con vista previa inmediata.
 Los campos JSON son `accentColor` (CYAN, BLUE, VIOLET, PINK, AMBER, GREEN, RED,
-CRIMSON, NAVY, COBALT, TEAL, ORANGE) y
+CRIMSON, NAVY, COBALT, TEAL, ORANGE, ELECTRIC_PURPLE, NEON_PURPLE, ULTRAVIOLET) y
 `glowIntensity` (0–100, 45 por defecto). Un archivo anterior obtiene CYAN/45.
 
 ## 3. Interacción
@@ -65,7 +65,7 @@ y hover de un cursor inmóvil: los botones con selección lógica explícita dan
 prioridad a dicha selección en modo mando; el hover pertenece al modo ratón.
 Se corrigió también la navegación izquierda de Vista y el Intro del OSK.
 
-Resultado final: 89 pruebas superadas (87 de escritorio y 2 compartidas), sin
+Resultado final: 90 pruebas superadas (88 de escritorio y 2 compartidas), sin
 fallos ni omisiones.
 
 Validación reproducible: `./gradlew :desktopApp:test :shared:jvmTest --offline`.
@@ -85,8 +85,8 @@ esto permite usar azul marino real sin perder la legibilidad del foco.
 La composición sigue una escala de espaciado de 4 px: márgenes exteriores de
 24 dp en ventanas compactas y 32 dp en anchas, separación entre tarjetas de
 20 dp y tarjeta mínima de 200 dp. La fórmula de columnas del mando utiliza las
-mismas constantes que la cuadrícula. Los títulos de juegos suben a 16 sp, con
-espacio interior de 20 dp, mientras las etiquetas de plataforma son secundarias.
+mismas constantes que la cuadrícula. Los títulos de juegos utilizan 17 sp y dos líneas reservadas, con
+espacio interior de 16 dp, mientras las etiquetas de plataforma son secundarias.
 La barra alinea buscador y acciones a una altura común de 48 dp. Los diálogos
 mantienen márgenes exteriores e interiores consistentes; Vista tiene altura
 máxima para evitar espacios vacíos excesivos en pantallas grandes y una muestra
@@ -97,8 +97,9 @@ se conserva el encabezado inicial para evitar saltos que rompan la composición.
 Validación: prueba previa de los casos de uso para los nuevos identificadores,
 persistencia de toda la paleta y revisión gráfica de rojo y azul marino en
 1280×800 y 800×600, incluyendo teclado, ajustes y navegación agrupada.
-Los seis nuevos rellenos dan un contraste texto/fondo entre 5,04:1 y 12,04:1;
-los acentos derivados sobre el panel oscuro quedan entre 6,26:1 y 9,07:1.
+Los rellenos seleccionan texto blanco o negro según su luminancia. En la tercera
+revisión, el acento derivado alcanza una luminancia mínima de 0,30 para mantener
+la lectura sobre las superficies oscuras sin desaturar innecesariamente el color.
 
 ## 7. Rediseño Metro neón
 
@@ -122,6 +123,14 @@ columnas calculadas a partir del ancho real y los mismos eventos aislados por
 modal. Las tarjetas reservan altura estable para dos líneas del nombre.
 La validación incluye TDD de persistencia de los tres morados y revisión de la
 interfaz real con imágenes presentes/ausentes y distintas resoluciones.
+
+La revisión final recorrió los tres nuevos morados, rojo y azul marino, los diálogos
+y el teclado a 1280×800 y 800×600. La suite suma 90 pruebas sin fallos ni
+omisiones; el archivo personal de configuración se verificó sin modificaciones.
+
+### 7.1. Un único foco visible
+
+La revisión visual detecta que una tarjeta conserva el foco nativo al subir a la cabecera. La selección visual de las tarjetas debe seguir el índice lógico de la biblioteca y apagarse cuando la cabecera está activa; el sobrevuelo conserva su prioridad en modo ratón. Esto evita mostrar simultáneamente dos destinos para el botón A.
 
 ## 8. Referencias
 
