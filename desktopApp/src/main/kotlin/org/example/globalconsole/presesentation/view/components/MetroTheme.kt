@@ -83,3 +83,22 @@ fun Modifier.metroFocus(active: Boolean, palette: MetroPalette): Modifier =
             }
         }
     }.border(if (active) 2.dp else 1.dp, if (active) palette.accent else palette.border)
+
+/**
+ * Traduce identificadores internos en nombres legibles de plataforma.
+ * @param name Identificador de plataforma o título de grupo.
+ * @return Etiqueta para la interfaz.
+ * @throws Nothing No lanza excepciones.
+ * @author Daniel Figueroa Vidal
+ * @since 2026-10-04
+ */
+fun platformLabel(name: String): String = when (name) {
+    "HEORIC_GAMES_LAUCHER" -> "Heroic"
+    "PCSX2" -> "PlayStation 2"
+    "MELONDS" -> "Nintendo DS"
+    "DOLPHIN" -> "GameCube / Wii"
+    "PS3" -> "PlayStation 3"
+    "AZAHAR" -> "Nintendo 3DS"
+    "DUCKSTATION" -> "PlayStation"
+    else -> name
+}

@@ -43,6 +43,17 @@ private enum class DialogButton {
     CONFIRM
 }
 
+/**
+ * Configura rutas y launchers con foco por mando y aislamiento del selector de carpetas.
+ * @param settingsViewModel Estado y guardado de los ajustes.
+ * @param gamepadManager Entrada nativa del mando.
+ * @param onDismiss Cierra el diálogo.
+ * @param onConfirm Notifica la confirmación de las rutas.
+ * @return Unit.
+ * @throws Nothing No lanza excepciones directamente.
+ * @author Daniel Figueroa Vidal
+ * @since 2026-10-04
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun SetupPathDialog(

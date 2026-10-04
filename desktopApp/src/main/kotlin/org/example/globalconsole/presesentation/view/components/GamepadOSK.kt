@@ -81,7 +81,7 @@ fun GamepadOSK(
     }
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Box(Modifier.fillMaxSize().background(palette.background.copy(alpha = .8f)), contentAlignment = Alignment.BottomCenter) {
-            Column(Modifier.widthIn(max = 1100.dp).fillMaxWidth().fillMaxHeight(.92f)
+            Column(Modifier.widthIn(max = 1100.dp).fillMaxWidth().heightIn(max = 520.dp).fillMaxHeight(.92f)
                 .background(palette.surface).border(1.dp, palette.accent.copy(alpha = .6f)).padding(20.dp)) {
                 Text("BUSCAR EN TU BIBLIOTECA", color = palette.accent, fontSize = 14.sp, letterSpacing = 2.sp)
                 Text(if (state.text.isEmpty()) "Escribe para buscar…" else state.text + "│",
@@ -102,7 +102,8 @@ fun GamepadOSK(
                                     modifier = Modifier.weight(1f).heightIn(min = 48.dp),
                                     isFocused = state.row == rowIndex && state.column == colIndex,
                                     isPrimary = key == "⇧" && state.upperCase,
-                                    inputMode = inputMode
+                                    inputMode = inputMode,
+                                    onHover = { state = state.copy(row = rowIndex, column = colIndex, preferredColumn = if (rowIndex == 4) colIndex * 4 + 1 else colIndex) }
                                 )
                             }
                         }

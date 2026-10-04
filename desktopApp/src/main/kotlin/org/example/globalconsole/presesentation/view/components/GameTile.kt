@@ -71,7 +71,7 @@ fun GameTile(
     // Solo aplicar el brillo de isFocused si el modo de entrada es GAMEPAD.
     // Si es MOUSE, ignoramos el isFocused virtual y usamos solo el hover real del ratón.
     val isVirtualFocused = isFocused && inputMode == org.example.globalconsole.presesentation.input.InputMode.GAMEPAD
-    val isActive = isHovered || isVirtualFocused
+    val isActive = if (inputMode == org.example.globalconsole.presesentation.input.InputMode.MOUSE) isHovered else isVirtualFocused
 
     // Notificar al componente madre cuando este juego obtenga el foco por gamepad
     LaunchedEffect(isFocused) {
@@ -79,19 +79,13 @@ fun GameTile(
     }
 
     // Notificar al componente madre cuando el cursor del ratón entra en este tile (modo MOUSE)
-    LaunchedEffect(isHovered) {
-        if (isHovered) onHover()
+    LaunchedEffect(isHovered, inputMode) {
+        if (isHovered && inputMode == org.example.globalconsole.presesentation.input.InputMode.MOUSE) onHover()
     }
 
     // Animación de escala suave
     val scaleFactor by animateFloatAsState(
         targetValue = if (isActive) 1.03f else 1.0f,
-        animationSpec = tween(durationMillis = 200)
-    )
-
-    // Animación de brillo/glow del borde blanco Metro
-    val borderColor by animateColorAsState(
-        targetValue = if (isActive) palette.accent else palette.border,
         animationSpec = tween(durationMillis = 200)
     )
 
@@ -167,7 +161,7 @@ fun GameTile(
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
-                        colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.85f))
+                        colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.95f))
                     )
                 )
         )
@@ -180,7 +174,9 @@ fun GameTile(
                 .padding(horizontal = 12.dp, vertical = 6.dp)
         ) {
             Text(
-                text = game.platform.name,
+                text = platformLabel(game.platform.name),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 color = palette.accent,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Black,
@@ -209,7 +205,7 @@ fun GameTile(
 
             // Subtexto / Acción interactiva
             Text(
-                text = if (isActive) "A · JUGAR" else "${game.platform.name}",
+                text = if (isActive) "A · ABRIR" else platformLabel(game.platform.name),
                 color = if (isActive) palette.accent else LocalMetroPalette.current.muted,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,

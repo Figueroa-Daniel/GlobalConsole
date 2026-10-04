@@ -33,10 +33,14 @@ import androidx.compose.ui.unit.sp
  *
  * @param text Texto del botón.
  * @param onClick Acción a ejecutar.
- * @param modifier Modificador extra opcional (por defecto usa borde blanco normal y fondo negro/gris oscuro).
- * @param isPrimary Si es true, el botón se ve blanco por defecto (destacado). Si es false, se ve con borde blanco y fondo oscuro.
+ * @param modifier Tamaño y posición del botón.
+ * @param isPrimary Destaca una opción seleccionada sin confundirla con el foco de navegación.
  * @param isFocused Si es true, fuerza el estado visual de foco (útil para navegación por gamepad en diálogos).
  *
+ * @param inputMode Modo activo para distinguir foco lógico y hover.
+ * @param onHover Sincroniza la selección al entrar el cursor.
+ * @return Unit.
+ * @throws Nothing No lanza excepciones.
  * @author Daniel Figueroa Vidal
  * @since 2026-08-09
  */
@@ -46,18 +50,18 @@ fun MetroButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     isPrimary: Boolean = false,
-    isFocused: Boolean = false,
+    isFocused: Boolean? = null,
     inputMode: InputMode = InputMode.GAMEPAD,
     onHover: () -> Unit = {}
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
-    LaunchedEffect(isHovered) { if (isHovered) onHover() }
+    LaunchedEffect(isHovered, inputMode) { if (isHovered && inputMode == InputMode.MOUSE) onHover() }
     val isComposeFocused by interactionSource.collectIsFocusedAsState()
     
     val palette = LocalMetroPalette.current
-    val isVirtualFocused = (isFocused || isComposeFocused) && inputMode == InputMode.GAMEPAD
-    val isActive = isHovered || isVirtualFocused
+    val isVirtualFocused = (isFocused ?: isComposeFocused) && inputMode == InputMode.GAMEPAD
+    val isActive = if (inputMode == InputMode.MOUSE) isHovered else isVirtualFocused
     val bgColor = if (isActive) palette.accent else if (isPrimary) palette.raised else palette.surface
     val textColor = if (isActive) palette.background else if (isPrimary) palette.accent else palette.text
 
@@ -67,7 +71,7 @@ fun MetroButton(
             .background(bgColor)
             .metroFocus(isActive, palette)
             .hoverable(interactionSource)
-                        .clickable(
+            .clickable(
                 interactionSource = interactionSource,
                 indication = null,
                 onClick = onClick
