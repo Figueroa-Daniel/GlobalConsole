@@ -4,6 +4,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.example.globalconsole.config.AppConfig
 import org.example.globalconsole.settings.domain.SettingsRepository
+import org.example.globalconsole.settings.domain.ViewSettings
 import java.io.File
 
 /**
@@ -82,6 +83,32 @@ class SettingsRepositoryImpl : SettingsRepository {
      */
     override suspend fun getMouseSensitivity(): Float =
         readConfig().mouseSensitivity
+
+    /**
+     * Persiste la configuración de vista en `config.json`.
+     *
+     * @param groupingMode Nombre del modo de agrupación.
+     * @param launcherPosition Nombre de la posición de los launchers.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-04
+     */
+    override suspend fun saveViewSettings(groupingMode: String, launcherPosition: String) {
+        val current = readConfig()
+        val updated = current.copy(groupingMode = groupingMode, launcherPosition = launcherPosition)
+        configFile.writeText(json.encodeToString(updated))
+    }
+
+    /**
+     * Recupera la configuración de vista desde `config.json`.
+     *
+     * @return La configuración de vista guardada o sus valores por defecto.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-04
+     */
+    override suspend fun getViewSettings(): ViewSettings {
+        val config = readConfig()
+        return ViewSettings(config.groupingMode, config.launcherPosition)
+    }
 
     /**
      * Lee y deserializa el archivo `config.json` en [AppConfig].

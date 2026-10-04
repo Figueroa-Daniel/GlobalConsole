@@ -45,6 +45,7 @@ Este documento actúa como memoria continua y estado del proyecto para las sesio
   - `SetupPathDialog.kt`: Actualizado con navegación por gamepad (D-Pad entre botones) y conexión al SettingsViewModel.
   - `GameP2FileSystemAdapter.kt`: Refactorizado para obtener la ruta desde `GetEmulatorPathUseCase` (no más variables globales).
   - Módulos Koin actualizados: `DataModule`, `DomainModule`, `PresentationModule`.
+- **Persistencia de la Vista:** Agrupación y posición de launchers se guardan en `config.json` (`GetViewSettingsUseCase` / `SaveViewSettingsUseCase`). Ver [20_persistencia_vista.md](20_persistencia_vista.md).
 - **Estructura de Reglas de Agente:** Migrado a `.agents/rules/` con punto de entrada `AGENTS.md`.
 
 ---

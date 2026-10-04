@@ -12,6 +12,8 @@ import org.example.globalconsole.settings.domain.usecase.GetEmulatorPathUseCase
 import org.example.globalconsole.settings.domain.usecase.GetMouseSensitivityUseCase
 import org.example.globalconsole.settings.domain.usecase.SaveEmulatorPathUseCase
 import org.example.globalconsole.settings.domain.usecase.SaveMouseSensitivityUseCase
+import org.example.globalconsole.settings.domain.usecase.GetViewSettingsUseCase
+import org.example.globalconsole.settings.domain.usecase.SaveViewSettingsUseCase
 import org.koin.dsl.module
 
 val domainModule = module {
@@ -20,6 +22,8 @@ val domainModule = module {
     factory { SaveEmulatorPathUseCase(repository = get()) }
     factory { GetMouseSensitivityUseCase(repository = get()) }
     factory { SaveMouseSensitivityUseCase(repository = get()) }
+    factory { GetViewSettingsUseCase(repository = get()) }
+    factory { SaveViewSettingsUseCase(repository = get()) }
 
     // UseCases de PCSX2
     factory { GetGamesP2UseCase(repository = get()) }
