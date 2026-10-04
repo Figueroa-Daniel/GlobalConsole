@@ -50,4 +50,23 @@ interface SettingsRepository {
      * @since 2026-08-13
      */
     suspend fun getMouseSensitivity(): Float
+
+    /**
+     * Guarda la configuración de vista de la biblioteca.
+     *
+     * @param groupingMode Nombre del modo de agrupación.
+     * @param launcherPosition Nombre de la posición de los launchers.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-04
+     */
+    suspend fun saveViewSettings(groupingMode: String, launcherPosition: String)
+
+    /**
+     * Recupera la configuración de vista guardada.
+     *
+     * @return La configuración de vista o sus valores por defecto.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-04
+     */
+    suspend fun getViewSettings(): ViewSettings
 }
