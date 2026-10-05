@@ -145,8 +145,11 @@ La imagen del launcher PlayStation es una fotografía y ocupa todo el área de
 carátula mediante recorte proporcional centrado. La pantalla de inicio usada para
 los juegos de PlayStation se muestra completa con margen mínimo y fondo negro.
 Los demás logos siguen ajustándose completos. No se modifican archivos de imagen ni preferencias.
-Se revisará Compose a 800×600, 1280×800 y anchura de monitor amplio, junto al
-recorrido existente del teclado y los diálogos. Es un cambio de presentación;
+Revisión completada con Compose a 800×600, 1280×800 y 2544×900: buscador
+limitado, acciones visibles y fotografía de PlayStation ampliada. Buscar, escritura,
+borrado, Recargar, Vista y Ajustes pasaron el recorrido de mando simulado;
+90 pruebas superadas, sin fallos ni omisiones. La configuración personal
+permanece intacta. Es un cambio de presentación;
 no añade lógica de dominio ni pruebas ajenas a los casos de uso.
 
 ## 8. Referencias

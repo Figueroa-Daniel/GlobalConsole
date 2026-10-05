@@ -7,7 +7,7 @@ Este documento actúa como memoria continua y estado del proyecto para las sesio
 ## 📍 1. Estado Actual
 
 ### Implementado
-- **Metro personalizable:** tema oscuro común, quince acentos (incluidos rojo, marino y tres morados neón) y halo 0–100 guardados en `config.json`; editor de vista navegable por filas, teclado español con lógica en UseCase y mejoras de foco en diálogos. Biblioteca con cabecera adaptable, tarjetas verticales, títulos separados e iluminación ambiental regulable; 90 pruebas superadas y revisión gráfica con eventos de mando simulados. Ver [21_metro_personalizable.md](21_metro_personalizable.md).
+- **Metro personalizable:** tema oscuro común, quince acentos (incluidos rojo, marino y tres morados neón) y halo 0–100 guardados en `config.json`; editor de vista navegable por filas, teclado español con lógica en UseCase y mejoras de foco en diálogos. Biblioteca con cabecera adaptable y buscador limitado a 380 dp, acciones planas subrayadas, imagen de PlayStation ampliada, tarjetas verticales, títulos separados e iluminación ambiental regulable; 90 pruebas superadas y revisión gráfica con eventos de mando simulados. Ver [21_metro_personalizable.md](21_metro_personalizable.md).
 - **Estructura del Proyecto:** Módulo multiplataforma `shared` y ejecutable JVM de escritorio `desktopApp`.
 - **Lanzador PCSX2 (Capa de Datos):**
   - `GameP2FileSystemAdapter`: Escaneo local de ISOs de PS2 en base a un directorio raíz y eliminación física de archivos en Windows y Linux.
