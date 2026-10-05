@@ -132,6 +132,23 @@ omisiones; el archivo personal de configuración se verificó sin modificaciones
 
 La revisión visual detecta que una tarjeta conserva el foco nativo al subir a la cabecera. La selección visual de las tarjetas debe seguir el índice lógico de la biblioteca y apagarse cuando la cabecera está activa; el sobrevuelo conserva su prioridad en modo ratón. Esto evita mostrar simultáneamente dos destinos para el botón A.
 
+### 7.2. Cabecera compacta y fotografía de PlayStation
+
+El buscador deja de crecer con todo el ancho del monitor: su grupo tiene un máximo
+de 380 dp y la acción Buscar se integra en el extremo derecho. Recargar, Vista y
+Ajustes utilizan acciones planas con un indicador inferior de selección y texto
+legible, sin cuatro cajas pesadas contiguas. Se conservan los cuatro destinos y
+el orden de navegación del mando, los controles de 48 dp y la edición física.
+En ventanas compactas el buscador ocupa el espacio restante sin desbordarse.
+
+La imagen del launcher PlayStation es una fotografía y ocupa todo el área de
+carátula mediante recorte proporcional centrado. La pantalla de inicio usada para
+los juegos de PlayStation se muestra completa con margen mínimo y fondo negro.
+Los demás logos siguen ajustándose completos. No se modifican archivos de imagen ni preferencias.
+Se revisará Compose a 800×600, 1280×800 y anchura de monitor amplio, junto al
+recorrido existente del teclado y los diálogos. Es un cambio de presentación;
+no añade lógica de dominio ni pruebas ajenas a los casos de uso.
+
 ## 8. Referencias
 
 - [Arquitectura](01_arquitectura.md)
