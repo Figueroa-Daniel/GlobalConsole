@@ -137,9 +137,13 @@ fun GameTile(
                     else -> null
                 }
                 if (defaultImage != null) {
+                    val isConsolePhoto = defaultImage == Res.drawable.playLogo
+                    val isPlayStationScreen = defaultImage == Res.drawable.playLogoGames
                     Image(painter = painterResource(defaultImage), contentDescription = null,
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier.align(Alignment.Center).fillMaxSize(.58f))
+                        contentScale = if (isConsolePhoto) ContentScale.Crop else ContentScale.Fit,
+                        modifier = Modifier.align(Alignment.Center)
+                            .fillMaxSize(if (isConsolePhoto || isPlayStationScreen) 1f else .58f)
+                            .then(if (isPlayStationScreen) Modifier.background(Color.Black).padding(8.dp) else Modifier))
                 }
             }
             Box(Modifier.fillMaxSize().background(Brush.verticalGradient(
