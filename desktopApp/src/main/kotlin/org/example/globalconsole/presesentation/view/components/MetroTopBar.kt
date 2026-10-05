@@ -77,25 +77,32 @@ fun MetroTopBar(
                 modifier = Modifier.padding(top = 4.dp))
         }
         Spacer(Modifier.height(if (compact) 16.dp else 24.dp))
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Box(Modifier.weight(1f).height(MetroLayout.controlHeight)
-                .background(palette.background).border(1.dp, palette.border)
-                .padding(horizontal = 16.dp), contentAlignment = Alignment.CenterStart) {
-                if (searchQuery.isEmpty()) {
-                    Text("Buscar un juego…", color = palette.muted, fontSize = 14.sp)
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val searchWidth = minOf(380.dp, (maxWidth - 312.dp).coerceAtLeast(160.dp))
+            Row(verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                Row(Modifier.width(searchWidth).height(MetroLayout.controlHeight)
+                    .background(palette.surface).border(1.dp,
+                        if (focusedButton == TopBarFocus.SEARCH && inputMode == InputMode.GAMEPAD)
+                            palette.accent else palette.border),
+                    verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.weight(1f).padding(start = 16.dp), contentAlignment = Alignment.CenterStart) {
+                        if (searchQuery.isEmpty()) {
+                            Text("Buscar un juego…", color = palette.muted, fontSize = 14.sp)
+                        }
+                        BasicTextField(
+                            value = searchQuery, onValueChange = onSearchChanged, singleLine = true,
+                            cursorBrush = SolidColor(palette.accent),
+                            textStyle = TextStyle(color = palette.text, fontSize = 14.sp),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                    MetroBarAction("Buscar", onSearchClick, focusedButton == TopBarFocus.SEARCH, inputMode)
                 }
-                BasicTextField(
-                    value = searchQuery, onValueChange = onSearchChanged, singleLine = true,
-                    cursorBrush = SolidColor(palette.accent),
-                    textStyle = TextStyle(color = palette.text, fontSize = 14.sp),
-                    modifier = Modifier.fillMaxWidth()
-                )
+                MetroBarAction("Recargar", onRefreshClick, focusedButton == TopBarFocus.REFRESH, inputMode)
+                MetroBarAction("Vista", onViewClick, focusedButton == TopBarFocus.VIEW, inputMode)
+                MetroBarAction("Ajustes", onSettingsClick, focusedButton == TopBarFocus.SETTINGS, inputMode)
             }
-            MetroButton("BUSCAR", onSearchClick, isFocused = focusedButton == TopBarFocus.SEARCH, inputMode = inputMode)
-            MetroButton("RECARGAR", onRefreshClick, isFocused = focusedButton == TopBarFocus.REFRESH, inputMode = inputMode)
-            MetroButton("VISTA", onViewClick, isFocused = focusedButton == TopBarFocus.VIEW, inputMode = inputMode)
-            MetroButton("AJUSTES", onSettingsClick, isFocused = focusedButton == TopBarFocus.SETTINGS, inputMode = inputMode)
         }
     }
 }
