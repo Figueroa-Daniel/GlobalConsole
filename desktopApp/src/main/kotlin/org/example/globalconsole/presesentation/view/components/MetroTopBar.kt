@@ -2,151 +2,107 @@ package org.example.globalconsole.presesentation.view.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsHoveredAsState
-import androidx.compose.foundation.hoverable
+import org.example.globalconsole.presesentation.input.InputMode
 
+/** Destinos de la barra accesibles por cruceta. @author Daniel Figueroa Vidal */
 enum class TopBarFocus { NONE, SEARCH, REFRESH, VIEW, SETTINGS }
 
 /**
- * Barra de navegación superior estilo Metro.
- * Contiene el título principal de la aplicación, el buscador minimalista y accesos rápidos.
- *
- * @param searchQuery Búsqueda de texto actual.
- * @param onSearchChanged Callback invocado al escribir en el buscador.
- * @param focusedButton Botón actualmente enfocado por el D-pad.
- * @param onSearchClick Callback invocado al pulsar el botón de búsqueda (abre el OSK).
- * @param onRefreshClick Callback invocado al pulsar el botón de recarga.
- * @param onSettingsClick Callback invocado al pulsar el botón de configuración de ruta.
- *
+ * Cabecera Metro con marca, jerarquía de biblioteca y acciones alineadas.
+ * @param searchQuery Búsqueda actual.
+ * @param onSearchChanged Actualiza la búsqueda con teclado físico.
+ * @param focusedButton Acción seleccionada por el mando.
+ * @param inputMode Modo de entrada actual.
+ * @param onSearchClick Abre el teclado virtual.
+ * @param onRefreshClick Recarga los juegos.
+ * @param onViewClick Abre la personalización.
+ * @param onSettingsClick Abre los ajustes.
+ * @param compact Reduce la cabecera en ventanas pequeñas.
+ * @param itemCount Número de elementos visibles.
+ * @param contentMargin Margen compartido con la cuadrícula.
+ * @return Unit.
+ * @throws Nothing No lanza excepciones.
  * @author Daniel Figueroa Vidal
- * @since 2026-08-09
+ * @since 2026-10-04
  */
 @Composable
 fun MetroTopBar(
     searchQuery: String,
     onSearchChanged: (String) -> Unit,
     focusedButton: TopBarFocus = TopBarFocus.NONE,
-    inputMode: org.example.globalconsole.presesentation.input.InputMode = org.example.globalconsole.presesentation.input.InputMode.GAMEPAD,
+    inputMode: InputMode = InputMode.GAMEPAD,
     onSearchClick: () -> Unit,
     onRefreshClick: () -> Unit,
     onViewClick: () -> Unit,
-    onSettingsClick: () -> Unit
+    onSettingsClick: () -> Unit,
+    compact: Boolean = false,
+    itemCount: Int = 0,
+    contentMargin: Dp = MetroLayout.compactMargin
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color(0xFF0F0F0F))
-            .drawBehind {
-                // Dibujar línea inferior
-                drawLine(
-                    color = Color(0xFF222222),
-                    start = Offset(0f, size.height),
-                    end = Offset(size.width, size.height),
-                    strokeWidth = 1.dp.toPx()
-                )
-            }
-            .padding(horizontal = 24.dp, vertical = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Título Estilo Metro
-        Text(
-            text = "GLOBAL // CONSOLE",
-            color = Color.White,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Black,
-            fontFamily = FontFamily.SansSerif,
-            letterSpacing = 1.5.sp,
-            modifier = Modifier.padding(end = 32.dp)
-        )
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        // Caja de búsqueda Metro
-        Row(
-            modifier = Modifier
-                .width(300.dp)
-                .background(Color(0xFF161616))
-                .border(1.dp, Color(0xFF444444), RectangleShape)
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(modifier = Modifier.weight(1f)) {
-                if (searchQuery.isEmpty()) {
-                    Text(
-                        text = "BUSCAR JUEGO...",
-                        color = Color.Gray,
-                        fontSize = 12.sp,
-                        fontFamily = FontFamily.Monospace
-                    )
+    val palette = LocalMetroPalette.current
+    Column(Modifier.fillMaxWidth()
+        .padding(horizontal = contentMargin, vertical = if (compact) 16.dp else 24.dp)) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                repeat(2) { row ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                        repeat(2) { col -> Box(Modifier.size(10.dp).background(
+                            palette.selection.copy(alpha = if (row == col) 1f else .45f))) }
+                    }
                 }
-                BasicTextField(
-                    value = searchQuery,
-                    onValueChange = onSearchChanged,
-                    textStyle = TextStyle(
-                        color = Color.White,
-                        fontSize = 12.sp,
-                        fontFamily = FontFamily.Monospace
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
+            }
+            Spacer(Modifier.width(12.dp))
+            Text("GLOBAL / CONSOLE", color = palette.text, fontSize = 15.sp,
+                fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+            Spacer(Modifier.weight(1f))
+            Text("$itemCount ELEMENTOS", color = palette.accent, fontSize = 11.sp, letterSpacing = 2.sp)
+        }
+        if (!compact) {
+            Spacer(Modifier.height(24.dp))
+            Text("Tu biblioteca.", color = palette.text, fontSize = 40.sp,
+                fontWeight = FontWeight.Light, letterSpacing = (-1).sp)
+            Text("Tus mundos, en un solo lugar", color = palette.muted, fontSize = 14.sp,
+                modifier = Modifier.padding(top = 4.dp))
+        }
+        Spacer(Modifier.height(if (compact) 16.dp else 24.dp))
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val searchWidth = minOf(380.dp, (maxWidth - 312.dp).coerceAtLeast(160.dp))
+            Row(verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                Row(Modifier.width(searchWidth).height(MetroLayout.controlHeight)
+                    .background(palette.surface).border(1.dp,
+                        if (focusedButton == TopBarFocus.SEARCH && inputMode == InputMode.GAMEPAD)
+                            palette.accent else palette.border),
+                    verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.weight(1f).padding(start = 16.dp), contentAlignment = Alignment.CenterStart) {
+                        if (searchQuery.isEmpty()) {
+                            Text("Buscar un juego…", color = palette.muted, fontSize = 14.sp)
+                        }
+                        BasicTextField(
+                            value = searchQuery, onValueChange = onSearchChanged, singleLine = true,
+                            cursorBrush = SolidColor(palette.accent),
+                            textStyle = TextStyle(color = palette.text, fontSize = 14.sp),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                    MetroBarAction("Buscar", onSearchClick, focusedButton == TopBarFocus.SEARCH, inputMode)
+                }
+                MetroBarAction("Recargar", onRefreshClick, focusedButton == TopBarFocus.REFRESH, inputMode)
+                MetroBarAction("Vista", onViewClick, focusedButton == TopBarFocus.VIEW, inputMode)
+                MetroBarAction("Ajustes", onSettingsClick, focusedButton == TopBarFocus.SETTINGS, inputMode)
             }
         }
-
-        Spacer(modifier = Modifier.width(16.dp))
-
-        // Botón Buscar (abre el OSK)
-        MetroButton(
-            text = "BUSCAR",
-            isFocused = focusedButton == TopBarFocus.SEARCH,
-            inputMode = inputMode,
-            onClick = onSearchClick
-        )
-
-        Spacer(modifier = Modifier.width(8.dp))
-
-        // Botón Actualizar
-        MetroButton(
-            text = "RECARGAR",
-            isFocused = focusedButton == TopBarFocus.REFRESH,
-            inputMode = inputMode,
-            onClick = onRefreshClick
-        )
-
-        Spacer(modifier = Modifier.width(8.dp))
-
-        // Botón Vista
-        MetroButton(
-            text = "VISTA",
-            isFocused = focusedButton == TopBarFocus.VIEW,
-            inputMode = inputMode,
-            onClick = onViewClick
-        )
-
-        Spacer(modifier = Modifier.width(8.dp))
-
-        // Botón Ajustes
-        MetroButton(
-            text = "CONFIGURACIÓN",
-            isFocused = focusedButton == TopBarFocus.SETTINGS,
-            inputMode = inputMode,
-            onClick = onSettingsClick
-        )
     }
 }

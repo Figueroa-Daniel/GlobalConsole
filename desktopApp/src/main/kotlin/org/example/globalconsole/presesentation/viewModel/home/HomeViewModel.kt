@@ -1,5 +1,11 @@
 package org.example.globalconsole.presesentation.viewModel.home
 
+import org.example.globalconsole.settings.domain.AppearanceSettings
+import org.example.globalconsole.settings.domain.usecase.GetAppearanceSettingsUseCase
+import org.example.globalconsole.settings.domain.usecase.SaveAppearanceSettingsUseCase
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,6 +43,8 @@ import org.example.globalconsole.PS3Launcher.domain.usecase.ClosePS3LauncherUseC
  * @param findHGLauncherUseCase UseCase para consultar si Heroic debe aparecer en la biblioteca.
  * @param showHGLauncherUseCase UseCase para obtener los datos de Heroic Games Launcher como entidad de dominio.
  * @param getViewSettingsUseCase UseCase opcional para recuperar la configuración de vista guardada.
+ * @param getAppearanceSettingsUseCase Lee la apariencia al iniciar, incluso sin biblioteca configurada.
+ * @param saveAppearanceSettingsUseCase Guarda los ajustes visuales.
  * @param saveViewSettingsUseCase UseCase opcional para persistir la configuración de vista.
  *
  * @author Daniel Figueroa Vidal
@@ -85,7 +93,9 @@ class HomeViewModel(
     private val showDuckStationLauncherUseCase: org.example.globalconsole.duckstation.domain.usecase.ShowDuckStationLauncherUseCase? = null,
     private val deleteGameDuckStationUseCase: org.example.globalconsole.duckstation.domain.usecase.DeleteGameDuckStationUseCase? = null,
     private val getViewSettingsUseCase: org.example.globalconsole.settings.domain.usecase.GetViewSettingsUseCase? = null,
-    private val saveViewSettingsUseCase: org.example.globalconsole.settings.domain.usecase.SaveViewSettingsUseCase? = null
+    private val saveViewSettingsUseCase: org.example.globalconsole.settings.domain.usecase.SaveViewSettingsUseCase? = null,
+    private val getAppearanceSettingsUseCase: GetAppearanceSettingsUseCase? = null,
+    private val saveAppearanceSettingsUseCase: SaveAppearanceSettingsUseCase? = null
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
@@ -113,6 +123,51 @@ class HomeViewModel(
 
     private val _launcherPosition = MutableStateFlow(LauncherPosition.INLINE)
     val launcherPosition: StateFlow<LauncherPosition> = _launcherPosition.asStateFlow()
+
+    private val _appearance = MutableStateFlow(AppearanceSettings())
+    val appearance: StateFlow<AppearanceSettings> = _appearance.asStateFlow()
+    private val _appearanceError = MutableStateFlow<String?>(null)
+    val appearanceError: StateFlow<String?> = _appearanceError.asStateFlow()
+    private val appearanceMutex = Mutex()
+
+    init {
+        viewModelScope.launch {
+            appearanceMutex.withLock {
+                try {
+                    _appearance.value = getAppearanceSettingsUseCase?.invoke() ?: AppearanceSettings()
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    _appearanceError.value = "No se pudo leer la apariencia guardada."
+                }
+            }
+        }
+    }
+
+    /**
+     * Guarda la apariencia y publica el resultado para todas las pantallas.
+     * Serializa cambios rápidos para mantener el orden de escritura.
+     * @param settings Nueva selección visual.
+     * @return Unit.
+     * @throws CancellationException Si se cancela el ViewModel.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-04
+     */
+    fun setAppearance(settings: AppearanceSettings) {
+        _appearance.value = settings
+        viewModelScope.launch {
+            appearanceMutex.withLock {
+                try {
+                    saveAppearanceSettingsUseCase?.invoke(settings)
+                    _appearanceError.value = null
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    _appearanceError.value = "No se pudo guardar. Cambia una opción para reintentar."
+                }
+            }
+        }
+    }
 
     private var viewSettingsLoaded = false
 

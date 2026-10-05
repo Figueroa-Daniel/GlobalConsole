@@ -50,6 +50,7 @@ fun GamepadFolderPickerDialog(
     var currentDir by remember { mutableStateOf(File(initialPath).takeIf { it.exists() } ?: File("/")) }
     var folders by remember { mutableStateOf(emptyList<File>()) }
     var focusedIndex by remember { mutableStateOf(0) }
+    val inputMode by gamepadManager.inputMode.collectAsState()
     val listState = rememberLazyListState()
 
     // Cargar carpetas cuando cambia el directorio actual
@@ -72,7 +73,7 @@ fun GamepadFolderPickerDialog(
     }
 
     // Navegación por Gamepad
-    LaunchedEffect(gamepadManager, folders) {
+    LaunchedEffect(gamepadManager, folders, currentDir) {
         gamepadManager.events.collect { event ->
             when (event) {
                 is GamepadEvent.DirectionPressed -> {
@@ -88,7 +89,7 @@ fun GamepadFolderPickerDialog(
                         }
                         GamepadEvent.Direction.RIGHT -> {
                             if (folders.isNotEmpty()) {
-                                val selected = folders[focusedIndex]
+                                val selected = folders.getOrNull(focusedIndex) ?: return@collect
                                 if (selected.name == "..") {
                                     currentDir.parentFile?.let { currentDir = it }
                                 } else {
@@ -102,7 +103,7 @@ fun GamepadFolderPickerDialog(
                     when (event.button) {
                         GamepadEvent.Button.CONFIRM -> { // Entrar en la carpeta
                             if (folders.isNotEmpty()) {
-                                val selected = folders[focusedIndex]
+                                val selected = folders.getOrNull(focusedIndex) ?: return@collect
                                 if (selected.name == "..") {
                                     currentDir.parentFile?.let { currentDir = it }
                                 } else {
@@ -117,6 +118,7 @@ fun GamepadFolderPickerDialog(
                                 onDismiss()
                             }
                         }
+                        GamepadEvent.Button.DELETE -> onDismiss()
                         GamepadEvent.Button.MENU -> { // Seleccionar la carpeta ACTUAL
                             onDirectorySelected(currentDir.absolutePath)
                         }
@@ -139,10 +141,9 @@ fun GamepadFolderPickerDialog(
         ) {
             Column(
                 modifier = Modifier
-                    .width(600.dp)
+                    .widthIn(max = 860.dp).fillMaxWidth(.94f)
                     .fillMaxHeight(0.8f)
-                    .background(Color(0xFF0F0F0F), RectangleShape)
-                    .border(2.dp, Color.White, RectangleShape)
+                    .metroPanel(LocalMetroPalette.current)
                     .padding(24.dp)
             ) {
                 Text(
@@ -156,8 +157,8 @@ fun GamepadFolderPickerDialog(
 
                 Text(
                     text = "Ruta actual: ${currentDir.absolutePath}",
-                    color = Color(0xFF00FFCC),
-                    fontSize = 12.sp,
+                    color = LocalMetroPalette.current.accent,
+                    fontSize = 14.sp,
                     fontFamily = FontFamily.Monospace,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
@@ -167,33 +168,25 @@ fun GamepadFolderPickerDialog(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxWidth()
-                        .border(1.dp, Color(0xFF333333), RectangleShape)
+                        .border(1.dp, LocalMetroPalette.current.border, RectangleShape)
                 ) {
                     LazyColumn(
                         state = listState,
                         modifier = Modifier.fillMaxSize().padding(8.dp)
                     ) {
                         itemsIndexed(folders) { index, folder ->
-                            val isFocused = index == focusedIndex
-                            val bgColor = if (isFocused) Color(0xFF2A2A2A) else Color.Transparent
-                            val textColor = if (isFocused) Color(0xFF00FFCC) else Color.White
-
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .background(bgColor)
-                                    .padding(vertical = 8.dp, horizontal = 12.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = if (folder.name == "..") "📁 .." else "📁 ${folder.name}",
-                                    color = textColor,
-                                    fontSize = 14.sp,
-                                    fontFamily = FontFamily.SansSerif,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                            }
+                            MetroButton(
+                                text = if (folder.name == "..") "↑  Carpeta superior" else "▸  ${folder.name}",
+                                onClick = {
+                                    focusedIndex = index
+                                    if (folder.name == "..") currentDir.parentFile?.let { currentDir = it }
+                                    else currentDir = folder
+                                },
+                                modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp),
+                                isFocused = index == focusedIndex,
+                                inputMode = inputMode,
+                                onHover = { focusedIndex = index }
+                            )
                         }
                     }
                 }
@@ -201,28 +194,29 @@ fun GamepadFolderPickerDialog(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Controles de ayuda
-                Row(
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
-                        text = "A/Derecha: Entrar | B/Izq: Volver",
-                        color = Color.Gray,
-                        fontSize = 11.sp,
+                        text = "A Entrar · B Subir · X Cancelar",
+                        color = LocalMetroPalette.current.muted,
+                        fontSize = 14.sp,
                         fontFamily = FontFamily.SansSerif
                     )
                     Row {
                         MetroButton(
                             text = "CANCELAR",
+                            inputMode = inputMode,
                             isFocused = false,
                             onClick = onDismiss
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         MetroButton(
                             text = "START: SELECCIONAR AQUÍ",
+                            inputMode = inputMode,
                             isPrimary = true,
-                            isFocused = true,
+                            isFocused = false,
                             onClick = { onDirectorySelected(currentDir.absolutePath) }
                         )
                     }

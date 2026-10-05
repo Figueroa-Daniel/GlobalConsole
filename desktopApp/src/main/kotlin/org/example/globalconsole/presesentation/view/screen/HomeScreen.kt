@@ -1,5 +1,8 @@
 package org.example.globalconsole.presesentation.view.screen
 
+import org.example.globalconsole.presesentation.view.components.MetroLayout
+import org.example.globalconsole.presesentation.view.components.platformLabel
+import org.example.globalconsole.presesentation.view.components.LocalMetroPalette
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -31,6 +34,7 @@ import org.example.globalconsole.generalDomain.entititys.Game
 import org.example.globalconsole.presesentation.view.components.GameTile
 import org.example.globalconsole.presesentation.view.components.GamepadOSK
 import org.example.globalconsole.presesentation.view.components.ImageCropperDialog
+import org.example.globalconsole.presesentation.view.components.metroAtmosphere
 import org.example.globalconsole.presesentation.view.components.MetroTopBar
 import org.example.globalconsole.presesentation.view.components.MetroButton
 import org.example.globalconsole.presesentation.view.components.SetupPathDialog
@@ -109,13 +113,46 @@ fun HomeScreen(
         )
     }
 
-    Box(
+    LaunchedEffect(gamepadManager, uiState, showPathDialog, showOSK, showViewSettings, cropTargetGame != null) {
+        if (uiState !is HomeUiState.Empty && uiState !is HomeUiState.Error) return@LaunchedEffect
+        if (showPathDialog || showOSK || showViewSettings || cropTargetGame != null) return@LaunchedEffect
+        gamepadManager?.events?.collect { event ->
+            when (event) {
+                is GamepadEvent.DirectionPressed -> {
+                    val buttons = listOf(TopBarFocus.SEARCH, TopBarFocus.REFRESH, TopBarFocus.VIEW, TopBarFocus.SETTINGS)
+                    val index = buttons.indexOf(focusedTopBar)
+                    focusedTopBar = when (event.direction) {
+                        GamepadEvent.Direction.UP -> TopBarFocus.SEARCH
+                        GamepadEvent.Direction.DOWN -> TopBarFocus.NONE
+                        GamepadEvent.Direction.LEFT -> buttons[(index - 1).coerceIn(0, 3)]
+                        GamepadEvent.Direction.RIGHT -> buttons[(index + 1).coerceIn(0, 3)]
+                    }
+                }
+                is GamepadEvent.ButtonPressed -> if (event.button == GamepadEvent.Button.CONFIRM) {
+                    when (focusedTopBar) {
+                        TopBarFocus.SEARCH -> showOSK = true
+                        TopBarFocus.REFRESH -> viewModel.loadGames()
+                        TopBarFocus.VIEW -> showViewSettings = true
+                        TopBarFocus.SETTINGS -> showPathDialog = true
+                        TopBarFocus.NONE -> if (uiState is HomeUiState.Empty) showPathDialog = true else viewModel.loadGames()
+                    }
+                }
+            }
+        }
+    }
+
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0A0A0A))
+            .metroAtmosphere(LocalMetroPalette.current)
     ) {
+        val contentMargin = if (maxWidth >= 1100.dp) MetroLayout.wideMargin else MetroLayout.compactMargin
+        val compactHeader = maxWidth < 1000.dp || maxHeight < 700.dp
         Column(modifier = Modifier.fillMaxSize()) {
             MetroTopBar(
+                contentMargin = contentMargin,
+                compact = compactHeader,
+                itemCount = (uiState as? HomeUiState.Success)?.filteredGames?.size ?: 0,
                 searchQuery = searchQuery,
                 onSearchChanged = { viewModel.onSearchQueryChanged(it) },
                 focusedButton = focusedTopBar,
@@ -130,7 +167,7 @@ fun HomeScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .weight(1f)
-                    .padding(24.dp)
+                    .padding(contentMargin)
             ) {
                 when (val state = uiState) {
                     is HomeUiState.Loading -> {
@@ -224,8 +261,18 @@ fun HomeScreen(
                         }
 
                         // Auto-scroll para mantener el juego enfocado a la vista
-                        LaunchedEffect(focusedGameIndex) {
-                            if (state.items.isNotEmpty() && focusedGameIndex in state.items.indices) {
+                        LaunchedEffect(focusedGameIndex, state.items, gridColumns) {
+                            if (focusedGameIndex !in state.items.indices) return@LaunchedEffect
+                            withFrameNanos { }
+                            val layout = gridState.layoutInfo
+                            val visible = layout.visibleItemsInfo.firstOrNull { it.index == focusedGameIndex }
+                            val firstGame = state.items.indexOfFirst {
+                                it is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.GameItem
+                            }
+                            if (focusedGameIndex == firstGame) {
+                                gridState.animateScrollToItem(0)
+                            } else if (visible == null || visible.offset.y < layout.viewportStartOffset ||
+                                visible.offset.y + visible.size.height > layout.viewportEndOffset) {
                                 gridState.animateScrollToItem(focusedGameIndex)
                             }
                         }
@@ -235,7 +282,7 @@ fun HomeScreen(
                         // como keys para que este LaunchedEffect se reinicie y se detenga cuando algún diálogo modal
                         // está abierto, evitando fugas de eventos del mando (Regla #1).
                         LaunchedEffect(
-                            gamepadManager, state.items, gridColumns,
+                            gamepadManager, state.items, gridColumns, inputMode,
                             cropTargetGame != null, showOSK, showPathDialog, showViewSettings
                         ) {
                             // Si algún diálogo está abierto, no procesar eventos aquí (aislamiento de foco)
@@ -244,13 +291,14 @@ fun HomeScreen(
                             gamepadManager?.events?.collectLatest { event ->
                                 when (event) {
                                     is GamepadEvent.DirectionPressed -> {
-                                        if (state.items.isEmpty()) return@collectLatest
+                                        if (state.items.isEmpty() && focusedTopBar == TopBarFocus.NONE) focusedTopBar = TopBarFocus.SEARCH
                                         
                                         if (focusedTopBar != TopBarFocus.NONE) {
                                             when (event.direction) {
                                                 GamepadEvent.Direction.LEFT -> {
                                                     focusedTopBar = when (focusedTopBar) {
-                                                        TopBarFocus.SETTINGS -> TopBarFocus.REFRESH
+                                                        TopBarFocus.SETTINGS -> TopBarFocus.VIEW
+                                                        TopBarFocus.VIEW -> TopBarFocus.REFRESH
                                                         TopBarFocus.REFRESH -> TopBarFocus.SEARCH
                                                         else -> focusedTopBar
                                                     }
@@ -264,7 +312,7 @@ fun HomeScreen(
                                                     }
                                                 }
                                                 GamepadEvent.Direction.DOWN -> {
-                                                    focusedTopBar = TopBarFocus.NONE
+                                                    if (state.items.isNotEmpty()) focusedTopBar = TopBarFocus.NONE
                                                 }
                                                 GamepadEvent.Direction.UP -> {}
                                             }
@@ -346,7 +394,8 @@ fun HomeScreen(
                                                         else -> {}
                                                     }
                                                 } else if (!showPathDialog && !showOSK && !showViewSettings && state.items.isNotEmpty()) {
-                                                    val idx = focusedGameIndex.coerceIn(0, state.items.size - 1)
+                                                    val activeIndex = if (inputMode == org.example.globalconsole.presesentation.input.InputMode.MOUSE) hoveredGameIndex else focusedGameIndex
+                                                    val idx = activeIndex.coerceIn(0, state.items.size - 1)
                                                     val item = state.items.getOrNull(idx)
                                                     if (item is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.GameItem) {
                                                         viewModel.onGameSelected(item.game)
@@ -390,40 +439,47 @@ fun HomeScreen(
                                 .onSizeChanged { size ->
                                     with(density) {
                                         // Misma fórmula que GridCells.Adaptive: (ancho + espaciado) / (mínimo + espaciado)
-                                        val spacingPx = 16.dp.toPx()
-                                        val newCols = ((size.width + spacingPx) / (180.dp.toPx() + spacingPx))
+                                        val spacingPx = MetroLayout.tileGap.toPx()
+                                        val newCols = ((size.width + spacingPx) / (MetroLayout.tileMinimum.toPx() + spacingPx))
                                             .toInt()
                                             .coerceAtLeast(1)
                                         if (newCols != gridColumns) gridColumns = newCols
                                     }
                                 }
                         ) {
+                            if (state.items.isEmpty()) {
+                                Column(Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text("SIN COINCIDENCIAS", color = LocalMetroPalette.current.text, fontSize = 22.sp)
+                                    Text("Vuelve a Buscar para cambiar el texto.", color = LocalMetroPalette.current.muted, fontSize = 16.sp)
+                                }
+                            }
                             LazyVerticalGrid(
-                                columns = GridCells.Adaptive(minSize = 180.dp),
+                                columns = GridCells.Adaptive(minSize = MetroLayout.tileMinimum),
                                 state = gridState,
-                                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                                verticalArrangement = Arrangement.spacedBy(16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(MetroLayout.tileGap),
+                                verticalArrangement = Arrangement.spacedBy(MetroLayout.tileGap),
                                 modifier = Modifier.fillMaxSize()
                             ) {
                                 state.items.forEachIndexed { index, item ->
                                     when (item) {
                                         is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.Header -> {
                                             item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
-                                                Text(
-                                                    text = item.title.uppercase(),
-                                                    color = Color(0xFF00FFCC),
-                                                    fontSize = 20.sp,
-                                                    fontWeight = FontWeight.Black,
-                                                    fontFamily = FontFamily.SansSerif,
-                                                    letterSpacing = 2.sp,
-                                                    modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
-                                                )
+                                                Row(Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 4.dp),
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                                                    Box(Modifier.size(3.dp, 18.dp).background(LocalMetroPalette.current.selection))
+                                                    Text(platformLabel(item.title).uppercase(),
+                                                        color = LocalMetroPalette.current.text, fontSize = 14.sp,
+                                                        fontWeight = FontWeight.SemiBold, letterSpacing = 2.sp)
+                                                    Box(Modifier.weight(1f).height(1.dp).background(LocalMetroPalette.current.border))
+                                                }
                                             }
                                         }
                                         is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.GameItem -> {
                                             item {
                                                 GameTile(
                                                     game = item.game,
+                                                    selected = focusedTopBar == TopBarFocus.NONE && focusedGameIndex == index,
                                                     focusRequester = focusRequesters.getOrNull(index) ?: FocusRequester(),
                                                     inputMode = inputMode,
                                                     onClick = { viewModel.onGameSelected(item.game) },
@@ -457,13 +513,15 @@ fun HomeScreen(
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 text = "No se encontraron juegos en la ruta configurada.",
-                                color = Color.Gray,
-                                fontSize = 12.sp,
+                                color = LocalMetroPalette.current.muted,
+                                fontSize = 14.sp,
                                 fontFamily = FontFamily.SansSerif
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             MetroButton(
                                 text = "CAMBIAR RUTA",
+                                isFocused = focusedTopBar == TopBarFocus.NONE,
+                                inputMode = inputMode,
                                 onClick = { showPathDialog = true },
                                 isPrimary = true
                             )
@@ -486,20 +544,23 @@ fun HomeScreen(
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 text = state.message,
-                                color = Color.Gray,
-                                fontSize = 12.sp,
+                                color = LocalMetroPalette.current.muted,
+                                fontSize = 14.sp,
                                 fontFamily = FontFamily.SansSerif
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             MetroButton(
                                 text = "REINTENTAR",
+                                isFocused = focusedTopBar == TopBarFocus.NONE,
+                                inputMode = inputMode,
                                 onClick = { viewModel.loadGames() }
                             )
                         }
                     }
 
                     is HomeUiState.GameRunning -> {
-                        LaunchedEffect(gamepadManager) {
+                        LaunchedEffect(gamepadManager, showPathDialog, showOSK, showViewSettings, cropTargetGame != null) {
+                            if (showPathDialog || showOSK || showViewSettings || cropTargetGame != null) return@LaunchedEffect
                             gamepadManager?.events?.collectLatest { event ->
                                 if (event is GamepadEvent.ButtonPressed && event.button == GamepadEvent.Button.HOME) {
                                     viewModel.closeActiveGame()
@@ -513,7 +574,7 @@ fun HomeScreen(
                         ) {
                             Text(
                                 text = "JUEGO EN EJECUCIÓN",
-                                color = Color(0xFF00FFCC),
+                                color = LocalMetroPalette.current.accent,
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = FontFamily.Monospace
@@ -528,8 +589,8 @@ fun HomeScreen(
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 text = "El entorno está suspendido. Se reactivará al cerrar el emulador.",
-                                color = Color.Gray,
-                                fontSize = 12.sp,
+                                color = LocalMetroPalette.current.muted,
+                                fontSize = 14.sp,
                                 fontFamily = FontFamily.SansSerif
                             )
                             Spacer(modifier = Modifier.height(32.dp))

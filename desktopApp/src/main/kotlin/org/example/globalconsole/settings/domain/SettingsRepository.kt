@@ -69,4 +69,22 @@ interface SettingsRepository {
      * @since 2026-10-04
      */
     suspend fun getViewSettings(): ViewSettings
+    /**
+     * Lee la apariencia conservando compatibilidad con configuraciones anteriores.
+     * @return Preferencias visuales guardadas.
+     * @throws Exception Si falla la lectura.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-04
+     */
+    suspend fun getAppearanceSettings(): AppearanceSettings
+
+    /**
+     * Guarda la apariencia sin modificar otros ajustes.
+     * @param settings Preferencias visuales.
+     * @return Unit.
+     * @throws Exception Si falla la escritura.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-04
+     */
+    suspend fun saveAppearanceSettings(settings: AppearanceSettings)
 }

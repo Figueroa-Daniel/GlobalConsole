@@ -43,6 +43,10 @@ La carga ocurre antes de construir la primera lista para que la biblioteca apare
 ## 5. Tests
 TDD exclusivo sobre UseCases: `ViewSettingsUseCasesTest` (valores por defecto y persistencia tras guardar) usando `FakeSettingsRepository`.
 
+La apariencia se guarda en el mismo archivo con casos de uso independientes para
+que cambiar la agrupación no sobrescriba los colores o el brillo. Ver
+[Metro personalizable](21_metro_personalizable.md).
+
 ## 6. Referencias cruzadas
 - [01_arquitectura.md](01_arquitectura.md)
 - [08_persistencia_configuracion.md](08_persistencia_configuracion.md)

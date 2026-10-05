@@ -26,23 +26,34 @@ import org.example.globalconsole.presesentation.input.GamepadManager
 import org.example.globalconsole.presesentation.viewModel.settings.SettingsViewModel
 import java.io.File
 
-private enum class DialogButton { 
-    SENSITIVITY_SLIDER, 
-    HEROIC_TOGGLE, 
-    MELONDS_TOGGLE, 
+private enum class DialogButton {
+    SENSITIVITY_SLIDER,
+    HEROIC_TOGGLE,
+    MELONDS_TOGGLE,
     DOLPHIN_TOGGLE,
     PS3_TOGGLE,
     AZAHAR_TOGGLE,
     DUCKSTATION_TOGGLE,
-    PCSX2_BROWSE, 
-    MELONDS_GAMES_BROWSE, 
+    PCSX2_BROWSE,
+    MELONDS_GAMES_BROWSE,
     DOLPHIN_GAMES_BROWSE,
     AZAHAR_GAMES_BROWSE,
     DUCKSTATION_GAMES_BROWSE,
-    CANCEL, 
-    CONFIRM 
+    CANCEL,
+    CONFIRM
 }
 
+/**
+ * Configura rutas y launchers con foco por mando y aislamiento del selector de carpetas.
+ * @param settingsViewModel Estado y guardado de los ajustes.
+ * @param gamepadManager Entrada nativa del mando.
+ * @param onDismiss Cierra el diálogo.
+ * @param onConfirm Notifica la confirmación de las rutas.
+ * @return Unit.
+ * @throws Nothing No lanza excepciones directamente.
+ * @author Daniel Figueroa Vidal
+ * @since 2026-10-04
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun SetupPathDialog(
@@ -69,14 +80,15 @@ fun SetupPathDialog(
     var pathTextDolphinGames by remember(dolphinGamesPathState) { mutableStateOf(dolphinGamesPathState) }
     var pathTextAzaharGames by remember(azaharGamesPathState) { mutableStateOf(azaharGamesPathState) }
     var pathTextDuckStationGames by remember(duckStationGamesPathState) { mutableStateOf(duckStationGamesPathState) }
-    
+
+    val inputMode by gamepadManager.inputMode.collectAsState()
     var errorMessage by remember { mutableStateOf("") }
     var focusedButton by remember { mutableStateOf(DialogButton.CONFIRM) }
     var showFolderPickerFor by remember { mutableStateOf<DialogButton?>(null) }
 
     // Requesters para auto-scroll del gamepad
     val requesters = remember { DialogButton.values().associateWith { BringIntoViewRequester() } }
-    
+
     LaunchedEffect(focusedButton) {
         requesters[focusedButton]?.bringIntoView()
     }
@@ -94,7 +106,7 @@ fun SetupPathDialog(
 
     LaunchedEffect(gamepadManager, showFolderPickerFor) {
         if (showFolderPickerFor != null) return@LaunchedEffect
-        
+
         gamepadManager.events.collect { event ->
             when (event) {
                 is GamepadEvent.DirectionPressed -> {
@@ -106,12 +118,12 @@ fun SetupPathDialog(
                             DialogButton.PS3_TOGGLE -> DialogButton.DOLPHIN_TOGGLE
                             DialogButton.AZAHAR_TOGGLE -> DialogButton.PS3_TOGGLE
                             DialogButton.DUCKSTATION_TOGGLE -> DialogButton.AZAHAR_TOGGLE
-                            
+
                             DialogButton.MELONDS_GAMES_BROWSE -> DialogButton.PCSX2_BROWSE
                             DialogButton.DOLPHIN_GAMES_BROWSE -> DialogButton.MELONDS_GAMES_BROWSE
                             DialogButton.AZAHAR_GAMES_BROWSE -> DialogButton.DOLPHIN_GAMES_BROWSE
                             DialogButton.DUCKSTATION_GAMES_BROWSE -> DialogButton.AZAHAR_GAMES_BROWSE
-                            
+
                             DialogButton.CANCEL -> DialogButton.DUCKSTATION_TOGGLE
                             DialogButton.CONFIRM -> DialogButton.DUCKSTATION_GAMES_BROWSE
                             else -> focusedButton
@@ -124,7 +136,7 @@ fun SetupPathDialog(
                             DialogButton.PS3_TOGGLE -> DialogButton.AZAHAR_TOGGLE
                             DialogButton.AZAHAR_TOGGLE -> DialogButton.DUCKSTATION_TOGGLE
                             DialogButton.DUCKSTATION_TOGGLE -> DialogButton.CANCEL
-                            
+
                             DialogButton.PCSX2_BROWSE -> DialogButton.MELONDS_GAMES_BROWSE
                             DialogButton.MELONDS_GAMES_BROWSE -> DialogButton.DOLPHIN_GAMES_BROWSE
                             DialogButton.DOLPHIN_GAMES_BROWSE -> DialogButton.AZAHAR_GAMES_BROWSE
@@ -210,10 +222,9 @@ fun SetupPathDialog(
         ) {
             Column(
                 modifier = Modifier
-                    .width(850.dp) // Ampliado para dos columnas
+                    .widthIn(max = 980.dp).fillMaxWidth(.94f) // Ampliado para dos columnas
                     .fillMaxHeight(0.9f)
-                    .background(Color(0xFF0F0F0F), RectangleShape)
-                    .border(2.dp, Color.White, RectangleShape)
+                    .metroPanel(LocalMetroPalette.current)
                     .padding(24.dp)
             ) {
                 Text(
@@ -226,7 +237,7 @@ fun SetupPathDialog(
                 )
 
                 val scrollState = rememberScrollState()
-                
+
                 Row(
                     modifier = Modifier
                         .weight(1f)
@@ -237,122 +248,122 @@ fun SetupPathDialog(
                 ) {
                     // COLUMNA IZQUIERDA (Toggles y Sensibilidad)
                     Column(modifier = Modifier.weight(1f)) {
-                        
+
                         // Control Gamepad
-                        val sensitivityBorderColor = if (focusedButton == DialogButton.SENSITIVITY_SLIDER) Color(0xFF00FFCC) else Color(0xFF333333)
+                        val sensitivityBorderColor = if (inputMode == org.example.globalconsole.presesentation.input.InputMode.GAMEPAD && focusedButton == DialogButton.SENSITIVITY_SLIDER) LocalMetroPalette.current.accent else LocalMetroPalette.current.border
                         Column(
-                            modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.SENSITIVITY_SLIDER]!!).border(1.dp, sensitivityBorderColor, RectangleShape).padding(12.dp)
+                            modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.SENSITIVITY_SLIDER]!!).border(1.dp, sensitivityBorderColor, RectangleShape).padding(16.dp)
                         ) {
-                            Text("CONTROL DEL GAMEPAD", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                            Text("Sensibilidad del ratón al usar el stick derecho.", color = Color(0xFFAAAAAA), fontSize = 12.sp)
+                            Text("CONTROL DEL GAMEPAD", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text("Sensibilidad del ratón al usar el stick derecho.", color = LocalMetroPalette.current.muted, fontSize = 14.sp)
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                                Text(String.format("%.0f", mouseSensitivity), color = Color(0xFF00FFCC), fontSize = 14.sp, modifier = Modifier.width(30.dp))
+                                Text(String.format("%.0f", mouseSensitivity), color = LocalMetroPalette.current.accent, fontSize = 14.sp, modifier = Modifier.width(30.dp))
                                 Slider(
                                     value = mouseSensitivity, onValueChange = { settingsViewModel.setMouseSensitivity(it) },
                                     valueRange = 1f..50f, steps = 49, modifier = Modifier.weight(1f),
-                                    colors = SliderDefaults.colors(thumbColor = Color.White, activeTrackColor = Color(0xFF00FFCC), inactiveTrackColor = Color(0xFF333333))
+                                    colors = SliderDefaults.colors(thumbColor = Color.White, activeTrackColor = LocalMetroPalette.current.accent, inactiveTrackColor = LocalMetroPalette.current.border)
                                 )
                             }
                         }
                         Spacer(modifier = Modifier.height(20.dp))
 
                         // Heroic Games
-                        val heroicSectionBorderColor = if (focusedButton == DialogButton.HEROIC_TOGGLE) Color(0xFF00FFCC) else Color(0xFF333333)
+                        val heroicSectionBorderColor = if (inputMode == org.example.globalconsole.presesentation.input.InputMode.GAMEPAD && focusedButton == DialogButton.HEROIC_TOGGLE) LocalMetroPalette.current.accent else LocalMetroPalette.current.border
                         Column(
-                            modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.HEROIC_TOGGLE]!!).border(1.dp, heroicSectionBorderColor, RectangleShape).padding(12.dp)
+                            modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.HEROIC_TOGGLE]!!).border(1.dp, heroicSectionBorderColor, RectangleShape).padding(16.dp)
                         ) {
-                            Text("HEROIC GAMES LAUNCHER", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                            Text("Mostrar Heroic en la biblioteca.", color = Color(0xFFAAAAAA), fontSize = 12.sp)
+                            Text("HEROIC GAMES LAUNCHER", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text("Mostrar Heroic en la biblioteca.", color = LocalMetroPalette.current.muted, fontSize = 14.sp)
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(if (heroicEnabled) "HABILITADO" else "DESHABILITADO", color = if (heroicEnabled) Color(0xFF00FFCC) else Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text(if (heroicEnabled) "HABILITADO" else "DESHABILITADO", color = if (heroicEnabled) LocalMetroPalette.current.accent else LocalMetroPalette.current.muted, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                                 Switch(
                                     checked = heroicEnabled, onCheckedChange = { settingsViewModel.setHeroicEnabled(it) },
-                                    colors = SwitchDefaults.colors(checkedThumbColor = Color.Black, checkedTrackColor = Color(0xFF00FFCC), uncheckedThumbColor = Color.Gray, uncheckedTrackColor = Color(0xFF333333))
+                                    colors = SwitchDefaults.colors(checkedThumbColor = Color.Black, checkedTrackColor = LocalMetroPalette.current.accent, uncheckedThumbColor = LocalMetroPalette.current.muted, uncheckedTrackColor = LocalMetroPalette.current.border)
                                 )
                             }
                         }
                         Spacer(modifier = Modifier.height(20.dp))
 
                         // Melon DS
-                        val melonToggleBorderColor = if (focusedButton == DialogButton.MELONDS_TOGGLE) Color(0xFF00FFCC) else Color(0xFF333333)
+                        val melonToggleBorderColor = if (inputMode == org.example.globalconsole.presesentation.input.InputMode.GAMEPAD && focusedButton == DialogButton.MELONDS_TOGGLE) LocalMetroPalette.current.accent else LocalMetroPalette.current.border
                         Column(
-                            modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.MELONDS_TOGGLE]!!).border(1.dp, melonToggleBorderColor, RectangleShape).padding(12.dp)
+                            modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.MELONDS_TOGGLE]!!).border(1.dp, melonToggleBorderColor, RectangleShape).padding(16.dp)
                         ) {
-                            Text("MELON DS LAUNCHER", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                            Text("Mostrar Melon DS en la biblioteca.", color = Color(0xFFAAAAAA), fontSize = 12.sp)
+                            Text("MELON DS LAUNCHER", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text("Mostrar Melon DS en la biblioteca.", color = LocalMetroPalette.current.muted, fontSize = 14.sp)
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(if (melonDSEnabled) "HABILITADO" else "DESHABILITADO", color = if (melonDSEnabled) Color(0xFF00FFCC) else Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text(if (melonDSEnabled) "HABILITADO" else "DESHABILITADO", color = if (melonDSEnabled) LocalMetroPalette.current.accent else LocalMetroPalette.current.muted, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                                 Switch(
                                     checked = melonDSEnabled, onCheckedChange = { settingsViewModel.setMelonDSEnabled(it) },
-                                    colors = SwitchDefaults.colors(checkedThumbColor = Color.Black, checkedTrackColor = Color(0xFF00FFCC), uncheckedThumbColor = Color.Gray, uncheckedTrackColor = Color(0xFF333333))
+                                    colors = SwitchDefaults.colors(checkedThumbColor = Color.Black, checkedTrackColor = LocalMetroPalette.current.accent, uncheckedThumbColor = LocalMetroPalette.current.muted, uncheckedTrackColor = LocalMetroPalette.current.border)
                                 )
                             }
                         }
                         Spacer(modifier = Modifier.height(20.dp))
 
                         // Dolphin
-                        val dolphinToggleBorderColor = if (focusedButton == DialogButton.DOLPHIN_TOGGLE) Color(0xFF00FFCC) else Color(0xFF333333)
+                        val dolphinToggleBorderColor = if (inputMode == org.example.globalconsole.presesentation.input.InputMode.GAMEPAD && focusedButton == DialogButton.DOLPHIN_TOGGLE) LocalMetroPalette.current.accent else LocalMetroPalette.current.border
                         Column(
-                            modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.DOLPHIN_TOGGLE]!!).border(1.dp, dolphinToggleBorderColor, RectangleShape).padding(12.dp)
+                            modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.DOLPHIN_TOGGLE]!!).border(1.dp, dolphinToggleBorderColor, RectangleShape).padding(16.dp)
                         ) {
-                            Text("DOLPHIN LAUNCHER", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                            Text("Mostrar Dolphin en la biblioteca.", color = Color(0xFFAAAAAA), fontSize = 12.sp)
+                            Text("DOLPHIN LAUNCHER", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text("Mostrar Dolphin en la biblioteca.", color = LocalMetroPalette.current.muted, fontSize = 14.sp)
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(if (dolphinEnabled) "HABILITADO" else "DESHABILITADO", color = if (dolphinEnabled) Color(0xFF00FFCC) else Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text(if (dolphinEnabled) "HABILITADO" else "DESHABILITADO", color = if (dolphinEnabled) LocalMetroPalette.current.accent else LocalMetroPalette.current.muted, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                                 Switch(
                                     checked = dolphinEnabled, onCheckedChange = { settingsViewModel.setDolphinEnabled(it) },
-                                    colors = SwitchDefaults.colors(checkedThumbColor = Color.Black, checkedTrackColor = Color(0xFF00FFCC), uncheckedThumbColor = Color.Gray, uncheckedTrackColor = Color(0xFF333333))
+                                    colors = SwitchDefaults.colors(checkedThumbColor = Color.Black, checkedTrackColor = LocalMetroPalette.current.accent, uncheckedThumbColor = LocalMetroPalette.current.muted, uncheckedTrackColor = LocalMetroPalette.current.border)
                                 )
                             }
                         }
                         Spacer(modifier = Modifier.height(20.dp))
 
                         // PS3
-                        val ps3ToggleBorderColor = if (focusedButton == DialogButton.PS3_TOGGLE) Color(0xFF00FFCC) else Color(0xFF333333)
+                        val ps3ToggleBorderColor = if (inputMode == org.example.globalconsole.presesentation.input.InputMode.GAMEPAD && focusedButton == DialogButton.PS3_TOGGLE) LocalMetroPalette.current.accent else LocalMetroPalette.current.border
                         Column(
-                            modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.PS3_TOGGLE]!!).border(1.dp, ps3ToggleBorderColor, RectangleShape).padding(12.dp)
+                            modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.PS3_TOGGLE]!!).border(1.dp, ps3ToggleBorderColor, RectangleShape).padding(16.dp)
                         ) {
-                            Text("PS3 LAUNCHER (RPCS3)", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                            Text("Mostrar PS3 en la biblioteca.", color = Color(0xFFAAAAAA), fontSize = 12.sp)
+                            Text("PS3 LAUNCHER (RPCS3)", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text("Mostrar PS3 en la biblioteca.", color = LocalMetroPalette.current.muted, fontSize = 14.sp)
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(if (ps3Enabled) "HABILITADO" else "DESHABILITADO", color = if (ps3Enabled) Color(0xFF00FFCC) else Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text(if (ps3Enabled) "HABILITADO" else "DESHABILITADO", color = if (ps3Enabled) LocalMetroPalette.current.accent else LocalMetroPalette.current.muted, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                                 Switch(
                                     checked = ps3Enabled, onCheckedChange = { settingsViewModel.setPs3Enabled(it) },
-                                    colors = SwitchDefaults.colors(checkedThumbColor = Color.Black, checkedTrackColor = Color(0xFF00FFCC), uncheckedThumbColor = Color.Gray, uncheckedTrackColor = Color(0xFF333333))
+                                    colors = SwitchDefaults.colors(checkedThumbColor = Color.Black, checkedTrackColor = LocalMetroPalette.current.accent, uncheckedThumbColor = LocalMetroPalette.current.muted, uncheckedTrackColor = LocalMetroPalette.current.border)
                                 )
                             }
                         }
                         Spacer(modifier = Modifier.height(20.dp))
 
                         // Azahar
-                        val azaharToggleBorderColor = if (focusedButton == DialogButton.AZAHAR_TOGGLE) Color(0xFF00FFCC) else Color(0xFF333333)
+                        val azaharToggleBorderColor = if (inputMode == org.example.globalconsole.presesentation.input.InputMode.GAMEPAD && focusedButton == DialogButton.AZAHAR_TOGGLE) LocalMetroPalette.current.accent else LocalMetroPalette.current.border
                         Column(
-                            modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.AZAHAR_TOGGLE]!!).border(1.dp, azaharToggleBorderColor, RectangleShape).padding(12.dp)
+                            modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.AZAHAR_TOGGLE]!!).border(1.dp, azaharToggleBorderColor, RectangleShape).padding(16.dp)
                         ) {
-                            Text("AZAHAR LAUNCHER (3DS)", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                            Text("Mostrar Azahar en la biblioteca.", color = Color(0xFFAAAAAA), fontSize = 12.sp)
+                            Text("AZAHAR LAUNCHER (3DS)", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text("Mostrar Azahar en la biblioteca.", color = LocalMetroPalette.current.muted, fontSize = 14.sp)
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(if (azaharEnabled) "HABILITADO" else "DESHABILITADO", color = if (azaharEnabled) Color(0xFF00FFCC) else Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text(if (azaharEnabled) "HABILITADO" else "DESHABILITADO", color = if (azaharEnabled) LocalMetroPalette.current.accent else LocalMetroPalette.current.muted, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                                 Switch(
                                     checked = azaharEnabled, onCheckedChange = { settingsViewModel.setAzaharEnabled(it) },
-                                    colors = SwitchDefaults.colors(checkedThumbColor = Color.Black, checkedTrackColor = Color(0xFF00FFCC), uncheckedThumbColor = Color.Gray, uncheckedTrackColor = Color(0xFF333333))
+                                    colors = SwitchDefaults.colors(checkedThumbColor = Color.Black, checkedTrackColor = LocalMetroPalette.current.accent, uncheckedThumbColor = LocalMetroPalette.current.muted, uncheckedTrackColor = LocalMetroPalette.current.border)
                                 )
                             }
                         }
                         Spacer(modifier = Modifier.height(20.dp))
 
                         // DuckStation
-                        val duckStationToggleBorderColor = if (focusedButton == DialogButton.DUCKSTATION_TOGGLE) Color(0xFF00FFCC) else Color(0xFF333333)
+                        val duckStationToggleBorderColor = if (inputMode == org.example.globalconsole.presesentation.input.InputMode.GAMEPAD && focusedButton == DialogButton.DUCKSTATION_TOGGLE) LocalMetroPalette.current.accent else LocalMetroPalette.current.border
                         Column(
-                            modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.DUCKSTATION_TOGGLE]!!).border(1.dp, duckStationToggleBorderColor, RectangleShape).padding(12.dp)
+                            modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.DUCKSTATION_TOGGLE]!!).border(1.dp, duckStationToggleBorderColor, RectangleShape).padding(16.dp)
                         ) {
-                            Text("DUCKSTATION LAUNCHER (PS1)", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                            Text("Mostrar DuckStation en la biblioteca.", color = Color(0xFFAAAAAA), fontSize = 12.sp)
+                            Text("DUCKSTATION LAUNCHER (PS1)", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text("Mostrar DuckStation en la biblioteca.", color = LocalMetroPalette.current.muted, fontSize = 14.sp)
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(if (duckStationEnabled) "HABILITADO" else "DESHABILITADO", color = if (duckStationEnabled) Color(0xFF00FFCC) else Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text(if (duckStationEnabled) "HABILITADO" else "DESHABILITADO", color = if (duckStationEnabled) LocalMetroPalette.current.accent else LocalMetroPalette.current.muted, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                                 Switch(
                                     checked = duckStationEnabled, onCheckedChange = { settingsViewModel.setDuckStationEnabled(it) },
-                                    colors = SwitchDefaults.colors(checkedThumbColor = Color.Black, checkedTrackColor = Color(0xFF00FFCC), uncheckedThumbColor = Color.Gray, uncheckedTrackColor = Color(0xFF333333))
+                                    colors = SwitchDefaults.colors(checkedThumbColor = Color.Black, checkedTrackColor = LocalMetroPalette.current.accent, uncheckedThumbColor = LocalMetroPalette.current.muted, uncheckedTrackColor = LocalMetroPalette.current.border)
                                 )
                             }
                         }
@@ -361,90 +372,90 @@ fun SetupPathDialog(
 
                     // COLUMNA DERECHA (Rutas)
                     Column(modifier = Modifier.weight(1f)) {
-                        
+
                         // PCSX2 Path
                         Column(modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.PCSX2_BROWSE]!!)) {
-                            Text("RUTA DE JUEGOS (PCSX2)", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text("RUTA DE JUEGOS (PCSX2)", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.height(8.dp))
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                                 TextField(
-                                    value = pathTextPcsx2, onValueChange = { pathTextPcsx2 = it }, modifier = Modifier.weight(1f).border(1.dp, Color.Gray, RectangleShape),
-                                    colors = TextFieldDefaults.colors(focusedContainerColor = Color(0xFF161616), unfocusedContainerColor = Color(0xFF161616), disabledContainerColor = Color(0xFF161616), focusedTextColor = Color.White, unfocusedTextColor = Color.White),
+                                    value = pathTextPcsx2, onValueChange = { pathTextPcsx2 = it }, modifier = Modifier.weight(1f).border(1.dp, LocalMetroPalette.current.muted, RectangleShape),
+                                    colors = TextFieldDefaults.colors(focusedContainerColor = LocalMetroPalette.current.surface, unfocusedContainerColor = LocalMetroPalette.current.surface, disabledContainerColor = LocalMetroPalette.current.surface, focusedTextColor = Color.White, unfocusedTextColor = Color.White),
                                     singleLine = true, textStyle = TextStyle(fontSize = 14.sp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                MetroButton(text = "EXAMINAR", isPrimary = focusedButton == DialogButton.PCSX2_BROWSE, isFocused = focusedButton == DialogButton.PCSX2_BROWSE, onClick = { showFolderPickerFor = DialogButton.PCSX2_BROWSE })
+                                MetroButton(inputMode = inputMode, text = "EXAMINAR", isPrimary = focusedButton == DialogButton.PCSX2_BROWSE, isFocused = focusedButton == DialogButton.PCSX2_BROWSE, onClick = { showFolderPickerFor = DialogButton.PCSX2_BROWSE })
                             }
                         }
                         Spacer(modifier = Modifier.height(24.dp))
 
                         // Melon DS Path
                         Column(modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.MELONDS_GAMES_BROWSE]!!)) {
-                            Text("RUTA DE JUEGOS (MELON DS)", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text("RUTA DE JUEGOS (MELON DS)", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.height(8.dp))
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                                 TextField(
-                                    value = pathTextMelonGames, onValueChange = { pathTextMelonGames = it }, modifier = Modifier.weight(1f).border(1.dp, Color.Gray, RectangleShape),
-                                    colors = TextFieldDefaults.colors(focusedContainerColor = Color(0xFF161616), unfocusedContainerColor = Color(0xFF161616), disabledContainerColor = Color(0xFF161616), focusedTextColor = Color.White, unfocusedTextColor = Color.White),
+                                    value = pathTextMelonGames, onValueChange = { pathTextMelonGames = it }, modifier = Modifier.weight(1f).border(1.dp, LocalMetroPalette.current.muted, RectangleShape),
+                                    colors = TextFieldDefaults.colors(focusedContainerColor = LocalMetroPalette.current.surface, unfocusedContainerColor = LocalMetroPalette.current.surface, disabledContainerColor = LocalMetroPalette.current.surface, focusedTextColor = Color.White, unfocusedTextColor = Color.White),
                                     singleLine = true, textStyle = TextStyle(fontSize = 14.sp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                MetroButton(text = "EXAMINAR", isPrimary = focusedButton == DialogButton.MELONDS_GAMES_BROWSE, isFocused = focusedButton == DialogButton.MELONDS_GAMES_BROWSE, onClick = { showFolderPickerFor = DialogButton.MELONDS_GAMES_BROWSE })
+                                MetroButton(inputMode = inputMode, text = "EXAMINAR", isPrimary = focusedButton == DialogButton.MELONDS_GAMES_BROWSE, isFocused = focusedButton == DialogButton.MELONDS_GAMES_BROWSE, onClick = { showFolderPickerFor = DialogButton.MELONDS_GAMES_BROWSE })
                             }
                         }
                         Spacer(modifier = Modifier.height(24.dp))
 
                         // Dolphin Path
                         Column(modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.DOLPHIN_GAMES_BROWSE]!!)) {
-                            Text("RUTA DE JUEGOS (DOLPHIN)", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text("RUTA DE JUEGOS (DOLPHIN)", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.height(8.dp))
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                                 TextField(
-                                    value = pathTextDolphinGames, onValueChange = { pathTextDolphinGames = it }, modifier = Modifier.weight(1f).border(1.dp, Color.Gray, RectangleShape),
-                                    colors = TextFieldDefaults.colors(focusedContainerColor = Color(0xFF161616), unfocusedContainerColor = Color(0xFF161616), disabledContainerColor = Color(0xFF161616), focusedTextColor = Color.White, unfocusedTextColor = Color.White),
+                                    value = pathTextDolphinGames, onValueChange = { pathTextDolphinGames = it }, modifier = Modifier.weight(1f).border(1.dp, LocalMetroPalette.current.muted, RectangleShape),
+                                    colors = TextFieldDefaults.colors(focusedContainerColor = LocalMetroPalette.current.surface, unfocusedContainerColor = LocalMetroPalette.current.surface, disabledContainerColor = LocalMetroPalette.current.surface, focusedTextColor = Color.White, unfocusedTextColor = Color.White),
                                     singleLine = true, textStyle = TextStyle(fontSize = 14.sp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                MetroButton(text = "EXAMINAR", isPrimary = focusedButton == DialogButton.DOLPHIN_GAMES_BROWSE, isFocused = focusedButton == DialogButton.DOLPHIN_GAMES_BROWSE, onClick = { showFolderPickerFor = DialogButton.DOLPHIN_GAMES_BROWSE })
+                                MetroButton(inputMode = inputMode, text = "EXAMINAR", isPrimary = focusedButton == DialogButton.DOLPHIN_GAMES_BROWSE, isFocused = focusedButton == DialogButton.DOLPHIN_GAMES_BROWSE, onClick = { showFolderPickerFor = DialogButton.DOLPHIN_GAMES_BROWSE })
                             }
                         }
                         Spacer(modifier = Modifier.height(24.dp))
-                        
+
                         // Azahar Path
                         Column(modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.AZAHAR_GAMES_BROWSE]!!)) {
-                            Text("RUTA DE JUEGOS (AZAHAR 3DS)", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text("RUTA DE JUEGOS (AZAHAR 3DS)", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.height(8.dp))
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                                 TextField(
-                                    value = pathTextAzaharGames, onValueChange = { pathTextAzaharGames = it }, modifier = Modifier.weight(1f).border(1.dp, Color.Gray, RectangleShape),
-                                    colors = TextFieldDefaults.colors(focusedContainerColor = Color(0xFF161616), unfocusedContainerColor = Color(0xFF161616), disabledContainerColor = Color(0xFF161616), focusedTextColor = Color.White, unfocusedTextColor = Color.White),
+                                    value = pathTextAzaharGames, onValueChange = { pathTextAzaharGames = it }, modifier = Modifier.weight(1f).border(1.dp, LocalMetroPalette.current.muted, RectangleShape),
+                                    colors = TextFieldDefaults.colors(focusedContainerColor = LocalMetroPalette.current.surface, unfocusedContainerColor = LocalMetroPalette.current.surface, disabledContainerColor = LocalMetroPalette.current.surface, focusedTextColor = Color.White, unfocusedTextColor = Color.White),
                                     singleLine = true, textStyle = TextStyle(fontSize = 14.sp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                MetroButton(text = "EXAMINAR", isPrimary = focusedButton == DialogButton.AZAHAR_GAMES_BROWSE, isFocused = focusedButton == DialogButton.AZAHAR_GAMES_BROWSE, onClick = { showFolderPickerFor = DialogButton.AZAHAR_GAMES_BROWSE })
+                                MetroButton(inputMode = inputMode, text = "EXAMINAR", isPrimary = focusedButton == DialogButton.AZAHAR_GAMES_BROWSE, isFocused = focusedButton == DialogButton.AZAHAR_GAMES_BROWSE, onClick = { showFolderPickerFor = DialogButton.AZAHAR_GAMES_BROWSE })
                             }
                         }
                         Spacer(modifier = Modifier.height(24.dp))
 
                         // DuckStation Path
                         Column(modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.DUCKSTATION_GAMES_BROWSE]!!)) {
-                            Text("RUTA DE JUEGOS (DUCKSTATION PS1)", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text("RUTA DE JUEGOS (DUCKSTATION PS1)", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.height(8.dp))
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                                 TextField(
-                                    value = pathTextDuckStationGames, onValueChange = { pathTextDuckStationGames = it }, modifier = Modifier.weight(1f).border(1.dp, Color.Gray, RectangleShape),
-                                    colors = TextFieldDefaults.colors(focusedContainerColor = Color(0xFF161616), unfocusedContainerColor = Color(0xFF161616), disabledContainerColor = Color(0xFF161616), focusedTextColor = Color.White, unfocusedTextColor = Color.White),
+                                    value = pathTextDuckStationGames, onValueChange = { pathTextDuckStationGames = it }, modifier = Modifier.weight(1f).border(1.dp, LocalMetroPalette.current.muted, RectangleShape),
+                                    colors = TextFieldDefaults.colors(focusedContainerColor = LocalMetroPalette.current.surface, unfocusedContainerColor = LocalMetroPalette.current.surface, disabledContainerColor = LocalMetroPalette.current.surface, focusedTextColor = Color.White, unfocusedTextColor = Color.White),
                                     singleLine = true, textStyle = TextStyle(fontSize = 14.sp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                MetroButton(text = "EXAMINAR", isPrimary = focusedButton == DialogButton.DUCKSTATION_GAMES_BROWSE, isFocused = focusedButton == DialogButton.DUCKSTATION_GAMES_BROWSE, onClick = { showFolderPickerFor = DialogButton.DUCKSTATION_GAMES_BROWSE })
+                                MetroButton(inputMode = inputMode, text = "EXAMINAR", isPrimary = focusedButton == DialogButton.DUCKSTATION_GAMES_BROWSE, isFocused = focusedButton == DialogButton.DUCKSTATION_GAMES_BROWSE, onClick = { showFolderPickerFor = DialogButton.DUCKSTATION_GAMES_BROWSE })
                             }
                         }
                     }
                 }
 
                 if (errorMessage.isNotEmpty()) {
-                    Text(text = errorMessage, color = Color.Red, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
+                    Text(text = errorMessage, color = Color.Red, fontSize = 14.sp, modifier = Modifier.padding(top = 8.dp))
                 }
                 Spacer(modifier = Modifier.height(24.dp))
                 Row(
@@ -454,9 +465,9 @@ fun SetupPathDialog(
                         .bringIntoViewRequester(requesters[DialogButton.CONFIRM]!!),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    MetroButton(text = "CANCELAR", isFocused = focusedButton == DialogButton.CANCEL, onClick = onDismiss)
+                    MetroButton(inputMode = inputMode, text = "CANCELAR", isFocused = focusedButton == DialogButton.CANCEL, onClick = onDismiss)
                     Spacer(modifier = Modifier.width(16.dp))
-                    MetroButton(
+                    MetroButton(inputMode = inputMode,
                         text = "GUARDAR", isPrimary = true, isFocused = focusedButton == DialogButton.CONFIRM,
                         onClick = {
                             settingsViewModel.savePath("pcsx2", pathTextPcsx2)
@@ -482,7 +493,7 @@ fun SetupPathDialog(
             else -> ""
         }
         val safeInitial = if (initialPath.isNotBlank() && File(initialPath).exists()) initialPath else System.getProperty("user.home")
-        
+
         GamepadFolderPickerDialog(
             gamepadManager = gamepadManager,
             initialPath = safeInitial,
