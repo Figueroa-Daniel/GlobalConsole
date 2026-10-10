@@ -29,13 +29,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.jetbrains.compose.resources.stringResource
+import globalconsole.shared.generated.resources.Res
 import org.example.globalconsole.generalDomain.entititys.Game
 import org.example.globalconsole.generalDomain.entititys.Platforms
 import coil3.compose.AsyncImage
 import androidx.compose.foundation.Image
 import androidx.compose.ui.layout.ContentScale
 import org.jetbrains.compose.resources.painterResource
-import globalconsole.shared.generated.resources.Res
 import globalconsole.shared.generated.resources.*
 import java.io.File
 
@@ -104,7 +105,7 @@ fun GameTile(
             .background(Brush.linearGradient(listOf(palette.raised, palette.background)))) {
             val imagePath = game.image
             if (imagePath != null && File(imagePath).exists()) {
-                AsyncImage(model = File(imagePath), contentDescription = "Carátula de ${game.name}",
+                AsyncImage(model = File(imagePath), contentDescription = stringResource(Res.string.game_cover_description, game.name),
                     contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
             } else {
                 Box(Modifier.fillMaxSize().drawBehind {
@@ -163,7 +164,7 @@ fun GameTile(
                 modifier = Modifier.height(44.dp))
             Spacer(Modifier.height(12.dp))
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text(if (isActive) "ABRIR" else platformLabel(game.platform.name),
+                Text(if (isActive) stringResource(Res.string.action_open) else platformLabel(game.platform.name),
                     color = if (isActive) palette.accent else palette.muted,
                     fontSize = 11.sp, letterSpacing = if (isActive) 1.5.sp else 0.sp,
                     maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))

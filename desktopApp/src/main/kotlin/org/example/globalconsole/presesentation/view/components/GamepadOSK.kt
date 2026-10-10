@@ -17,6 +17,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import org.jetbrains.compose.resources.stringResource
+import globalconsole.shared.generated.resources.*
 import org.example.globalconsole.input.domain.usecase.KeyboardAction
 import org.example.globalconsole.input.domain.usecase.KeyboardInputUseCase
 import org.example.globalconsole.input.domain.usecase.KeyboardState
@@ -83,8 +85,8 @@ fun GamepadOSK(
         Box(Modifier.fillMaxSize().background(palette.background.copy(alpha = .8f)).padding(16.dp), contentAlignment = Alignment.BottomCenter) {
             Column(Modifier.widthIn(max = 1100.dp).fillMaxWidth().heightIn(max = 520.dp).fillMaxHeight(.92f)
                 .metroPanel(palette).padding(20.dp)) {
-                Text("BUSCAR EN TU BIBLIOTECA", color = palette.accent, fontSize = 14.sp, letterSpacing = 2.sp)
-                Text(if (state.text.isEmpty()) "Escribe para buscar…" else state.text + "│",
+                Text(stringResource(Res.string.osk_title), color = palette.accent, fontSize = 14.sp, letterSpacing = 2.sp)
+                Text(if (state.text.isEmpty()) stringResource(Res.string.osk_placeholder) else state.text + "│",
                     color = if (state.text.isEmpty()) palette.muted else palette.text,
                     fontSize = 24.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.fillMaxWidth().padding(vertical = 14.dp).background(palette.raised).padding(12.dp))
@@ -93,7 +95,7 @@ fun GamepadOSK(
                         Row(Modifier.fillMaxWidth().bringIntoViewRequester(requesters[rowIndex]), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             row.forEachIndexed { colIndex, key ->
                                 MetroButton(
-                                    text = if (key == "↵") "BUSCAR ↵" else key,
+                                    text = if (key == "↵") stringResource(Res.string.osk_submit) else key,
                                     onClick = {
                                         state = state.copy(row = rowIndex, column = colIndex,
                                             preferredColumn = if (rowIndex == 4) colIndex * 4 + 1 else colIndex)
@@ -109,7 +111,7 @@ fun GamepadOSK(
                         }
                     }
                 }
-                Text("A Escribir   ·   X Borrar   ·   Y Mayúsculas   ·   START Buscar   ·   B Cerrar",
+                Text(stringResource(Res.string.osk_controls),
                     color = palette.muted, fontSize = 14.sp, modifier = Modifier.padding(top = 16.dp))
             }
         }

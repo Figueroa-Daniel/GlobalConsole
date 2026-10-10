@@ -21,6 +21,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import org.jetbrains.compose.resources.stringResource
+import globalconsole.shared.generated.resources.*
 import org.example.globalconsole.presesentation.input.GamepadEvent
 import org.example.globalconsole.presesentation.input.GamepadManager
 import org.example.globalconsole.presesentation.viewModel.settings.SettingsViewModel
@@ -228,7 +230,7 @@ fun SetupPathDialog(
                     .padding(24.dp)
             ) {
                 Text(
-                    text = "CONFIGURACIÓN",
+                    text = stringResource(Res.string.setup_title),
                     color = Color.White,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
@@ -254,8 +256,8 @@ fun SetupPathDialog(
                         Column(
                             modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.SENSITIVITY_SLIDER]!!).border(1.dp, sensitivityBorderColor, RectangleShape).padding(16.dp)
                         ) {
-                            Text("CONTROL DEL GAMEPAD", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                            Text("Sensibilidad del ratón al usar el stick derecho.", color = LocalMetroPalette.current.muted, fontSize = 14.sp)
+                            Text(stringResource(Res.string.setup_gamepad_controls), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text(stringResource(Res.string.setup_mouse_sensitivity), color = LocalMetroPalette.current.muted, fontSize = 14.sp)
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                                 Text(String.format("%.0f", mouseSensitivity), color = LocalMetroPalette.current.accent, fontSize = 14.sp, modifier = Modifier.width(30.dp))
                                 Slider(
@@ -272,10 +274,10 @@ fun SetupPathDialog(
                         Column(
                             modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.HEROIC_TOGGLE]!!).border(1.dp, heroicSectionBorderColor, RectangleShape).padding(16.dp)
                         ) {
-                            Text("HEROIC GAMES LAUNCHER", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                            Text("Mostrar Heroic en la biblioteca.", color = LocalMetroPalette.current.muted, fontSize = 14.sp)
+                            Text(stringResource(Res.string.setup_heroic_title), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text(stringResource(Res.string.setup_heroic_description), color = LocalMetroPalette.current.muted, fontSize = 14.sp)
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(if (heroicEnabled) "HABILITADO" else "DESHABILITADO", color = if (heroicEnabled) LocalMetroPalette.current.accent else LocalMetroPalette.current.muted, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                                Text(stringResource(if (heroicEnabled) Res.string.status_enabled else Res.string.status_disabled), color = if (heroicEnabled) LocalMetroPalette.current.accent else LocalMetroPalette.current.muted, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                                 Switch(
                                     checked = heroicEnabled, onCheckedChange = { settingsViewModel.setHeroicEnabled(it) },
                                     colors = SwitchDefaults.colors(checkedThumbColor = Color.Black, checkedTrackColor = LocalMetroPalette.current.accent, uncheckedThumbColor = LocalMetroPalette.current.muted, uncheckedTrackColor = LocalMetroPalette.current.border)
@@ -289,10 +291,10 @@ fun SetupPathDialog(
                         Column(
                             modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.MELONDS_TOGGLE]!!).border(1.dp, melonToggleBorderColor, RectangleShape).padding(16.dp)
                         ) {
-                            Text("MELON DS LAUNCHER", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                            Text("Mostrar Melon DS en la biblioteca.", color = LocalMetroPalette.current.muted, fontSize = 14.sp)
+                            Text(stringResource(Res.string.setup_melonds_title), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text(stringResource(Res.string.setup_melonds_description), color = LocalMetroPalette.current.muted, fontSize = 14.sp)
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(if (melonDSEnabled) "HABILITADO" else "DESHABILITADO", color = if (melonDSEnabled) LocalMetroPalette.current.accent else LocalMetroPalette.current.muted, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                                Text(stringResource(if (melonDSEnabled) Res.string.status_enabled else Res.string.status_disabled), color = if (melonDSEnabled) LocalMetroPalette.current.accent else LocalMetroPalette.current.muted, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                                 Switch(
                                     checked = melonDSEnabled, onCheckedChange = { settingsViewModel.setMelonDSEnabled(it) },
                                     colors = SwitchDefaults.colors(checkedThumbColor = Color.Black, checkedTrackColor = LocalMetroPalette.current.accent, uncheckedThumbColor = LocalMetroPalette.current.muted, uncheckedTrackColor = LocalMetroPalette.current.border)
@@ -306,10 +308,10 @@ fun SetupPathDialog(
                         Column(
                             modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.DOLPHIN_TOGGLE]!!).border(1.dp, dolphinToggleBorderColor, RectangleShape).padding(16.dp)
                         ) {
-                            Text("DOLPHIN LAUNCHER", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                            Text("Mostrar Dolphin en la biblioteca.", color = LocalMetroPalette.current.muted, fontSize = 14.sp)
+                            Text(stringResource(Res.string.setup_dolphin_title), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text(stringResource(Res.string.setup_dolphin_description), color = LocalMetroPalette.current.muted, fontSize = 14.sp)
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(if (dolphinEnabled) "HABILITADO" else "DESHABILITADO", color = if (dolphinEnabled) LocalMetroPalette.current.accent else LocalMetroPalette.current.muted, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                                Text(stringResource(if (dolphinEnabled) Res.string.status_enabled else Res.string.status_disabled), color = if (dolphinEnabled) LocalMetroPalette.current.accent else LocalMetroPalette.current.muted, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                                 Switch(
                                     checked = dolphinEnabled, onCheckedChange = { settingsViewModel.setDolphinEnabled(it) },
                                     colors = SwitchDefaults.colors(checkedThumbColor = Color.Black, checkedTrackColor = LocalMetroPalette.current.accent, uncheckedThumbColor = LocalMetroPalette.current.muted, uncheckedTrackColor = LocalMetroPalette.current.border)
@@ -323,10 +325,10 @@ fun SetupPathDialog(
                         Column(
                             modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.PS3_TOGGLE]!!).border(1.dp, ps3ToggleBorderColor, RectangleShape).padding(16.dp)
                         ) {
-                            Text("PS3 LAUNCHER (RPCS3)", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                            Text("Mostrar PS3 en la biblioteca.", color = LocalMetroPalette.current.muted, fontSize = 14.sp)
+                            Text(stringResource(Res.string.setup_ps3_title), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text(stringResource(Res.string.setup_ps3_description), color = LocalMetroPalette.current.muted, fontSize = 14.sp)
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(if (ps3Enabled) "HABILITADO" else "DESHABILITADO", color = if (ps3Enabled) LocalMetroPalette.current.accent else LocalMetroPalette.current.muted, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                                Text(stringResource(if (ps3Enabled) Res.string.status_enabled else Res.string.status_disabled), color = if (ps3Enabled) LocalMetroPalette.current.accent else LocalMetroPalette.current.muted, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                                 Switch(
                                     checked = ps3Enabled, onCheckedChange = { settingsViewModel.setPs3Enabled(it) },
                                     colors = SwitchDefaults.colors(checkedThumbColor = Color.Black, checkedTrackColor = LocalMetroPalette.current.accent, uncheckedThumbColor = LocalMetroPalette.current.muted, uncheckedTrackColor = LocalMetroPalette.current.border)
@@ -340,10 +342,10 @@ fun SetupPathDialog(
                         Column(
                             modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.AZAHAR_TOGGLE]!!).border(1.dp, azaharToggleBorderColor, RectangleShape).padding(16.dp)
                         ) {
-                            Text("AZAHAR LAUNCHER (3DS)", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                            Text("Mostrar Azahar en la biblioteca.", color = LocalMetroPalette.current.muted, fontSize = 14.sp)
+                            Text(stringResource(Res.string.setup_azahar_title), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text(stringResource(Res.string.setup_azahar_description), color = LocalMetroPalette.current.muted, fontSize = 14.sp)
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(if (azaharEnabled) "HABILITADO" else "DESHABILITADO", color = if (azaharEnabled) LocalMetroPalette.current.accent else LocalMetroPalette.current.muted, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                                Text(stringResource(if (azaharEnabled) Res.string.status_enabled else Res.string.status_disabled), color = if (azaharEnabled) LocalMetroPalette.current.accent else LocalMetroPalette.current.muted, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                                 Switch(
                                     checked = azaharEnabled, onCheckedChange = { settingsViewModel.setAzaharEnabled(it) },
                                     colors = SwitchDefaults.colors(checkedThumbColor = Color.Black, checkedTrackColor = LocalMetroPalette.current.accent, uncheckedThumbColor = LocalMetroPalette.current.muted, uncheckedTrackColor = LocalMetroPalette.current.border)
@@ -357,10 +359,10 @@ fun SetupPathDialog(
                         Column(
                             modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.DUCKSTATION_TOGGLE]!!).border(1.dp, duckStationToggleBorderColor, RectangleShape).padding(16.dp)
                         ) {
-                            Text("DUCKSTATION LAUNCHER (PS1)", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                            Text("Mostrar DuckStation en la biblioteca.", color = LocalMetroPalette.current.muted, fontSize = 14.sp)
+                            Text(stringResource(Res.string.setup_duckstation_title), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text(stringResource(Res.string.setup_duckstation_description), color = LocalMetroPalette.current.muted, fontSize = 14.sp)
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(if (duckStationEnabled) "HABILITADO" else "DESHABILITADO", color = if (duckStationEnabled) LocalMetroPalette.current.accent else LocalMetroPalette.current.muted, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                                Text(stringResource(if (duckStationEnabled) Res.string.status_enabled else Res.string.status_disabled), color = if (duckStationEnabled) LocalMetroPalette.current.accent else LocalMetroPalette.current.muted, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                                 Switch(
                                     checked = duckStationEnabled, onCheckedChange = { settingsViewModel.setDuckStationEnabled(it) },
                                     colors = SwitchDefaults.colors(checkedThumbColor = Color.Black, checkedTrackColor = LocalMetroPalette.current.accent, uncheckedThumbColor = LocalMetroPalette.current.muted, uncheckedTrackColor = LocalMetroPalette.current.border)
@@ -375,7 +377,7 @@ fun SetupPathDialog(
 
                         // PCSX2 Path
                         Column(modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.PCSX2_BROWSE]!!)) {
-                            Text("RUTA DE JUEGOS (PCSX2)", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text(stringResource(Res.string.setup_path_pcsx2), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.height(8.dp))
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                                 TextField(
@@ -384,14 +386,14 @@ fun SetupPathDialog(
                                     singleLine = true, textStyle = TextStyle(fontSize = 14.sp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                MetroButton(inputMode = inputMode, text = "EXAMINAR", isPrimary = focusedButton == DialogButton.PCSX2_BROWSE, isFocused = focusedButton == DialogButton.PCSX2_BROWSE, onClick = { showFolderPickerFor = DialogButton.PCSX2_BROWSE })
+                                MetroButton(inputMode = inputMode, text = stringResource(Res.string.action_browse), isPrimary = focusedButton == DialogButton.PCSX2_BROWSE, isFocused = focusedButton == DialogButton.PCSX2_BROWSE, onClick = { showFolderPickerFor = DialogButton.PCSX2_BROWSE })
                             }
                         }
                         Spacer(modifier = Modifier.height(24.dp))
 
                         // Melon DS Path
                         Column(modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.MELONDS_GAMES_BROWSE]!!)) {
-                            Text("RUTA DE JUEGOS (MELON DS)", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text(stringResource(Res.string.setup_path_melonds), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.height(8.dp))
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                                 TextField(
@@ -400,14 +402,14 @@ fun SetupPathDialog(
                                     singleLine = true, textStyle = TextStyle(fontSize = 14.sp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                MetroButton(inputMode = inputMode, text = "EXAMINAR", isPrimary = focusedButton == DialogButton.MELONDS_GAMES_BROWSE, isFocused = focusedButton == DialogButton.MELONDS_GAMES_BROWSE, onClick = { showFolderPickerFor = DialogButton.MELONDS_GAMES_BROWSE })
+                                MetroButton(inputMode = inputMode, text = stringResource(Res.string.action_browse), isPrimary = focusedButton == DialogButton.MELONDS_GAMES_BROWSE, isFocused = focusedButton == DialogButton.MELONDS_GAMES_BROWSE, onClick = { showFolderPickerFor = DialogButton.MELONDS_GAMES_BROWSE })
                             }
                         }
                         Spacer(modifier = Modifier.height(24.dp))
 
                         // Dolphin Path
                         Column(modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.DOLPHIN_GAMES_BROWSE]!!)) {
-                            Text("RUTA DE JUEGOS (DOLPHIN)", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text(stringResource(Res.string.setup_path_dolphin), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.height(8.dp))
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                                 TextField(
@@ -416,14 +418,14 @@ fun SetupPathDialog(
                                     singleLine = true, textStyle = TextStyle(fontSize = 14.sp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                MetroButton(inputMode = inputMode, text = "EXAMINAR", isPrimary = focusedButton == DialogButton.DOLPHIN_GAMES_BROWSE, isFocused = focusedButton == DialogButton.DOLPHIN_GAMES_BROWSE, onClick = { showFolderPickerFor = DialogButton.DOLPHIN_GAMES_BROWSE })
+                                MetroButton(inputMode = inputMode, text = stringResource(Res.string.action_browse), isPrimary = focusedButton == DialogButton.DOLPHIN_GAMES_BROWSE, isFocused = focusedButton == DialogButton.DOLPHIN_GAMES_BROWSE, onClick = { showFolderPickerFor = DialogButton.DOLPHIN_GAMES_BROWSE })
                             }
                         }
                         Spacer(modifier = Modifier.height(24.dp))
 
                         // Azahar Path
                         Column(modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.AZAHAR_GAMES_BROWSE]!!)) {
-                            Text("RUTA DE JUEGOS (AZAHAR 3DS)", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text(stringResource(Res.string.setup_path_azahar), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.height(8.dp))
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                                 TextField(
@@ -432,14 +434,14 @@ fun SetupPathDialog(
                                     singleLine = true, textStyle = TextStyle(fontSize = 14.sp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                MetroButton(inputMode = inputMode, text = "EXAMINAR", isPrimary = focusedButton == DialogButton.AZAHAR_GAMES_BROWSE, isFocused = focusedButton == DialogButton.AZAHAR_GAMES_BROWSE, onClick = { showFolderPickerFor = DialogButton.AZAHAR_GAMES_BROWSE })
+                                MetroButton(inputMode = inputMode, text = stringResource(Res.string.action_browse), isPrimary = focusedButton == DialogButton.AZAHAR_GAMES_BROWSE, isFocused = focusedButton == DialogButton.AZAHAR_GAMES_BROWSE, onClick = { showFolderPickerFor = DialogButton.AZAHAR_GAMES_BROWSE })
                             }
                         }
                         Spacer(modifier = Modifier.height(24.dp))
 
                         // DuckStation Path
                         Column(modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.DUCKSTATION_GAMES_BROWSE]!!)) {
-                            Text("RUTA DE JUEGOS (DUCKSTATION PS1)", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text(stringResource(Res.string.setup_path_duckstation), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.height(8.dp))
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                                 TextField(
@@ -448,7 +450,7 @@ fun SetupPathDialog(
                                     singleLine = true, textStyle = TextStyle(fontSize = 14.sp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                MetroButton(inputMode = inputMode, text = "EXAMINAR", isPrimary = focusedButton == DialogButton.DUCKSTATION_GAMES_BROWSE, isFocused = focusedButton == DialogButton.DUCKSTATION_GAMES_BROWSE, onClick = { showFolderPickerFor = DialogButton.DUCKSTATION_GAMES_BROWSE })
+                                MetroButton(inputMode = inputMode, text = stringResource(Res.string.action_browse), isPrimary = focusedButton == DialogButton.DUCKSTATION_GAMES_BROWSE, isFocused = focusedButton == DialogButton.DUCKSTATION_GAMES_BROWSE, onClick = { showFolderPickerFor = DialogButton.DUCKSTATION_GAMES_BROWSE })
                             }
                         }
                     }
@@ -465,10 +467,10 @@ fun SetupPathDialog(
                         .bringIntoViewRequester(requesters[DialogButton.CONFIRM]!!),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    MetroButton(inputMode = inputMode, text = "CANCELAR", isFocused = focusedButton == DialogButton.CANCEL, onClick = onDismiss)
+                    MetroButton(inputMode = inputMode, text = stringResource(Res.string.action_cancel), isFocused = focusedButton == DialogButton.CANCEL, onClick = onDismiss)
                     Spacer(modifier = Modifier.width(16.dp))
                     MetroButton(inputMode = inputMode,
-                        text = "GUARDAR", isPrimary = true, isFocused = focusedButton == DialogButton.CONFIRM,
+                        text = stringResource(Res.string.action_save), isPrimary = true, isFocused = focusedButton == DialogButton.CONFIRM,
                         onClick = {
                             settingsViewModel.savePath("pcsx2", pathTextPcsx2)
                             settingsViewModel.savePath("melonds", pathTextMelonGames)

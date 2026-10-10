@@ -20,12 +20,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import org.jetbrains.compose.resources.stringResource
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import globalconsole.shared.generated.resources.*
 import org.example.globalconsole.presesentation.input.GamepadEvent
 import org.example.globalconsole.presesentation.input.GamepadManager
 import java.io.File
@@ -73,11 +75,11 @@ fun ImageCropperDialog(
 
     val inputMode by gamepadManager?.inputMode?.collectAsState()
         ?: remember { mutableStateOf(org.example.globalconsole.presesentation.input.InputMode.GAMEPAD) }
-    var saveError by remember { mutableStateOf<String?>(null) }
+    var saveError by remember { mutableStateOf(false) }
     val save: () -> Unit = {
         if (!isSaving && previewSize.width > 0) {
             isSaving = true
-            saveError = null
+            saveError = false
             val capturedX = offsetX
             val capturedY = offsetY
             val capturedScale = scale
@@ -88,11 +90,11 @@ fun ImageCropperDialog(
                         ImageCropperUtils.cropAndSaveImage(imagePath, capturedX, capturedY, capturedScale, capturedSize, outputDir)
                     }
                     if (success) onCropSaved(File(outputDir, "cover_cropped.png").absolutePath)
-                    else saveError = "No se pudo guardar el recorte. Puedes reintentar."
+                    else saveError = true
                 } catch (e: kotlinx.coroutines.CancellationException) {
                     throw e
                 } catch (e: Exception) {
-                    saveError = "No se pudo guardar el recorte. Puedes reintentar."
+                    saveError = true
                 } finally {
                     isSaving = false
                 }
@@ -175,7 +177,7 @@ fun ImageCropperDialog(
 
                 // Título estilo Metro
                 Text(
-                    text = "AJUSTAR CARÁTULA",
+                    text = stringResource(Res.string.crop_title),
                     color = Color.White,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Black,
@@ -185,7 +187,7 @@ fun ImageCropperDialog(
 
                 // Instrucciones de control del mando
                 Text(
-                    text = "STICK IZQ. MUEVE · R2 ACERCA · L2 ALEJA",
+                    text = stringResource(Res.string.crop_controls),
                     color = LocalMetroPalette.current.muted,
                     fontSize = 14.sp,
                     fontFamily = FontFamily.Monospace,
@@ -203,7 +205,7 @@ fun ImageCropperDialog(
                     // Imagen con transformación aplicada en tiempo real por gamepad
                     AsyncImage(
                         model = File(imagePath),
-                        contentDescription = "Imagen a recortar",
+                        contentDescription = stringResource(Res.string.crop_image_description),
                         contentScale = ContentScale.Fit,
                         modifier = Modifier
                             .fillMaxSize()
@@ -223,7 +225,8 @@ fun ImageCropperDialog(
 
                 // Indicador de zoom actual
                 Text(
-                    text = saveError ?: "ZOOM: ${"%.1f".format(scale)}x",
+                    text = if (saveError) stringResource(Res.string.crop_save_error)
+                    else stringResource(Res.string.crop_zoom, scale),
                     color = LocalMetroPalette.current.muted,
                     fontSize = 13.sp,
                     fontFamily = FontFamily.Monospace,
@@ -233,14 +236,14 @@ fun ImageCropperDialog(
                 // Botones de acción estilo Metro con foco de gamepad
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     MetroButton(
-                        text = "B  CANCELAR",
+                        text = stringResource(Res.string.crop_cancel),
                         isFocused = selectedButton == 0,
                         onHover = { selectedButton = 0 },
                         inputMode = inputMode,
                         onClick = { if (!isSaving) onDismiss() }
                     )
                     MetroButton(
-                        text = if (isSaving) "GUARDANDO..." else "A  CONFIRMAR",
+                        text = if (isSaving) stringResource(Res.string.crop_saving) else stringResource(Res.string.crop_confirm),
                         isFocused = selectedButton == 1,
                         onHover = { selectedButton = 1 },
                         inputMode = inputMode,

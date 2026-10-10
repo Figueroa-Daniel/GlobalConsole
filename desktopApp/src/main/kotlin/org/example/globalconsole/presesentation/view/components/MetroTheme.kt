@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.*
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
@@ -16,6 +17,7 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import org.example.globalconsole.settings.domain.AppearanceSettings
+import globalconsole.shared.generated.resources.*
 
 /**
  * Paleta Metro común; el acento nunca sustituye las superficies oscuras.
@@ -97,15 +99,21 @@ fun Modifier.metroFocus(active: Boolean, palette: MetroPalette): Modifier =
  * @author Daniel Figueroa Vidal
  * @since 2026-10-04
  */
-fun platformLabel(name: String): String = when (name) {
-    "HEORIC_GAMES_LAUCHER" -> "Heroic"
-    "PCSX2" -> "PlayStation 2"
-    "MELONDS" -> "Nintendo DS"
-    "DOLPHIN" -> "GameCube / Wii"
-    "PS3" -> "PlayStation 3"
-    "AZAHAR" -> "Nintendo 3DS"
-    "DUCKSTATION" -> "PlayStation"
-    else -> name
+@Composable
+fun platformLabel(name: String): String {
+    val resource = when (name) {
+        "SECTION_LAUNCHERS" -> Res.string.section_launchers
+        "SECTION_GAMES" -> Res.string.section_games
+        "HEORIC_GAMES_LAUCHER" -> Res.string.platform_heroic
+        "PCSX2" -> Res.string.platform_pcsx2
+        "MELONDS" -> Res.string.platform_melonds
+        "DOLPHIN" -> Res.string.platform_dolphin
+        "PS3" -> Res.string.platform_ps3
+        "AZAHAR" -> Res.string.platform_azahar
+        "DUCKSTATION" -> Res.string.platform_duckstation
+        else -> return name
+    }
+    return stringResource(resource)
 }
 
 /**
@@ -142,23 +150,24 @@ fun metroAccentColor(name: String): Color = when (name) {
  * @author Daniel Figueroa Vidal
  * @since 2026-10-04
  */
-fun metroAccentLabel(name: String): String = when (name) {
-    "BLUE" -> "Azul cielo"
-    "VIOLET" -> "Violeta"
-    "PINK" -> "Rosa"
-    "AMBER" -> "Ámbar"
-    "GREEN" -> "Verde"
-    "RED" -> "Rojo"
-    "CRIMSON" -> "Carmesí"
-    "NAVY" -> "Azul marino"
-    "COBALT" -> "Azul cobalto"
-    "TEAL" -> "Turquesa"
-    "ORANGE" -> "Naranja"
-    "ELECTRIC_PURPLE" -> "Morado eléctrico"
-    "NEON_PURPLE" -> "Morado neón"
-    "ULTRAVIOLET" -> "Ultravioleta"
-    else -> "Cian"
-}
+@Composable
+fun metroAccentLabel(name: String): String = stringResource(when (name) {
+    "BLUE" -> Res.string.color_blue
+    "VIOLET" -> Res.string.color_violet
+    "PINK" -> Res.string.color_pink
+    "AMBER" -> Res.string.color_amber
+    "GREEN" -> Res.string.color_green
+    "RED" -> Res.string.color_red
+    "CRIMSON" -> Res.string.color_crimson
+    "NAVY" -> Res.string.color_navy
+    "COBALT" -> Res.string.color_cobalt
+    "TEAL" -> Res.string.color_teal
+    "ORANGE" -> Res.string.color_orange
+    "ELECTRIC_PURPLE" -> Res.string.color_electric_purple
+    "NEON_PURPLE" -> Res.string.color_neon_purple
+    "ULTRAVIOLET" -> Res.string.color_ultraviolet
+    else -> Res.string.color_cyan
+})
 
 /**
  * Ritmo espacial compartido entre geometría visual y navegación del mando.

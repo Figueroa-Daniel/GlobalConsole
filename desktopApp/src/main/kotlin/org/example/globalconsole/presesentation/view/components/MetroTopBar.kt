@@ -14,6 +14,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.jetbrains.compose.resources.stringResource
+import globalconsole.shared.generated.resources.*
 import org.example.globalconsole.presesentation.input.InputMode
 
 /** Destinos de la barra accesibles por cruceta. @author Daniel Figueroa Vidal */
@@ -64,16 +66,16 @@ fun MetroTopBar(
                 }
             }
             Spacer(Modifier.width(12.dp))
-            Text("GLOBAL / CONSOLE", color = palette.text, fontSize = 15.sp,
+            Text(stringResource(Res.string.header_brand), color = palette.text, fontSize = 15.sp,
                 fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
             Spacer(Modifier.weight(1f))
-            Text("$itemCount ELEMENTOS", color = palette.accent, fontSize = 11.sp, letterSpacing = 2.sp)
+            Text(stringResource(Res.string.header_item_count, itemCount), color = palette.accent, fontSize = 11.sp, letterSpacing = 2.sp)
         }
         if (!compact) {
             Spacer(Modifier.height(24.dp))
-            Text("Tu biblioteca.", color = palette.text, fontSize = 40.sp,
+            Text(stringResource(Res.string.header_library_title), color = palette.text, fontSize = 40.sp,
                 fontWeight = FontWeight.Light, letterSpacing = (-1).sp)
-            Text("Tus mundos, en un solo lugar", color = palette.muted, fontSize = 14.sp,
+            Text(stringResource(Res.string.header_library_subtitle), color = palette.muted, fontSize = 14.sp,
                 modifier = Modifier.padding(top = 4.dp))
         }
         Spacer(Modifier.height(if (compact) 16.dp else 24.dp))
@@ -88,7 +90,7 @@ fun MetroTopBar(
                     verticalAlignment = Alignment.CenterVertically) {
                     Box(Modifier.weight(1f).padding(start = 16.dp), contentAlignment = Alignment.CenterStart) {
                         if (searchQuery.isEmpty()) {
-                            Text("Buscar un juego…", color = palette.muted, fontSize = 14.sp)
+                            Text(stringResource(Res.string.search_placeholder), color = palette.muted, fontSize = 14.sp)
                         }
                         BasicTextField(
                             value = searchQuery, onValueChange = onSearchChanged, singleLine = true,
@@ -97,11 +99,11 @@ fun MetroTopBar(
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
-                    MetroBarAction("Buscar", onSearchClick, focusedButton == TopBarFocus.SEARCH, inputMode)
+                    MetroBarAction(stringResource(Res.string.action_search), onSearchClick, focusedButton == TopBarFocus.SEARCH, inputMode)
                 }
-                MetroBarAction("Recargar", onRefreshClick, focusedButton == TopBarFocus.REFRESH, inputMode)
-                MetroBarAction("Vista", onViewClick, focusedButton == TopBarFocus.VIEW, inputMode)
-                MetroBarAction("Ajustes", onSettingsClick, focusedButton == TopBarFocus.SETTINGS, inputMode)
+                MetroBarAction(stringResource(Res.string.action_refresh), onRefreshClick, focusedButton == TopBarFocus.REFRESH, inputMode)
+                MetroBarAction(stringResource(Res.string.action_view), onViewClick, focusedButton == TopBarFocus.VIEW, inputMode)
+                MetroBarAction(stringResource(Res.string.action_settings), onSettingsClick, focusedButton == TopBarFocus.SETTINGS, inputMode)
             }
         }
     }

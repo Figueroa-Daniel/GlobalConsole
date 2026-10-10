@@ -30,6 +30,11 @@ import org.example.globalconsole.PS3Launcher.domain.usecase.FindPS3LauncherUseCa
 import org.example.globalconsole.PS3Launcher.domain.usecase.ShowPS3LauncherUseCase
 import org.example.globalconsole.PS3Launcher.domain.usecase.ClosePS3LauncherUseCase
 
+enum class AppearanceSettingsError {
+    LOAD_FAILED,
+    SAVE_FAILED
+}
+
 /**
  * ViewModel centralizado de la pantalla principal de GlobalConsole.
  * Agrega juegos de todas las fuentes disponibles y gestiona la búsqueda en local.
@@ -126,8 +131,8 @@ class HomeViewModel(
 
     private val _appearance = MutableStateFlow(AppearanceSettings())
     val appearance: StateFlow<AppearanceSettings> = _appearance.asStateFlow()
-    private val _appearanceError = MutableStateFlow<String?>(null)
-    val appearanceError: StateFlow<String?> = _appearanceError.asStateFlow()
+    private val _appearanceError = MutableStateFlow<AppearanceSettingsError?>(null)
+    val appearanceError: StateFlow<AppearanceSettingsError?> = _appearanceError.asStateFlow()
     private val appearanceMutex = Mutex()
 
     init {
@@ -138,7 +143,7 @@ class HomeViewModel(
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
-                    _appearanceError.value = "No se pudo leer la apariencia guardada."
+                    _appearanceError.value = AppearanceSettingsError.LOAD_FAILED
                 }
             }
         }
@@ -163,7 +168,7 @@ class HomeViewModel(
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
-                    _appearanceError.value = "No se pudo guardar. Cambia una opción para reintentar."
+                    _appearanceError.value = AppearanceSettingsError.SAVE_FAILED
                 }
             }
         }
@@ -221,7 +226,7 @@ class HomeViewModel(
         val normalGames = games.filterNot { launchers.contains(it) }
 
         if (position == LauncherPosition.TOP && launchers.isNotEmpty()) {
-            items.add(HomeListItem.Header("Emuladores"))
+            items.add(HomeListItem.Header("SECTION_LAUNCHERS"))
             items.addAll(launchers.sortedBy { it.name }.map { HomeListItem.GameItem(it) })
         }
 
@@ -229,7 +234,7 @@ class HomeViewModel(
             val gamesToRender = if (position == LauncherPosition.TOP) normalGames else games
             if (gamesToRender.isNotEmpty()) {
                 if (position == LauncherPosition.TOP) {
-                    items.add(HomeListItem.Header("Juegos"))
+                    items.add(HomeListItem.Header("SECTION_GAMES"))
                 }
                 items.addAll(gamesToRender.sortedBy { it.name }.map { HomeListItem.GameItem(it) })
             }
@@ -380,7 +385,7 @@ class HomeViewModel(
                     HomeUiState.Success(games = allGames, filteredGames = allGames, items = items)
                 }
             } catch (e: Exception) {
-                _uiState.value = HomeUiState.Error(message = e.message ?: "Error desconocido al cargar juegos")
+                _uiState.value = HomeUiState.Error(message = e.message.orEmpty())
             }
         }
     }

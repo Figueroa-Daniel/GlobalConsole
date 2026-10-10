@@ -14,6 +14,11 @@ Este documento describe el stack tecnológico utilizado en GlobalConsole y justi
 - **Por qué:** Permite crear interfaces de usuario de forma declarativa compartiendo código entre escritorio (Windows, Linux, macOS) y móviles. Es fundamental para lograr una UI adaptada a pantallas grandes ("10-foot UI") manteniendo una renderización de alto rendimiento.
 - **Impacto:** El diseño visual y los estados de UI se programan una sola vez.
 
+### Textos y localización con Compose Resources
+- **Ubicación:** `shared/src/commonMain/composeResources/values/strings.xml` contiene el idioma base (español); cada idioma adicional usa un directorio como `values-en/strings.xml`.
+- **Uso:** En composables, importar `org.jetbrains.compose.resources.stringResource` y acceder a las claves mediante `Res.string.nombre_de_clave`. Mantener los mismos nombres de clave en todos los idiomas y pasar los valores dinámicos como argumentos a `stringResource`.
+- **Comportamiento:** Compose Multiplatform resuelve los recursos según el locale activo. Los textos de interfaz van en estos recursos, no hardcodeados en componentes ni en ViewModels.
+
 ### AndroidX Lifecycle (versión 2.11.0-beta01)
 - **Por qué:** Proporciona los componentes estándar de arquitectura `ViewModel` y el control del estado del ciclo de vida en entornos Compose de forma nativa e idiomática.
 - **Impacto:** Garantiza un flujo unidireccional de datos (UDF) estructurado bajo el patrón MVVM.
