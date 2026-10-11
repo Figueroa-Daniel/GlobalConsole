@@ -93,3 +93,11 @@ La separación de argumentos y expansión de marcadores se basa en la
 [especificación Desktop Entry](https://specifications.freedesktop.org/desktop-entry/latest-single/).
 No se interpreta Exec con una shell adicional; un acceso que explícitamente
 invoca una shell conserva esa invocación como parte de su comando.
+
+## 10. Reutilización con aplicaciones locales (2026-10-11)
+
+El lector de accesos e iconos y la gestión del árbol de procesos pasan a
+`systemApps/data`. `LocalSelectionStore` conserva la escritura atómica y comparte
+el bloqueo con `enabledLocalApps`, evitando que ambos módulos locales pierdan
+selecciones al guardar simultáneamente. Se mantienen los filtros propios de
+juegos y sus casos de uso. Véase [Aplicaciones locales](24_aplicaciones_locales.md).

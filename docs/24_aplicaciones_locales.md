@@ -40,8 +40,8 @@ Véase [Persistencia](08_persistencia_configuracion.md).
 
 ## 4. Interfaz y mando
 
-Configuración añade Aplicaciones y ADD Local App. El diálogo presenta icono,
-nombre, comando y estado de visibilidad, con recarga, lista vacía y errores.
+Configuración añade Aplicaciones y el botón Añadir aplicación. El diálogo presenta
+icono, nombre y estado de visibilidad, con recarga, lista vacía y errores.
 Arriba/abajo mueve el foco y desplaza la lista; A alterna; B cierra. El colector
 de configuración se detiene mientras está abierto el diálogo hijo, según
 [Mando y foco](12_manejo_gamepad_y_foco.md). Las selecciones se guardan antes de
@@ -65,7 +65,37 @@ Cobertura de contratos, exclusiones (incluida la diferencia entre Dolphin
 administrador y emulador), prioridad de accesos, persistencia compartida,
 ejecución/cierre/cancelación. Se mantiene la regresión de juegos locales al
 extraer las utilidades comunes. Verificación gráfica aislada con eventos de
-mando y procesos temporales; registrar aquí resultados y limitaciones.
+mando y procesos temporales; Los resultados y limitaciones se detallan a continuación.
 
 @author Daniel Figueroa Vidal
 @since 2026-10-11
+
+## 7. Resultados de validación (2026-10-11)
+
+- `./gradlew test --offline --console=plain`: 120 pruebas, sin fallos ni errores.
+  Los diez casos nuevos de aplicaciones cubren contratos, clasificación, detección,
+  prioridad/ocultación, preferencias simultáneas y cierre/cancelación de procesos.
+- TDD: clasificación y detección fallaron antes de implementar sus contratos;
+  la exclusión adicional de CurseForge/Prism Launcher falló antes de corregirla.
+- Pantalla virtual X11 de 1280×900: selector con 15 entradas temporales,
+  activación con A, desplazamiento hasta la fila 14, B sin cerrar el padre,
+  reapertura conservando selección y conexión real de Koin.
+- Recorrido con configuración aislada: biblioteca → proceso temporal → cierre
+  solicitado → biblioteca. Capturas revisadas para comprobar foco y legibilidad.
+- Escaneo real de Linux realizado sin lanzar aplicaciones del usuario. La prueba
+  gráfica usa configuración propia en `/tmp`, sin modificar la configuración real.
+- Pendiente de comprobación en hardware: Windows nativo y mando físico con
+  aplicaciones reales. El ratón y OSK reutilizan la lógica existente de suspensión;
+  esta verificación no certifica su interacción con cada programa externo.
+- Se excluyen lanzadores de juegos conocidos además de juegos, emuladores y
+  navegadores. Los accesos de software sin categorías o identidad reconocible
+  siguen dependiendo de los metadatos que publique su instalación.
+
+## 8. Componentes compartidos
+
+`systemApps/data/DesktopApplicationReader` conserva el lector y los iconos que
+usaban los juegos, incluidas las mejoras de Flatpak y nombres reverse-DNS.
+`NativeApplicationProcess` controla una sesión propia por adaptador.
+`config/LocalSelectionStore` comparte el bloqueo entre ambos módulos locales.
+No cambia la admisión previa de Bottles/Citra dentro de juegos locales; el filtro
+independiente de aplicaciones sí los excluye de este nuevo catálogo.
