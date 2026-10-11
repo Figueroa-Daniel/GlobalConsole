@@ -21,7 +21,7 @@ class LocalAppsRepositoryImpl(
     private val selection = LocalSelectionStore(configFile, "enabledLocalApps")
 
     /**
-     * Actualiza la lista de aplicaciones instalados.
+     * Actualiza la lista de aplicaciones instaladas.
      * @return Metadatos actuales del sistema.
      * @throws Exception Si falla la detección nativa.
      * @author Daniel Figueroa Vidal
@@ -30,8 +30,8 @@ class LocalAppsRepositoryImpl(
     override suspend fun getInstalled(): List<LocalAppObj> = adapter.scan().map { it.toLocalAppObj() }
 
     /**
-     * Cruza las preferencias con aplicaciones que siguen instalados.
-     * @return Aplicaciones habilitados disponibles.
+     * Cruza las preferencias con aplicaciones que siguen instaladas.
+     * @return Aplicaciones habilitadas disponibles.
      * @throws Exception Si falla la detección o la lectura de preferencias.
      * @author Daniel Figueroa Vidal
      * @since 2026-10-11
@@ -42,9 +42,9 @@ class LocalAppsRepositoryImpl(
     }
 
     /**
-     * Habilita una aplicación instalado sin duplicar su identificador.
-     * @param id Identificador estable dla aplicación.
-     * @return True si cambia la selección; false si no existe o ya está habilitado.
+     * Habilita una aplicación instalada sin duplicar su identificador.
+     * @param id Identificador estable de la aplicación.
+     * @return True si cambia la selección; false si no existe o ya está habilitada.
      * @throws Exception Si no puede leer o persistir las preferencias.
      * @author Daniel Figueroa Vidal
      * @since 2026-10-11
@@ -64,8 +64,8 @@ class LocalAppsRepositoryImpl(
 
     /**
      * Consulta la preferencia almacenada.
-     * @param id Identificador estable dla aplicación.
-     * @return True si está habilitado.
+     * @param id Identificador estable de la aplicación.
+     * @return True si está habilitada.
      * @throws Exception Si no puede leer las preferencias.
      * @author Daniel Figueroa Vidal
      * @since 2026-10-11
@@ -74,8 +74,8 @@ class LocalAppsRepositoryImpl(
 
     /**
      * Resuelve de nuevo la aplicación para no ejecutar comandos obsoletos de la interfaz.
-     * @param game Aplicación seleccionado en la biblioteca.
-     * @return Resultado del proceso o false si dejó de estar instalado.
+     * @param game Aplicación seleccionada en la biblioteca.
+     * @return Resultado del proceso o false si dejó de estar instalada.
      * @throws Exception Si falla el lanzamiento.
      * @author Daniel Figueroa Vidal
      * @since 2026-10-11
@@ -87,7 +87,7 @@ class LocalAppsRepositoryImpl(
 
     /**
      * Solicita el cierre del árbol de procesos activo.
-     * @return True cuando la aplicación está cerrado.
+     * @return True cuando la aplicación está cerrada.
      * @throws Exception Si falla el cierre.
      * @author Daniel Figueroa Vidal
      * @since 2026-10-11

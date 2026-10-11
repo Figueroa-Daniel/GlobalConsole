@@ -4,7 +4,7 @@ import org.example.globalconsole.generalDomain.entititys.Game
 import org.example.globalconsole.generalDomain.entititys.Platforms
 
 /**
- * Aplicación instalado con argumentos de ejecución sin interpretación de shell.
+ * Aplicación instalada con argumentos de ejecución sin interpretación de shell.
  * @param id Identificador estable.
  * @param name Nombre visible.
  * @param arguments Ejecutable y argumentos.

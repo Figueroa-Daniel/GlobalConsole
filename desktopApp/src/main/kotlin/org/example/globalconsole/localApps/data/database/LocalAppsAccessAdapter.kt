@@ -12,7 +12,7 @@ import java.io.File
 import java.util.concurrent.TimeUnit
 
 /**
- * Detecta aplicaciones nativos y mantiene exclusivamente el árbol de procesos que inicia.
+ * Detecta aplicaciones nativas y mantiene exclusivamente el árbol de procesos que inicia.
  * @param applicationDirectories Rutas desktop ordenadas de mayor a menor prioridad.
  * @param osName Sistema operativo; sustituible en fixtures de detección.
  * @author Daniel Figueroa Vidal
@@ -117,7 +117,7 @@ class LocalAppsAccessAdapter(
     suspend fun execute(game: LocalAppDto): Boolean = process.execute(game.arguments, game.workingDirectory)
 
     /**
-     * Cierra el árbol del aplicación activo.
+     * Cierra el árbol de la aplicación activa.
      * @return True cuando todos sus procesos han terminado.
      * @throws Exception Si falla el cierre.
      * @author Daniel Figueroa Vidal
