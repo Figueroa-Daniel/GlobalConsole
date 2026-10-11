@@ -12,7 +12,10 @@ import org.lwjgl.glfw.GLFWGamepadState
 import java.awt.GraphicsEnvironment
 import java.awt.MouseInfo
 import java.awt.Robot
+import java.awt.Toolkit
+import java.awt.datatransfer.StringSelection
 import java.awt.event.InputEvent
+import java.awt.event.KeyEvent
 import java.nio.ByteBuffer
 import kotlin.math.abs
 
@@ -90,6 +93,86 @@ class GamepadManager {
      * Puede ser ajustada en tiempo real.
      */
     var mouseSensitivity: Float = 14f
+
+    private val _isOskOverlayVisible = MutableStateFlow(false)
+
+    /**
+     * Indica si el teclado flotante en pantalla (OSK Overlay) está visible sobre aplicaciones suspendidas.
+     */
+    val isOskOverlayVisible: StateFlow<Boolean> = _isOskOverlayVisible.asStateFlow()
+
+    private var lastR2PressedState = false
+
+    /**
+     * Alterna la visibilidad del teclado en pantalla (OSK Overlay).
+     *
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-11
+     */
+    fun toggleOskOverlay() {
+        _isOskOverlayVisible.value = !_isOskOverlayVisible.value
+    }
+
+    /**
+     * Muestra el teclado en pantalla flotante.
+     *
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-11
+     */
+    fun showOskOverlay() {
+        _isOskOverlayVisible.value = true
+    }
+
+    /**
+     * Oculta el teclado en pantalla flotante.
+     *
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-11
+     */
+    fun hideOskOverlay() {
+        _isOskOverlayVisible.value = false
+    }
+
+    /**
+     * Inyecta texto en el sistema operativo mediante el portapapeles y simulación de la combinación
+     * Ctrl + V (y tecla Intro opcional) en el campo enfocado de la aplicación externa.
+     *
+     * @param text Texto a inyectar en el sistema.
+     * @param pressEnter Si es true, simula la pulsación de Intro tras pegar el texto.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-11
+     */
+    fun injectTextToSystem(text: String, pressEnter: Boolean = true) {
+        hideOskOverlay()
+        if (text.isEmpty()) return
+
+        CoroutineScope(Dispatchers.IO).launch {
+            delay(150)
+            try {
+                val selection = StringSelection(text)
+                val clipboard = Toolkit.getDefaultToolkit().systemClipboard
+                clipboard.setContents(selection, selection)
+
+                awtRobot?.let { robot ->
+                    val isMac = System.getProperty("os.name").lowercase().contains("mac")
+                    val modifier = if (isMac) KeyEvent.VK_META else KeyEvent.VK_CONTROL
+
+                    robot.keyPress(modifier)
+                    robot.keyPress(KeyEvent.VK_V)
+                    robot.keyRelease(KeyEvent.VK_V)
+                    robot.keyRelease(modifier)
+
+                    if (pressEnter) {
+                        delay(60)
+                        robot.keyPress(KeyEvent.VK_ENTER)
+                        robot.keyRelease(KeyEvent.VK_ENTER)
+                    }
+                }
+            } catch (e: Exception) {
+                System.err.println("Error al inyectar texto al sistema: ${e.message}")
+            }
+        }
+    }
 
     /**
      * Inicializa GLFW en segundo plano y comienza a escuchar eventos de gamepad.
@@ -176,6 +259,7 @@ class GamepadManager {
      */
     private suspend fun processSuspendedGamepadState(state: GLFWGamepadState) {
         val buttons: ByteBuffer = state.buttons()
+        val axes = state.axes()
         
         // 1. Botón central (Guía/PS/Xbox)
         checkButtonPress(buttons, GLFW_GAMEPAD_BUTTON_GUIDE, GamepadEvent.Button.HOME)
@@ -190,10 +274,69 @@ class GamepadManager {
         if (startPressed && backPressed && (!wasStartPressed || !wasBackPressed)) {
             _events.emit(GamepadEvent.ButtonPressed(GamepadEvent.Button.HOME))
         }
+
+        // 3. Combo START + R2 (Right Trigger) para abrir o cerrar el teclado flotante (OSK Overlay)
+        val r2Value = axes.get(GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER)
+        val r2Pressed = r2Value > 0.4f
+        if (startPressed && r2Pressed && (!wasStartPressed || !lastR2PressedState)) {
+            toggleOskOverlay()
+        }
+        lastR2PressedState = r2Pressed
         lastButtonsState[GLFW_GAMEPAD_BUTTON_START] = startPressed
         lastButtonsState[GLFW_GAMEPAD_BUTTON_BACK] = backPressed
 
-        // 3. Combo de ocultación manual del ratón: X + BACK simultáneamente
+        // 4. Si el teclado en pantalla está activo sobre la aplicación externa, procesamos el mando para el teclado
+        if (_isOskOverlayVisible.value) {
+            var activeDirection: GamepadEvent.Direction? = null
+            if (buttons.get(GLFW_GAMEPAD_BUTTON_DPAD_UP).toInt() == GLFW_PRESS) {
+                activeDirection = GamepadEvent.Direction.UP
+            } else if (buttons.get(GLFW_GAMEPAD_BUTTON_DPAD_DOWN).toInt() == GLFW_PRESS) {
+                activeDirection = GamepadEvent.Direction.DOWN
+            } else if (buttons.get(GLFW_GAMEPAD_BUTTON_DPAD_LEFT).toInt() == GLFW_PRESS) {
+                activeDirection = GamepadEvent.Direction.LEFT
+            } else if (buttons.get(GLFW_GAMEPAD_BUTTON_DPAD_RIGHT).toInt() == GLFW_PRESS) {
+                activeDirection = GamepadEvent.Direction.RIGHT
+            } else {
+                val leftX = axes.get(GLFW_GAMEPAD_AXIS_LEFT_X)
+                val leftY = axes.get(GLFW_GAMEPAD_AXIS_LEFT_Y)
+                val navThreshold = 0.5f
+
+                activeDirection = when {
+                    leftY < -navThreshold -> GamepadEvent.Direction.UP
+                    leftY > navThreshold -> GamepadEvent.Direction.DOWN
+                    leftX < -navThreshold -> GamepadEvent.Direction.LEFT
+                    leftX > navThreshold -> GamepadEvent.Direction.RIGHT
+                    else -> null
+                }
+            }
+
+            val currentTime = System.currentTimeMillis()
+            if (activeDirection != null) {
+                if (activeDirection != lastPressedDirection ||
+                    (currentTime - lastDirectionPressedTime) >= directionRepeatDelayMs
+                ) {
+                    _events.emit(GamepadEvent.DirectionPressed(activeDirection))
+                    lastDirectionPressedTime = currentTime
+                    lastPressedDirection = activeDirection
+                }
+            } else {
+                lastPressedDirection = null
+            }
+
+            val aPressed = buttons.get(GLFW_GAMEPAD_BUTTON_A).toInt() == GLFW_PRESS
+            val aWasPressed = lastButtonsState[GLFW_GAMEPAD_BUTTON_A]
+            if (aPressed && !aWasPressed) {
+                _events.emit(GamepadEvent.ButtonPressed(GamepadEvent.Button.CONFIRM))
+            }
+            lastButtonsState[GLFW_GAMEPAD_BUTTON_A] = aPressed
+
+            checkButtonPress(buttons, GLFW_GAMEPAD_BUTTON_B, GamepadEvent.Button.BACK)
+            checkButtonPress(buttons, GLFW_GAMEPAD_BUTTON_X, GamepadEvent.Button.DELETE)
+            checkButtonPress(buttons, GLFW_GAMEPAD_BUTTON_Y, GamepadEvent.Button.OPTIONS)
+            return
+        }
+
+        // 5. Combo de ocultación manual del ratón: X + BACK simultáneamente
         val xPressed = buttons.get(GLFW_GAMEPAD_BUTTON_X).toInt() == GLFW_PRESS
         val wasXPressed = lastButtonsState[GLFW_GAMEPAD_BUTTON_X]
         if (xPressed && backPressed && !(wasXPressed && wasBackPressed)) {
@@ -209,8 +352,8 @@ class GamepadManager {
         }
         lastButtonsState[GLFW_GAMEPAD_BUTTON_X] = xPressed
 
+        // 6. Navegación del ratón con stick derecho y clic con botón A
         if (isMouseAllowedWhenSuspended) {
-            val axes = state.axes()
             moveMouseWithRightStick(axes)
 
             val aPressed = buttons.get(GLFW_GAMEPAD_BUTTON_A).toInt() == GLFW_PRESS

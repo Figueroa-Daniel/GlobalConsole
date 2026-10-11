@@ -596,7 +596,15 @@ fun HomeScreen(
                                 fontSize = 14.sp,
                                 fontFamily = FontFamily.SansSerif
                             )
-                            Spacer(modifier = Modifier.height(32.dp))
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = stringResource(Res.string.home_navweb_suspended_controls),
+                                color = LocalMetroPalette.current.accent,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                fontFamily = FontFamily.Monospace
+                            )
+                            Spacer(modifier = Modifier.height(28.dp))
                             MetroButton(
                                 text = stringResource(Res.string.action_force_resume),
                                 onClick = { viewModel.loadGames() }

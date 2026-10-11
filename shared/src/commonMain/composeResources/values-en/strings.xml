@@ -21,6 +21,7 @@
     <string name="section_games">Games</string>
     <string name="home_running_game">Running: %1$s</string>
     <string name="home_game_suspended">The environment is suspended. It will resume when you close the emulator.</string>
+    <string name="home_navweb_suspended_controls">START + R2: On-screen keyboard   ·   SELECT + START: Exit</string>
     <string name="action_force_resume">FORCE RESUME</string>
     <string name="game_cover_description">Cover art for %1$s</string>
     <string name="action_open">OPEN</string>
@@ -28,6 +29,10 @@
     <string name="osk_placeholder">Type to search…</string>
     <string name="osk_submit">SEARCH ↵</string>
     <string name="osk_controls">A Type   ·   X Delete   ·   Y Shift   ·   START Search   ·   B Close</string>
+    <string name="osk_overlay_title">ON-SCREEN KEYBOARD</string>
+    <string name="osk_overlay_placeholder">Type here…</string>
+    <string name="osk_overlay_submit">SUBMIT ↵</string>
+    <string name="osk_overlay_controls">A Type   ·   X Delete   ·   Y Shift   ·   START Submit   ·   B / START+R2 Close</string>
     <string name="view_settings_kicker">YOUR LIBRARY, YOUR STYLE</string>
     <string name="view_settings_title">View and appearance</string>
     <string name="view_settings_description">Dark background · changes saved automatically</string>

@@ -20,10 +20,20 @@ import org.example.globalconsole.di.presentationModule
 import org.koin.core.context.startKoin
 import org.koin.java.KoinJavaComponent.getKoin
 
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.WindowPosition
+import androidx.compose.ui.window.rememberWindowState
+import org.example.globalconsole.presesentation.view.components.OskOverlay
+
 /**
  * Punto de entrada principal para la aplicación de escritorio GlobalConsole.
  * Realiza la inyección manual de dependencias y lanza la interfaz Compose con el
  * grafo de navegación [AppNavHost] y el soporte de mandos GLFW.
+ *
+ * Incluye una ventana flotante superior (Always on Top) para el teclado en pantalla
+ * que permite escribir sobre navegadores y aplicaciones externas suspendidas mediante START + R2.
  *
  * @author Daniel Figueroa Vidal
  * @since 2026-08-09
@@ -44,6 +54,8 @@ fun main() = application {
 
     // El gestor es único para la aplicación
     val gamepadManager = remember { GamepadManager() }
+    val appearance by viewModel.appearance.collectAsState()
+    val isOskOverlayVisible by gamepadManager.isOskOverlayVisible.collectAsState()
 
     Window(
         onCloseRequest = ::exitApplication,
@@ -66,15 +78,43 @@ fun main() = application {
         }
 
         val navController = rememberNavController()
-        val appearance by viewModel.appearance.collectAsState()
         MetroTheme(appearance) {
-        AppNavHost(
-            navController = navController,
-            viewModel = viewModel,
-            settingsViewModel = settingsViewModel,
-            gamepadManager = gamepadManager
-        )
+            AppNavHost(
+                navController = navController,
+                viewModel = viewModel,
+                settingsViewModel = settingsViewModel,
+                gamepadManager = gamepadManager
+            )
+        }
+    }
+
+    // Ventana flotante de teclado en pantalla sobre navegadores y juegos externos
+    if (isOskOverlayVisible) {
+        Window(
+            onCloseRequest = { gamepadManager.hideOskOverlay() },
+            title = "GlobalConsole - Teclado",
+            alwaysOnTop = true,
+            undecorated = true,
+            transparent = true,
+            resizable = false,
+            state = rememberWindowState(
+                position = WindowPosition.Aligned(Alignment.BottomCenter),
+                size = DpSize(1000.dp, 440.dp)
+            )
+        ) {
+            MetroTheme(appearance) {
+                OskOverlay(
+                    gamepadManager = gamepadManager,
+                    onConfirm = { text ->
+                        gamepadManager.injectTextToSystem(text, pressEnter = true)
+                    },
+                    onDismiss = {
+                        gamepadManager.hideOskOverlay()
+                    }
+                )
+            }
         }
     }
 }
+
 

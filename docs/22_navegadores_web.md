@@ -81,11 +81,16 @@ Se comprueban las rutas típicas en `Program Files` y `Program Files (x86)` o la
 
 ---
 
-## 5. Control con Gamepad y Combo de Salida
+## 5. Control con Gamepad, Ratón y Teclado Flotante (OSK)
 
-Durante la ejecución de un navegador o juego, el gamepad suspende el envío de eventos de navegación estándar. Para permitir salir sin necesidad de teclado ni ratón:
-- **Combo de Salida:** Pulsar simultáneamente `BACK` (Select) + `START` emite el evento de retorno (`GamepadEvent.Button.HOME`), invocando `HomeViewModel.closeActiveGame()`.
-- **Detección Robusta:** El polling de GLFW detecta la combinación independientemente del orden o leve desfasaje de milisegundos entre botones.
+Durante la ejecución de un navegador, el gamepad pasa a modo suspendido con emulación de ratón:
+- **Movimiento del ratón:** Stick analógico derecho con aceleración cuadrática.
+- **Clic izquierdo:** Botón A (o Cruz).
+- **Combo de Salida:** Pulsar simultáneamente `BACK` (Select) + `START` emite `GamepadEvent.Button.HOME` para forzar el cierre escalonado y regresar a la biblioteca.
+- **Teclado en Pantalla Flotante (OSK Overlay):**
+  - Al pulsar `START + R2` (Right Trigger), aparece una ventana flotante (`alwaysOnTop = true`, sin bordes) con el teclado [GamepadOSK](file:///home/figue/Documentos/GlobalConsole/docs/15_busqueda_y_osk.md) sobre la ventana del navegador.
+  - El usuario puede navegar con la cruceta o stick izquierdo, seleccionar letras con A, borrar con X, alternar mayúsculas con Y, o cancelar con B / `START + R2`.
+  - Al pulsar Intro (↵) o START, el texto se inyecta de forma instantánea y universal en el campo enfocado del navegador mediante el portapapeles (`Ctrl + V`) y simulación de la tecla Intro vía AWT Robot.
 
 ---
 

@@ -212,7 +212,6 @@ fun SetupPathDialog(
                         onDismiss()
                     }
                 }
-                else -> {}
             }
         }
     }

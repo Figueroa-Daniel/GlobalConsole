@@ -21,6 +21,7 @@
     <string name="section_games">Juegos</string>
     <string name="home_running_game">Ejecutando: %1$s</string>
     <string name="home_game_suspended">El entorno está suspendido. Se reactivará al cerrar el emulador.</string>
+    <string name="home_navweb_suspended_controls">START + R2: Teclado en pantalla   ·   SELECT + START: Salir</string>
     <string name="action_force_resume">FORZAR REACTIVACIÓN</string>
     <string name="game_cover_description">Carátula de %1$s</string>
     <string name="action_open">ABRIR</string>
@@ -28,6 +29,10 @@
     <string name="osk_placeholder">Escribe para buscar…</string>
     <string name="osk_submit">BUSCAR ↵</string>
     <string name="osk_controls">A Escribir   ·   X Borrar   ·   Y Mayúsculas   ·   START Buscar   ·   B Cerrar</string>
+    <string name="osk_overlay_title">TECLADO EN PANTALLA</string>
+    <string name="osk_overlay_placeholder">Escribe aquí…</string>
+    <string name="osk_overlay_submit">ENVIAR ↵</string>
+    <string name="osk_overlay_controls">A Escribir   ·   X Borrar   ·   Y Mayúsculas   ·   START Enviar   ·   B / START+R2 Cerrar</string>
     <string name="view_settings_kicker">TU BIBLIOTECA, A TU ESTILO</string>
     <string name="view_settings_title">Vista y apariencia</string>
     <string name="view_settings_description">Fondo oscuro · cambios guardados automáticamente</string>
