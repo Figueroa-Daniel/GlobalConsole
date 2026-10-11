@@ -1,6 +1,7 @@
 package org.example.globalconsole.localGames.data.database
 
 import com.sun.jna.platform.win32.Shell32Util
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -132,7 +133,13 @@ class LocalGamesAccessAdapter(
             }
             session.closing || session.process.exitValue() == 0
         } finally {
-            synchronized(processLock) { if (active === session) active = null }
+            try {
+                if (session.process.isAlive || session.children.values.any { it.isAlive }) {
+                    withContext(NonCancellable) { close() }
+                }
+            } finally {
+                synchronized(processLock) { if (active === session) active = null }
+            }
         }
     }
 
@@ -146,9 +153,12 @@ class LocalGamesAccessAdapter(
     suspend fun close(): Boolean = withContext(Dispatchers.IO) {
         val session = synchronized(processLock) { active?.also { it.closing = true } } ?: return@withContext true
         session.process.descendants().use { stream -> stream.forEach { session.children[it.pid()] = it } }
-        val handles = session.children.values.toList() + session.process.toHandle()
-        handles.filter { it.isAlive }.forEach { it.destroy() }
-        delay(500)
+        val children = session.children.values.toList()
+        children.filter { it.isAlive }.forEach { it.destroy() }
+        if (children.isNotEmpty()) delay(150)
+        val handles = children + session.process.toHandle()
+        if (session.process.isAlive) session.process.destroy()
+        delay(350)
         handles.filter { it.isAlive }.forEach { it.destroyForcibly() }
         session.process.waitFor(2, TimeUnit.SECONDS)
         handles.none { it.isAlive }
