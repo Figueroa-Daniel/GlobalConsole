@@ -260,6 +260,7 @@ class HomeViewModel(
                 GroupingMode.PLATFORM -> game.platform.name
                 GroupingMode.CONSOLE_SERIES -> {
                     when (game.platform) {
+                        Platforms.LOCALAPP -> "Aplicaciones"
                         Platforms.PCSX2, Platforms.DUCKSTATION, Platforms.PS3 -> "PlayStation"
                         Platforms.MELONDS, Platforms.AZAHAR, Platforms.DOLPHIN -> "Nintendo"
                         Platforms.HEORIC_GAMES_LAUCHER, Platforms.LOCALGAME -> "PC"
@@ -449,6 +450,7 @@ class HomeViewModel(
             _uiState.value = HomeUiState.GameRunning(game)
 
             val success = when (game.platform) {
+                Platforms.LOCALAPP -> false
                 Platforms.PCSX2 -> executeGameP2UseCase?.invoke(game.id) ?: false
                 Platforms.LOCALGAME -> {
                     try {
@@ -513,6 +515,7 @@ class HomeViewModel(
         viewModelScope.launch {
             val game = state.game
             when (game.platform) {
+                Platforms.LOCALAPP -> Unit
                 Platforms.PCSX2 -> closeGameP2UseCase?.invoke()
                 Platforms.LOCALGAME -> {
                     try {
@@ -570,6 +573,7 @@ class HomeViewModel(
     fun onGameDeleted(game: Game) {
         viewModelScope.launch {
             when (game.platform) {
+                Platforms.LOCALAPP -> Unit
                 Platforms.PCSX2 -> deleteGameP2UseCase?.invoke(game.id)
                 Platforms.LOCALGAME -> {
                     // TODO: Implementar eliminación de juego local nativo
