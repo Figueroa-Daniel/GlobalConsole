@@ -89,30 +89,35 @@ fun main() = application {
     }
 
     // Ventana flotante de teclado en pantalla sobre navegadores y juegos externos
-    if (isOskOverlayVisible) {
-        Window(
-            onCloseRequest = { gamepadManager.hideOskOverlay() },
-            title = "GlobalConsole - Teclado",
-            alwaysOnTop = true,
-            undecorated = true,
-            transparent = true,
-            resizable = false,
-            state = rememberWindowState(
-                position = WindowPosition.Aligned(Alignment.BottomCenter),
-                size = DpSize(1000.dp, 440.dp)
-            )
-        ) {
-            MetroTheme(appearance) {
-                OskOverlay(
-                    gamepadManager = gamepadManager,
-                    onConfirm = { text ->
-                        gamepadManager.injectTextToSystem(text, pressEnter = true)
-                    },
-                    onDismiss = {
-                        gamepadManager.hideOskOverlay()
-                    }
-                )
+    Window(
+        onCloseRequest = { gamepadManager.hideOskOverlay() },
+        title = "GlobalConsole - Teclado",
+        visible = isOskOverlayVisible,
+        alwaysOnTop = true,
+        undecorated = true,
+        resizable = false,
+        state = rememberWindowState(
+            position = WindowPosition.Aligned(Alignment.BottomCenter),
+            size = DpSize(1000.dp, 440.dp)
+        )
+    ) {
+        LaunchedEffect(isOskOverlayVisible) {
+            if (isOskOverlayVisible) {
+                window.isAlwaysOnTop = true
+                window.toFront()
+                window.requestFocus()
             }
+        }
+        MetroTheme(appearance) {
+            OskOverlay(
+                gamepadManager = gamepadManager,
+                onConfirm = { text ->
+                    gamepadManager.injectTextToSystem(text, pressEnter = true)
+                },
+                onDismiss = {
+                    gamepadManager.hideOskOverlay()
+                }
+            )
         }
     }
 }

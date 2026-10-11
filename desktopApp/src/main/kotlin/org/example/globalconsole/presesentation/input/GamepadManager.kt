@@ -102,6 +102,8 @@ class GamepadManager {
     val isOskOverlayVisible: StateFlow<Boolean> = _isOskOverlayVisible.asStateFlow()
 
     private var lastR2PressedState = false
+    private var lastAClickTime = 0L
+    private var cursorDetector: SystemCursorDetector? = null
 
     /**
      * Alterna la visibilidad del teclado en pantalla (OSK Overlay).
@@ -189,6 +191,9 @@ class GamepadManager {
             throw IllegalStateException("No se pudo inicializar GLFW para soporte de mandos.")
         }
         isInitialized = true
+        if (cursorDetector == null) {
+            cursorDetector = SystemCursorDetector()
+        }
         detectActiveGamepad()
 
         pollingJob = scope.launch(Dispatchers.IO) {
@@ -229,6 +234,8 @@ class GamepadManager {
     fun stop() {
         pollingJob?.cancel()
         pollingJob = null
+        cursorDetector?.close()
+        cursorDetector = null
         if (isInitialized) {
             glfwTerminate()
             isInitialized = false
@@ -275,18 +282,41 @@ class GamepadManager {
             _events.emit(GamepadEvent.ButtonPressed(GamepadEvent.Button.HOME))
         }
 
-        // 3. Combo START + R2 (Right Trigger) para abrir o cerrar el teclado flotante (OSK Overlay)
+        // 3. Atajos manuales para el teclado flotante (OSK Overlay):
+        // Combo START + R2 / START + R1, o pulsar el Stick Derecho (R3)
         val r2Value = axes.get(GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER)
-        val r2Pressed = r2Value > 0.4f
-        if (startPressed && r2Pressed && (!wasStartPressed || !lastR2PressedState)) {
-            toggleOskOverlay()
-        }
-        lastR2PressedState = r2Pressed
+        val r2Pressed = r2Value > 0.1f
+        val r1Pressed = buttons.get(GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER).toInt() == GLFW_PRESS
+        val rightTriggerOrBumper = r2Pressed || r1Pressed
+
+        val r3Pressed = buttons.get(GLFW_GAMEPAD_BUTTON_RIGHT_THUMB).toInt() == GLFW_PRESS
+        val wasR3Pressed = lastButtonsState[GLFW_GAMEPAD_BUTTON_RIGHT_THUMB]
+
+        val triggerCombo = startPressed && rightTriggerOrBumper && (!wasStartPressed || !lastR2PressedState)
+        val r3Click = r3Pressed && !wasR3Pressed
+
+        lastR2PressedState = rightTriggerOrBumper
+        lastButtonsState[GLFW_GAMEPAD_BUTTON_RIGHT_THUMB] = r3Pressed
         lastButtonsState[GLFW_GAMEPAD_BUTTON_START] = startPressed
         lastButtonsState[GLFW_GAMEPAD_BUTTON_BACK] = backPressed
 
-        // 4. Si el teclado en pantalla está activo sobre la aplicación externa, procesamos el mando para el teclado
+        // 4. Si el teclado en pantalla ya está activo, procesamos la navegación y controles del teclado
         if (_isOskOverlayVisible.value) {
+            // Permitir cerrar con START + R2, START + R1, R3 o botón B (Atrás)
+            if (triggerCombo || r3Click) {
+                hideOskOverlay()
+                return
+            }
+
+            val bPressed = buttons.get(GLFW_GAMEPAD_BUTTON_B).toInt() == GLFW_PRESS
+            val wasBPressed = lastButtonsState[GLFW_GAMEPAD_BUTTON_B]
+            if (bPressed && !wasBPressed) {
+                hideOskOverlay()
+                lastButtonsState[GLFW_GAMEPAD_BUTTON_B] = bPressed
+                return
+            }
+            lastButtonsState[GLFW_GAMEPAD_BUTTON_B] = bPressed
+
             var activeDirection: GamepadEvent.Direction? = null
             if (buttons.get(GLFW_GAMEPAD_BUTTON_DPAD_UP).toInt() == GLFW_PRESS) {
                 activeDirection = GamepadEvent.Direction.UP
@@ -330,9 +360,16 @@ class GamepadManager {
             }
             lastButtonsState[GLFW_GAMEPAD_BUTTON_A] = aPressed
 
-            checkButtonPress(buttons, GLFW_GAMEPAD_BUTTON_B, GamepadEvent.Button.BACK)
             checkButtonPress(buttons, GLFW_GAMEPAD_BUTTON_X, GamepadEvent.Button.DELETE)
             checkButtonPress(buttons, GLFW_GAMEPAD_BUTTON_Y, GamepadEvent.Button.OPTIONS)
+            checkButtonPress(buttons, GLFW_GAMEPAD_BUTTON_START, GamepadEvent.Button.MENU)
+            return
+        }
+
+        // Si el teclado NO estaba visible y se activa el atajo manual (R3 o START+R2/R1):
+        if (triggerCombo || r3Click) {
+            println("[Gamepad] Activación manual de teclado OSK (triggerCombo=$triggerCombo, r3Click=$r3Click)")
+            showOskOverlay()
             return
         }
 
@@ -359,8 +396,24 @@ class GamepadManager {
             val aPressed = buttons.get(GLFW_GAMEPAD_BUTTON_A).toInt() == GLFW_PRESS
             val aWasPressed = lastButtonsState[GLFW_GAMEPAD_BUTTON_A]
             if (aPressed && !aWasPressed) {
+                // Comprobar si el cursor está sobre un campo de texto o si es doble pulsación
+                val isTextInput = cursorDetector?.isTextCursor() == true
+                val now = System.currentTimeMillis()
+                val isDoubleTap = (now - lastAClickTime) < 400
+                lastAClickTime = now
+
+                // Emitir el clic izquierdo al sistema para enfocar el elemento en el navegador
                 awtRobot?.mousePress(InputEvent.BUTTON1_DOWN_MASK)
                 awtRobot?.mouseRelease(InputEvent.BUTTON1_DOWN_MASK)
+
+                // Si se hizo clic en un campo de texto o doble pulsación rápida de A, abrir el teclado flotante
+                if (isTextInput || isDoubleTap) {
+                    println("[Gamepad] Campo de texto detectado al hacer clic (isText=$isTextInput, doubleTap=$isDoubleTap). Abriendo OSK.")
+                    CoroutineScope(Dispatchers.Main).launch {
+                        delay(60) // Breve margen para que el navegador termine de recibir el foco
+                        showOskOverlay()
+                    }
+                }
             }
             lastButtonsState[GLFW_GAMEPAD_BUTTON_A] = aPressed
         }
