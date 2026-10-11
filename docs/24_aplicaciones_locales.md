@@ -118,3 +118,14 @@ Las pruebas de casos de uso verificarán el trabajo omitido mediante un resoluto
 de iconos controlado, sin depender de límites de tiempo frágiles. Se medirán además
 los tiempos del catálogo real con configuración temporal. Véase
 [Juegos locales](23_juegos_locales.md) y [Contexto](19_contexto_ia.md).
+
+## 10. Validación de la corrección (2026-10-11)
+
+Medición con el catálogo real de Linux y configuración temporal: selección vacía
+0 ms, un juego seleccionado 24 ms y catálogo completo de juegos 28 ms. El catálogo
+completo de aplicaciones (78 accesos) tarda unos 3 s por la búsqueda de iconos y
+solo se ejecuta al abrir Ajustes, nunca al cargar la biblioteca.
+
+Se añadió la prueba de casos de uso `discovery_resolvesReverseDnsIcons`, que
+protege los iconos con nombre reverse-DNS (por ejemplo SuperTux). Véase
+[Juegos locales](23_juegos_locales.md) y [Contexto](19_contexto_ia.md).
