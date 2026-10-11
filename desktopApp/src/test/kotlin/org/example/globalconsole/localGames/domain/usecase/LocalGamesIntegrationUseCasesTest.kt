@@ -104,4 +104,30 @@ class LocalGamesIntegrationUseCasesTest {
             assertEquals(listOf("flatpak", "run", "--branch=stable", "--command=puzzle", "org.example.Puzzle", "--fullscreen"), games.last().arguments)
         } finally { root.deleteRecursively() }
     }
+
+    /**
+     * Resuelve iconos con nombre reverse-DNS sin tratar el último segmento como extensión.
+     * @return Unit.
+     * @throws Exception Si falla un archivo temporal.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-11
+     */
+    @Test
+    fun discovery_resolvesReverseDnsIcons() = runTest {
+        val root = Files.createTempDirectory("local-icons").toFile()
+        val previousHome = System.getProperty("user.home")
+        try {
+            System.setProperty("user.home", root.absolutePath)
+            val icon = root.resolve(".local/share/icons/hicolor/128x128/apps/org.example.Puzzle.png")
+            icon.parentFile.mkdirs()
+            icon.writeBytes(byteArrayOf(1))
+            val apps = root.resolve("apps").apply { mkdirs() }
+            apps.resolve("puzzle.desktop").writeText("[Desktop Entry]\nType=Application\nName=Puzzle\nCategories=Game;\nExec=/bin/true\nIcon=org.example.Puzzle\n")
+            val repo = LocalGamesRepositoryImpl(LocalGamesAccessAdapter(listOf(apps), "Linux"), root.resolve("config.json"))
+            assertEquals(icon.absolutePath, GetInstalledLocalGamesUseCase(repo)().single().image)
+        } finally {
+            System.setProperty("user.home", previousHome)
+            root.deleteRecursively()
+        }
+    }
 }
