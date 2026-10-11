@@ -108,4 +108,13 @@ val domainModule = module {
     factory { org.example.globalconsole.duckstation.domain.usecase.ExecuteGameDuckStationUseCase(repository = get()) }
     factory { org.example.globalconsole.duckstation.domain.usecase.DeleteGameDuckStationUseCase(repository = get()) }
     factory { org.example.globalconsole.duckstation.domain.usecase.CloseGameDuckStationUseCase(repository = get()) }
+
+    // UseCases de Navegadores Web
+    factory { org.example.globalconsole.navigatorWeb.domain.usecase.GetInstalledNavsUseCase(repository = get()) }
+    factory { org.example.globalconsole.navigatorWeb.domain.usecase.GetNavigatorsWebUseCase(repository = get()) }
+    factory { org.example.globalconsole.navigatorWeb.domain.usecase.AddNavUseCase(repository = get()) }
+    factory { org.example.globalconsole.navigatorWeb.domain.usecase.RemoveNavUseCase(repository = get()) }
+    factory { org.example.globalconsole.navigatorWeb.domain.usecase.IsEnabledNavUseCase(repository = get()) }
+    factory { org.example.globalconsole.navigatorWeb.domain.usecase.ExecuteNavUseCase(repository = get()) }
+    factory { org.example.globalconsole.navigatorWeb.domain.usecase.CloseNavUseCase(repository = get()) }
 }
