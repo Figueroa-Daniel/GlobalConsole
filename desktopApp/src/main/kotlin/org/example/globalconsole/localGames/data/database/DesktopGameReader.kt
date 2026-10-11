@@ -47,15 +47,16 @@ internal object DesktopGameReader {
      * Conserva únicamente juegos tras resolver el acceso con el lector compartido.
      * @param file Archivo desktop de origen.
      * @param desktopId Identificador XDG con prioridad resuelta.
+     * @param iconResolver Busca la imagen solo después de aceptar el juego.
      * @return Juego visible o null si no pertenece al catálogo.
      * @throws java.io.IOException Si el archivo no se puede leer.
      * @author Daniel Figueroa Vidal
      * @since 2026-10-11
      */
-    fun read(file: File, desktopId: String): LocalGameDto? {
+    fun read(file: File, desktopId: String, iconResolver: (String?) -> String? = ::resolveIcon): LocalGameDto? {
         val entry = DesktopApplicationReader.read(file, desktopId) ?: return null
         if ("Game" !in entry.categories || isExcluded(entry.name, entry.arguments)) return null
-        return LocalGameDto("local:linux:$desktopId", entry.name, entry.arguments, entry.iconPath, entry.workingDirectory)
+        return LocalGameDto("local:linux:$desktopId", entry.name, entry.arguments, iconResolver(entry.iconName), entry.workingDirectory)
     }
 
     /**

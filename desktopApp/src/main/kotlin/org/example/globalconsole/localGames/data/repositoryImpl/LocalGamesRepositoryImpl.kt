@@ -38,7 +38,7 @@ class LocalGamesRepositoryImpl(
      */
     override suspend fun getEnabled(): List<LocalGameObj> {
         val enabled = selection.read()
-        return getInstalled().filter { it.id in enabled }
+        return adapter.scan(enabled).map { it.toLocalGameObj() }
     }
 
     /**
@@ -50,7 +50,7 @@ class LocalGamesRepositoryImpl(
      * @since 2026-10-11
      */
     override suspend fun enable(id: String): Boolean =
-        if (getInstalled().none { it.id == id }) false else selection.update(id, true)
+        if (adapter.scan(setOf(id)).isEmpty()) false else selection.update(id, true)
 
     /**
      * Retira el juego de la biblioteca sin borrar archivos del sistema.
@@ -81,7 +81,7 @@ class LocalGamesRepositoryImpl(
      * @since 2026-10-11
      */
     override suspend fun execute(game: LocalGameObj): Boolean {
-        val current = adapter.scan().firstOrNull { it.id == game.id } ?: return false
+        val current = adapter.scan(setOf(game.id)).firstOrNull { it.id == game.id } ?: return false
         return adapter.execute(current)
     }
 

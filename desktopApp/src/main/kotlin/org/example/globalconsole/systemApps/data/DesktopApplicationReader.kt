@@ -75,7 +75,7 @@ internal object DesktopApplicationReader {
                 desktopId,
                 name,
                 args,
-                resolveIcon(icon),
+                icon,
                 values["Path"]?.takeIf { File(it).isDirectory },
                 values["Categories"].orEmpty().split(';').filter { it.isNotBlank() }.toSet(),
                 values["X-Flatpak"] ?: values["X-SnapInstanceName"] ?: desktopId

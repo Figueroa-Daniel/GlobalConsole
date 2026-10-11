@@ -38,7 +38,7 @@ class LocalAppsRepositoryImpl(
      */
     override suspend fun getEnabled(): List<LocalAppObj> {
         val enabled = selection.read()
-        return getInstalled().filter { it.id in enabled }
+        return adapter.scan(enabled).map { it.toLocalAppObj() }
     }
 
     /**
@@ -50,7 +50,7 @@ class LocalAppsRepositoryImpl(
      * @since 2026-10-11
      */
     override suspend fun enable(id: String): Boolean =
-        if (getInstalled().none { it.id == id }) false else selection.update(id, true)
+        if (adapter.scan(setOf(id)).isEmpty()) false else selection.update(id, true)
 
     /**
      * Retira la aplicación de la biblioteca sin borrar archivos del sistema.
@@ -81,7 +81,7 @@ class LocalAppsRepositoryImpl(
      * @since 2026-10-11
      */
     override suspend fun execute(game: LocalAppObj): Boolean {
-        val current = adapter.scan().firstOrNull { it.id == game.id } ?: return false
+        val current = adapter.scan(setOf(game.id)).firstOrNull { it.id == game.id } ?: return false
         return adapter.execute(current)
     }
 

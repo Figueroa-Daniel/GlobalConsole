@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.*
 import org.example.globalconsole.localGames.data.dto.LocalGameDto
+import org.example.globalconsole.systemApps.data.DesktopApplicationReader
 import java.io.File
 import java.util.concurrent.TimeUnit
 
@@ -13,26 +14,30 @@ import java.util.concurrent.TimeUnit
  * Detecta juegos nativos y mantiene exclusivamente el árbol de procesos que inicia.
  * @param applicationDirectories Rutas desktop ordenadas de mayor a menor prioridad.
  * @param osName Sistema operativo; sustituible en fixtures de detección.
+ * @param iconResolver Resuelve imágenes únicamente de entradas admitidas.
  * @author Daniel Figueroa Vidal
  * @since 2026-10-11
  */
 class LocalGamesAccessAdapter(
     private val applicationDirectories: List<File> = defaultApplicationDirectories(),
-    private val osName: String = System.getProperty("os.name")
+    private val osName: String = System.getProperty("os.name"),
+    private val iconResolver: (String?) -> String? = DesktopApplicationReader::resolveIcon
 ) {
     private val process = NativeApplicationProcess()
 
     /**
      * Escanea el sistema sin ejecutar ningún juego.
-     * @return Juegos instalados y deduplicados por comando.
+     * @param ids Identificadores solicitados; null detecta el catálogo completo.
+     * @return Entradas instaladas y deduplicados por comando.
      * @throws Exception Si falla la detección nativa de Windows.
      * @author Daniel Figueroa Vidal
      * @since 2026-10-11
      */
-    suspend fun scan(): List<LocalGameDto> = withContext(Dispatchers.IO) {
+    suspend fun scan(ids: Set<String>? = null): List<LocalGameDto> = withContext(Dispatchers.IO) {
+        if (ids != null && ids.isEmpty()) return@withContext emptyList()
         val games = when {
-            osName.startsWith("Linux", true) -> scanLinux()
-            osName.startsWith("Windows", true) -> scanWindows()
+            osName.startsWith("Linux", true) -> scanLinux(ids)
+            osName.startsWith("Windows", true) -> scanWindows().filter { ids == null || it.id in ids }
             else -> emptyList()
         }
         games.distinctBy { it.arguments to it.workingDirectory }.sortedBy { it.name.lowercase() }
@@ -40,19 +45,20 @@ class LocalGamesAccessAdapter(
 
     /**
      * Aplica la prioridad de accesos desktop, incluidos los ocultos del usuario.
-     * @return Juegos Linux visibles.
+     * @param ids Selección opcional para omitir accesos ajenos antes de leerlos.
+     * @return Entradas Linux visibles.
      * @throws Nothing Los archivos individuales ilegibles se omiten.
      * @author Daniel Figueroa Vidal
      * @since 2026-10-11
      */
-    private fun scanLinux(): List<LocalGameDto> {
+    private fun scanLinux(ids: Set<String>?): List<LocalGameDto> {
         val seen = mutableSetOf<String>()
         return buildList {
             for (root in applicationDirectories) {
                 if (!root.isDirectory) continue
                 root.walkTopDown().filter { it.isFile && it.extension == "desktop" }.sortedBy { it.path }.forEach { file ->
                     val id = file.relativeTo(root).path.replace(File.separatorChar, '-')
-                    if (seen.add(id)) runCatching { DesktopGameReader.read(file, id) }.getOrNull()?.let { add(it) }
+                    if (seen.add(id) && (ids == null || "local:linux:$id" in ids)) runCatching { DesktopGameReader.read(file, id, iconResolver) }.getOrNull()?.let { add(it) }
                 }
             }
         }

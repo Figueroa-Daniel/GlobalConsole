@@ -15,27 +15,31 @@ import java.util.concurrent.TimeUnit
  * Detecta aplicaciones nativas y mantiene exclusivamente el árbol de procesos que inicia.
  * @param applicationDirectories Rutas desktop ordenadas de mayor a menor prioridad.
  * @param osName Sistema operativo; sustituible en fixtures de detección.
+ * @param iconResolver Resuelve imágenes únicamente de entradas admitidas.
  * @author Daniel Figueroa Vidal
  * @since 2026-10-11
  */
 class LocalAppsAccessAdapter(
     private val applicationDirectories: List<File> = defaultApplicationDirectories(),
-    private val osName: String = System.getProperty("os.name")
+    private val osName: String = System.getProperty("os.name"),
+    private val iconResolver: (String?) -> String? = DesktopApplicationReader::resolveIcon
 ) {
     private val process = NativeApplicationProcess()
     private val isSupported = IsSupportedLocalAppUseCase()
 
     /**
-     * Escanea el sistema sin ejecutar ningún aplicación.
-     * @return Juegos instalados y deduplicados por comando.
+     * Escanea el sistema sin ejecutar ninguna aplicación.
+     * @param ids Identificadores solicitados; null detecta el catálogo completo.
+     * @return Entradas instaladas y deduplicados por comando.
      * @throws Exception Si falla la detección nativa de Windows.
      * @author Daniel Figueroa Vidal
      * @since 2026-10-11
      */
-    suspend fun scan(): List<LocalAppDto> = withContext(Dispatchers.IO) {
+    suspend fun scan(ids: Set<String>? = null): List<LocalAppDto> = withContext(Dispatchers.IO) {
+        if (ids != null && ids.isEmpty()) return@withContext emptyList()
         val games = when {
-            osName.startsWith("Linux", true) -> scanLinux()
-            osName.startsWith("Windows", true) -> scanWindows()
+            osName.startsWith("Linux", true) -> scanLinux(ids)
+            osName.startsWith("Windows", true) -> scanWindows().filter { ids == null || it.id in ids }
             else -> emptyList()
         }
         games.distinctBy { it.arguments to it.workingDirectory }.sortedBy { it.name.lowercase() }
@@ -43,22 +47,23 @@ class LocalAppsAccessAdapter(
 
     /**
      * Aplica la prioridad de accesos desktop, incluidos los ocultos del usuario.
-     * @return Juegos Linux visibles.
+     * @param ids Selección opcional para omitir accesos ajenos antes de leerlos.
+     * @return Entradas Linux visibles.
      * @throws Nothing Los archivos individuales ilegibles se omiten.
      * @author Daniel Figueroa Vidal
      * @since 2026-10-11
      */
-    private fun scanLinux(): List<LocalAppDto> {
+    private fun scanLinux(ids: Set<String>?): List<LocalAppDto> {
         val seen = mutableSetOf<String>()
         return buildList {
             for (root in applicationDirectories) {
                 if (!root.isDirectory) continue
                 root.walkTopDown().filter { it.isFile && it.extension == "desktop" }.sortedBy { it.path }.forEach { file ->
                     val id = file.relativeTo(root).path.replace(File.separatorChar, '-')
-                    if (seen.add(id)) runCatching { DesktopApplicationReader.read(file, id) }.getOrNull()?.let { entry ->
+                    if (seen.add(id) && (ids == null || "app:linux:$id" in ids)) runCatching { DesktopApplicationReader.read(file, id) }.getOrNull()?.let { entry ->
                         if (isSupported(id, entry.name, entry.arguments, entry.categories) &&
                             isSupported(entry.applicationId, entry.name, entry.arguments, entry.categories)) {
-                            add(LocalAppDto("app:linux:$id", entry.name, entry.arguments, entry.iconPath, entry.workingDirectory))
+                            add(LocalAppDto("app:linux:$id", entry.name, entry.arguments, iconResolver(entry.iconName), entry.workingDirectory))
                         }
                     }
                 }
@@ -87,7 +92,7 @@ class LocalAppsAccessAdapter(
                 process.destroyForcibly()
                 error("La detección de aplicaciones superó los 30 segundos")
             }
-            check(process.exitValue() == 0) { "No se pudieron detectar los aplicaciones de Windows: ${errors.readText().take(300)}" }
+            check(process.exitValue() == 0) { "No se pudieron detectar las aplicaciones de Windows: ${errors.readText().take(300)}" }
             val rows = Json.parseToJsonElement(output.readText(Charsets.UTF_8).removePrefix("\uFEFF")).jsonArray
             return rows.mapNotNull { element ->
                 val row = element.jsonObject
@@ -107,7 +112,7 @@ class LocalAppsAccessAdapter(
     }
 
     /**
-     * Ejecuta el aplicación mediante el gestor nativo compartido.
+     * Ejecuta la aplicación mediante el gestor nativo compartido.
      * @param game Juego resuelto desde la instalación actual.
      * @return True al terminar correctamente o tras un cierre solicitado.
      * @throws Exception Si falla el lanzamiento o se cancela la espera.
