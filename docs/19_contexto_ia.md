@@ -69,3 +69,13 @@ Este documento actúa como memoria continua y estado del proyecto para las sesio
 - Módulos del proyecto: [03_modulos.md](03_modulos.md).
 - Errores de Datos: [06_analisis_errores_data.md](06_analisis_errores_data.md).
 - Persistencia de Configuración: [08_persistencia_configuracion.md](08_persistencia_configuracion.md).
+
+## 4. Juegos locales (2026-10-11)
+
+Implementado `localGames` en `feature/local-games`: detección Linux/Windows,
+preferencias `enabledLocalGames`, siete casos de uso, Koin, biblioteca y diálogo
+ADD Local Game. El diálogo base suspende su colector mientras la gestión local
+está abierta; el cierre y cancelación solo afectan al árbol de procesos iniciado.
+Validación: 110 pruebas, revisión gráfica X11 y recorrido de ejecución con procesos
+temporales. El escaneo real Linux detectó 4 juegos. Windows y mando físico quedan
+pendientes de validación. Ver [Juegos locales](23_juegos_locales.md).

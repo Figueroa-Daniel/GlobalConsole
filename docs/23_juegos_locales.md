@@ -59,3 +59,37 @@ La comprobación gráfica y de procesos complementa las pruebas de dominio.
 
 @author Daniel Figueroa Vidal
 @since 2026-10-11
+
+## 7. Casos de cierre y accesos a juegos mediante Steam
+
+Cancelar el caso de uso de ejecución debe cerrar su proceso antes de liberar la
+sesión. La limpieza se realiza en un contexto no cancelable. El cierre permite al
+padre recoger los procesos hijos antes de terminarlo y nunca busca por nombre.
+Los accesos concretos a juegos de Steam (`steam://rungameid/…` o `-applaunch`)
+pueden detectarse; el acceso genérico al launcher Steam se omite. Estos accesos
+pueden delegar en una instancia externa, con la limitación indicada en §5.
+
+## 8. Resultado de validación (2026-10-11)
+
+1. `./gradlew test --offline --console=plain`: 110 pruebas correctas, sin fallos.
+2. TDD: los contratos y las regresiones se ejecutaron en rojo antes de producción;
+   detección/persistencia en verde antes de integrar Compose.
+3. Pantalla virtual X11, ventana de 1280×900 y 15 juegos de prueba: apertura del
+   diálogo desde configuración con eventos de mando, toggle, scroll hasta filas
+   inferiores, cierre sin fuga de eventos y persistencia al reabrir. Capturas
+   revisadas visualmente; los archivos de prueba quedan fuera del repositorio.
+4. Recorrido real de Koin y ViewModels: habilitar, cargar biblioteca, lanzar un
+   proceso temporal, cerrarlo y volver a Success. No se ejecutaron juegos personales.
+5. Escaneo del Linux de desarrollo: 4 juegos detectados mediante los accesos locales.
+6. Pendiente de entorno: registro/accesos directos en Windows y prueba con mando
+   físico. No se afirma validación de esos dos escenarios.
+7. Se preserva el patrón de repositorio en `data/repository` de los módulos actuales,
+   como especifica el plan. Los casos de uso dependen solo de ese contrato y de
+   entidades; la detección del sistema queda en Data.
+
+## 9. Referencia de formato
+
+La separación de argumentos y expansión de marcadores se basa en la
+[especificación Desktop Entry](https://specifications.freedesktop.org/desktop-entry/latest-single/).
+No se interpreta Exec con una shell adicional; un acceso que explícitamente
+invoca una shell conserva esa invocación como parte de su comando.
