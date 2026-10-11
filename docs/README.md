@@ -29,3 +29,4 @@ Este directorio contiene la documentación técnica oficial del proyecto GlobalC
 20. **[21_metro_personalizable.md](21_metro_personalizable.md)**: Tema oscuro, brillos configurables y usabilidad con mando.
 21. **[22_navegadores_web.md](22_navegadores_web.md)**: Integración de Navegadores Web (Chrome, Firefox, Brave, Edge): detección multiplataforma, ciclo de vida y control por mando.
 22. **[23_juegos_locales.md](23_juegos_locales.md)**: Detección y gestión de juegos locales Linux/Windows, preferencias, ejecución y navegación con mando.
+23. **[24_aplicaciones_locales.md](24_aplicaciones_locales.md)**: Aplicaciones instaladas excluyendo juegos, emuladores y navegadores, con selección, biblioteca y control por mando.
