@@ -7,6 +7,9 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import org.example.globalconsole.input.domain.usecase.OskShortcutAction
+import org.example.globalconsole.input.domain.usecase.OskShortcutState
+import org.example.globalconsole.input.domain.usecase.OskShortcutUseCase
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWGamepadState
 import java.awt.GraphicsEnvironment
@@ -81,11 +84,17 @@ class GamepadManager {
     /**
      * Indica si la lectura del mando está suspendida (ej. durante la ejecución de un juego).
      */
+    @Volatile
     var isSuspended: Boolean = false
+        set(value) {
+            field = value
+            if (!value) hideOskOverlay()
+        }
 
     /**
      * Indica si se permite usar el ratón (stick derecho) cuando la lectura del mando está suspendida (ej. en Melon DS).
      */
+    @Volatile
     var isMouseAllowedWhenSuspended: Boolean = false
 
     /**
@@ -101,7 +110,9 @@ class GamepadManager {
      */
     val isOskOverlayVisible: StateFlow<Boolean> = _isOskOverlayVisible.asStateFlow()
 
-    private var lastR2PressedState = false
+    private val oskShortcuts = OskShortcutUseCase()
+    private var lastSystemMousePressed = false
+    private var systemClickOnText = false
     private var lastAClickTime = 0L
     private var cursorDetector: SystemCursorDetector? = null
 
@@ -112,7 +123,7 @@ class GamepadManager {
      * @since 2026-10-11
      */
     fun toggleOskOverlay() {
-        _isOskOverlayVisible.value = !_isOskOverlayVisible.value
+        if (_isOskOverlayVisible.value) hideOskOverlay() else showOskOverlay()
     }
 
     /**
@@ -122,6 +133,7 @@ class GamepadManager {
      * @since 2026-10-11
      */
     fun showOskOverlay() {
+        _inputMode.value = InputMode.GAMEPAD
         _isOskOverlayVisible.value = true
     }
 
@@ -206,6 +218,14 @@ class GamepadManager {
                         detectActiveGamepad()
                     }
 
+                    if (isSuspended) {
+                        processSystemMouseClick()
+                    } else {
+                        oskShortcuts.reset()
+                        lastSystemMousePressed = false
+                        systemClickOnText = false
+                    }
+
                     if (selectedGamepadId != -1) {
                         if (glfwGetGamepadState(selectedGamepadId, state)) {
                             if (isSuspended) {
@@ -279,35 +299,37 @@ class GamepadManager {
         
         // Se activa cuando ambos están pulsados y al menos uno de ellos acaba de pasar a pulsado
         if (startPressed && backPressed && (!wasStartPressed || !wasBackPressed)) {
+            hideOskOverlay()
+            lastButtonsState[GLFW_GAMEPAD_BUTTON_START] = startPressed
+            lastButtonsState[GLFW_GAMEPAD_BUTTON_BACK] = backPressed
             _events.emit(GamepadEvent.ButtonPressed(GamepadEvent.Button.HOME))
+            return
         }
 
-        // 3. Atajos manuales para el teclado flotante (OSK Overlay):
-        // Combo START + R2 / START + R1, o pulsar el Stick Derecho (R3)
-        val r2Value = axes.get(GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER)
-        val r2Pressed = r2Value > 0.1f
-        val r1Pressed = buttons.get(GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER).toInt() == GLFW_PRESS
-        val rightTriggerOrBumper = r2Pressed || r1Pressed
-
-        val r3Pressed = buttons.get(GLFW_GAMEPAD_BUTTON_RIGHT_THUMB).toInt() == GLFW_PRESS
-        val wasR3Pressed = lastButtonsState[GLFW_GAMEPAD_BUTTON_RIGHT_THUMB]
-
-        val triggerCombo = startPressed && rightTriggerOrBumper && (!wasStartPressed || !lastR2PressedState)
-        val r3Click = r3Pressed && !wasR3Pressed
-
-        lastR2PressedState = rightTriggerOrBumper
-        lastButtonsState[GLFW_GAMEPAD_BUTTON_RIGHT_THUMB] = r3Pressed
+        val shortcut = oskShortcuts(
+            OskShortcutState(
+                start = startPressed,
+                rightTrigger = axes.get(GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER) > 0.1f,
+                rightBumper = buttons.get(GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER).toInt() == GLFW_PRESS,
+                rightStick = buttons.get(GLFW_GAMEPAD_BUTTON_RIGHT_THUMB).toInt() == GLFW_PRESS
+            ),
+            _isOskOverlayVisible.value
+        )
         lastButtonsState[GLFW_GAMEPAD_BUTTON_START] = startPressed
         lastButtonsState[GLFW_GAMEPAD_BUTTON_BACK] = backPressed
 
+        if (shortcut == OskShortcutAction.TOGGLE) {
+            toggleOskOverlay()
+            for (i in lastButtonsState.indices) {
+                lastButtonsState[i] = buttons.get(i).toInt() == GLFW_PRESS
+            }
+            lastPressedDirection = null
+            _inputMode.value = InputMode.GAMEPAD
+            return
+        }
+
         // 4. Si el teclado en pantalla ya está activo, procesamos la navegación y controles del teclado
         if (_isOskOverlayVisible.value) {
-            // Permitir cerrar con START + R2, START + R1, R3 o botón B (Atrás)
-            if (triggerCombo || r3Click) {
-                hideOskOverlay()
-                return
-            }
-
             val bPressed = buttons.get(GLFW_GAMEPAD_BUTTON_B).toInt() == GLFW_PRESS
             val wasBPressed = lastButtonsState[GLFW_GAMEPAD_BUTTON_B]
             if (bPressed && !wasBPressed) {
@@ -362,14 +384,9 @@ class GamepadManager {
 
             checkButtonPress(buttons, GLFW_GAMEPAD_BUTTON_X, GamepadEvent.Button.DELETE)
             checkButtonPress(buttons, GLFW_GAMEPAD_BUTTON_Y, GamepadEvent.Button.OPTIONS)
-            checkButtonPress(buttons, GLFW_GAMEPAD_BUTTON_START, GamepadEvent.Button.MENU)
-            return
-        }
-
-        // Si el teclado NO estaba visible y se activa el atajo manual (R3 o START+R2/R1):
-        if (triggerCombo || r3Click) {
-            println("[Gamepad] Activación manual de teclado OSK (triggerCombo=$triggerCombo, r3Click=$r3Click)")
-            showOskOverlay()
+            if (shortcut == OskShortcutAction.CONFIRM) {
+                _events.emit(GamepadEvent.ButtonPressed(GamepadEvent.Button.MENU))
+            }
             return
         }
 
@@ -408,14 +425,39 @@ class GamepadManager {
 
                 // Si se hizo clic en un campo de texto o doble pulsación rápida de A, abrir el teclado flotante
                 if (isTextInput || isDoubleTap) {
-                    println("[Gamepad] Campo de texto detectado al hacer clic (isText=$isTextInput, doubleTap=$isDoubleTap). Abriendo OSK.")
-                    CoroutineScope(Dispatchers.Main).launch {
-                        delay(60) // Breve margen para que el navegador termine de recibir el foco
+                    delay(60)
+                    if (isSuspended && isMouseAllowedWhenSuspended) {
+                        _inputMode.value = InputMode.GAMEPAD
                         showOskOverlay()
                     }
                 }
             }
             lastButtonsState[GLFW_GAMEPAD_BUTTON_A] = aPressed
+        }
+    }
+
+    /**
+     * Detecta clics físicos X11 sin depender de que haya un mando conectado.
+     * Espera a soltar el botón para conservar el foco del campo antes de abrir el OSK.
+     * @return Unit.
+     * @throws CancellationException Si se detiene la lectura durante la espera.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-11
+     */
+    private suspend fun processSystemMouseClick() {
+        val pressed = cursorDetector?.isPrimaryButtonPressed() == true
+        if (pressed && !lastSystemMousePressed) {
+            systemClickOnText = isMouseAllowedWhenSuspended &&
+                !_isOskOverlayVisible.value && cursorDetector?.isTextCursor() == true
+        }
+        val openAfterRelease = !pressed && lastSystemMousePressed && systemClickOnText
+        lastSystemMousePressed = pressed
+        if (!pressed) systemClickOnText = false
+        if (openAfterRelease) {
+            delay(60)
+            if (isSuspended && isMouseAllowedWhenSuspended && !_isOskOverlayVisible.value) {
+                showOskOverlay()
+            }
         }
     }
 

@@ -4,6 +4,8 @@ import com.sun.jna.Library
 import com.sun.jna.Native
 import com.sun.jna.NativeLong
 import com.sun.jna.Pointer
+import com.sun.jna.ptr.IntByReference
+import com.sun.jna.ptr.NativeLongByReference
 import com.sun.jna.Structure
 import kotlin.math.abs
 
@@ -17,6 +19,13 @@ internal interface X11Native : Library {
     fun XOpenDisplay(displayName: String?): Pointer?
     fun XCloseDisplay(display: Pointer?): Int
     fun XFree(ptr: Pointer?): Int
+    fun XDefaultRootWindow(display: Pointer): NativeLong
+    fun XQueryPointer(
+        display: Pointer, window: NativeLong,
+        root: NativeLongByReference, child: NativeLongByReference,
+        rootX: IntByReference, rootY: IntByReference,
+        windowX: IntByReference, windowY: IntByReference, mask: IntByReference
+    ): Int
 
     companion object {
         val INSTANCE: X11Native? = try {
@@ -94,6 +103,7 @@ class SystemCursorDetector : AutoCloseable {
      * @author Daniel Figueroa Vidal
      * @since 2026-10-11
      */
+    @Synchronized
     fun isTextCursor(): Boolean {
         val currentDisplay = display ?: return false
         val xfixes = XFixesNative.INSTANCE ?: return false
@@ -122,17 +132,17 @@ class SystemCursorDetector : AutoCloseable {
                     // En el cursor I-beam, los píxeles centrales forman una línea vertical
                     // mientras que las columnas exteriores permanecen vacías.
                     if (isHotspotCentered && cursorImg.pixels != null) {
-                        val pixelCount = w * h
-                        val pixelData = cursorImg.pixels!!.getIntArray(0, pixelCount)
+                        // XFixes usa unsigned long por píxel, no un int de 32 bits.
+                        val pixels = cursorImg.pixels!!
                         
                         var centerColFilled = 0
                         var leftColFilled = 0
                         var rightColFilled = 0
 
                         for (y in 0 until h) {
-                            val centerPixelAlpha = (pixelData[y * w + xCenter] ushr 24) and 0xFF
-                            val leftPixelAlpha = (pixelData[y * w] ushr 24) and 0xFF
-                            val rightPixelAlpha = (pixelData[y * w + (w - 1)] ushr 24) and 0xFF
+                            val centerPixelAlpha = (pixels.getNativeLong((y * w + xCenter).toLong() * NativeLong.SIZE).toInt() ushr 24) and 0xFF
+                            val leftPixelAlpha = (pixels.getNativeLong((y * w).toLong() * NativeLong.SIZE).toInt() ushr 24) and 0xFF
+                            val rightPixelAlpha = (pixels.getNativeLong((y * w + w - 1).toLong() * NativeLong.SIZE).toInt() ushr 24) and 0xFF
 
                             if (centerPixelAlpha > 50) centerColFilled++
                             if (leftPixelAlpha > 50) leftColFilled++
@@ -156,11 +166,36 @@ class SystemCursorDetector : AutoCloseable {
     }
 
     /**
+     * Consulta el botón izquierdo global en X11, también fuera de GlobalConsole.
+     * @return True mientras el botón está pulsado; false si X11 no está disponible.
+     * @throws Nothing Los errores nativos se convierten en ausencia de detección.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-11
+     */
+    @Synchronized
+    fun isPrimaryButtonPressed(): Boolean {
+        val currentDisplay = display ?: return false
+        val x11 = X11Native.INSTANCE ?: return false
+        return try {
+            val mask = IntByReference()
+            val result = x11.XQueryPointer(
+                currentDisplay, x11.XDefaultRootWindow(currentDisplay),
+                NativeLongByReference(), NativeLongByReference(),
+                IntByReference(), IntByReference(), IntByReference(), IntByReference(), mask
+            )
+            result != 0 && (mask.value and (1 shl 8)) != 0
+        } catch (_: Throwable) {
+            false
+        }
+    }
+
+    /**
      * Cierra la conexión con el servidor X11 si estaba abierta.
      *
      * @author Daniel Figueroa Vidal
      * @since 2026-10-11
      */
+    @Synchronized
     override fun close() {
         try {
             display?.let {

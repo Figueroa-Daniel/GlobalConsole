@@ -18,7 +18,6 @@ import org.example.globalconsole.di.dataModule
 import org.example.globalconsole.di.domainModule
 import org.example.globalconsole.di.presentationModule
 import org.koin.core.context.startKoin
-import org.koin.java.KoinJavaComponent.getKoin
 
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.DpSize
@@ -40,17 +39,15 @@ import org.example.globalconsole.presesentation.view.components.OskOverlay
  */
 fun main() = application {
     // Inicialización de Koin
-    startKoin {
-        modules(
-            dataModule,
-            domainModule,
-            presentationModule
-        )
+    val koin = remember {
+        startKoin {
+            modules(dataModule, domainModule, presentationModule)
+        }.koin
     }
 
     // Resolver dependencias desde el contenedor
-    val viewModel = getKoin().get<HomeViewModel>()
-    val settingsViewModel = getKoin().get<SettingsViewModel>()
+    val viewModel = remember(koin) { koin.get<HomeViewModel>() }
+    val settingsViewModel = remember(koin) { koin.get<SettingsViewModel>() }
 
     // El gestor es único para la aplicación
     val gamepadManager = remember { GamepadManager() }
@@ -94,6 +91,7 @@ fun main() = application {
         title = "GlobalConsole - Teclado",
         visible = isOskOverlayVisible,
         alwaysOnTop = true,
+        focusable = false,
         undecorated = true,
         resizable = false,
         state = rememberWindowState(
@@ -101,25 +99,18 @@ fun main() = application {
             size = DpSize(1000.dp, 440.dp)
         )
     ) {
-        LaunchedEffect(isOskOverlayVisible) {
-            if (isOskOverlayVisible) {
-                window.isAlwaysOnTop = true
-                window.toFront()
-                window.requestFocus()
+        if (isOskOverlayVisible) {
+            MetroTheme(appearance) {
+                OskOverlay(
+                    gamepadManager = gamepadManager,
+                    onConfirm = { text ->
+                        gamepadManager.injectTextToSystem(text, pressEnter = true)
+                    },
+                    onDismiss = {
+                        gamepadManager.hideOskOverlay()
+                    }
+                )
             }
-        }
-        MetroTheme(appearance) {
-            OskOverlay(
-                gamepadManager = gamepadManager,
-                onConfirm = { text ->
-                    gamepadManager.injectTextToSystem(text, pressEnter = true)
-                },
-                onDismiss = {
-                    gamepadManager.hideOskOverlay()
-                }
-            )
         }
     }
 }
-
-

@@ -51,3 +51,34 @@ No sustituye una prueba con un mando físico.
 
 @author Daniel Figueroa Vidal
 @since 2026-10-04
+
+## 6. Teclado sobre navegadores externos
+
+La ventana del OSK no debe tomar el foco del navegador: se configura como no
+activable antes de mostrarla y se controla mediante eventos del mando. Su
+contenido solo existe mientras está visible, para no consumir pulsaciones desde
+una ventana oculta y para reiniciar el texto en cada apertura. Koin se inicializa
+una sola vez, fuera de las recomposiciones provocadas por la visibilidad.
+
+R3 y START + R2/R1 alternan el teclado; START confirma una vez liberado el
+atajo de apertura. Los botones usados para abrirlo no escriben letras por arrastre.
+Al finalizar la aplicación externa se cierra también el teclado.
+
+En X11 la detección automática consulta el cursor al hacer clic con A o con el
+ratón físico. Los píxeles de XFixes son `unsigned long`: se leen con el tamaño
+nativo, también en Linux de 64 bits. La forma de cursor es una heurística y puede
+aparecer sobre texto no editable; R3 y el doble toque de A son alternativas cuando
+el navegador no permite reconocer el campo. Wayland no garantiza esta detección
+ni la inyección con AWT Robot.
+
+Validación manual pendiente con navegador y mando físicos: abrir con ambos
+órdenes de START/R2, cerrar con R3/B, escribir y confirmar, reabrir sin texto
+anterior, y comprobar clics sobre campos y retorno al dashboard. Véase también
+[Mando y foco](12_manejo_gamepad_y_foco.md).
+
+`OskShortcutUseCase` mantiene los flancos independientemente del resto de botones.
+Sus pruebas cubren ambos órdenes de START/R2, pulsaciones mantenidas, R1, R3,
+confirmación y reinicio. Verificación realizada: las 100 pruebas de escritorio
+pasan; una comprobación aislada con Xvfb distingue el cursor de texto del cursor
+normal y detecta pulsación y liberación del botón físico. Esto no verifica la
+superposición sobre ventanas de navegador en el gestor de ventanas del usuario.
