@@ -150,12 +150,15 @@ class NavigatorAccesAdapter {
             // Fallback robusto a nivel de sistema operativo para asegurar el cierre
             val os = System.getProperty("os.name").lowercase()
             if (os.contains("linux")) {
-                val targets = listOf("chrome", "google-chrome", "firefox", "brave", "brave-browser", "msedge", "opera")
+                val targets = listOf("chrome", "google-chrome", "firefox", "firefox-bin", "brave", "brave-browser", "msedge", "opera")
                 targets.forEach { target ->
                     try {
                         ProcessBuilder("killall", "-9", target).start()
                     } catch (_: Exception) {}
                 }
+                try {
+                    ProcessBuilder("flatpak", "kill", "org.mozilla.firefox").start()
+                } catch (_: Exception) {}
             } else if (os.contains("windows")) {
                 val targets = listOf("chrome.exe", "firefox.exe", "brave.exe", "msedge.exe", "opera.exe")
                 targets.forEach { target ->
@@ -174,6 +177,8 @@ class NavigatorAccesAdapter {
     /**
      * Obtiene el comando de ejecución de un navegador según el SO. En Linux usa Flatpak si
      * está instalado y, si no, el binario nativo (deb, snap, etc.) encontrado en el PATH.
+     * Para Firefox se añade `--new-instance` para evitar que delegue en sesiones previas en segundo plano
+     * y cierre el proceso padre de inmediato.
      *
      * @param navigatorType Navegador a ejecutar.
      * @return Comando de ejecución.
@@ -191,9 +196,9 @@ class NavigatorAccesAdapter {
             Pair("Windows", NavigatorsWeb.CHROME) -> "start chrome"
             Pair("Linux", NavigatorsWeb.CHROME) -> linuxRunCommand("com.google.Chrome", "google-chrome", "google-chrome-stable")
 
-            // Firefox
-            Pair("Windows", NavigatorsWeb.FIREFOX) -> "start firefox"
-            Pair("Linux", NavigatorsWeb.FIREFOX) -> linuxRunCommand("org.mozilla.firefox", "firefox")
+            // Firefox: se fuerza nueva instancia para que el proceso no finalice de inmediato si ya estaba abierto en el sistema
+            Pair("Windows", NavigatorsWeb.FIREFOX) -> "start firefox -new-instance"
+            Pair("Linux", NavigatorsWeb.FIREFOX) -> "${linuxRunCommand("org.mozilla.firefox", "firefox")} --new-instance"
 
             // Edge
             Pair("Windows", NavigatorsWeb.EDGE) -> "start msedge"

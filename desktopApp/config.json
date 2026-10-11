@@ -13,6 +13,11 @@
     "azaharEnabled": true,
     "duckStationEnabled": true,
     "mouseSensitivity": 20.0,
+    "enabledNavigators": [
+        "FIREFOX",
+        "CHROME",
+        "BRAVE"
+    ],
     "groupingMode": "PLATFORM",
     "accentColor": "NEON_PURPLE",
     "glowIntensity": 75
