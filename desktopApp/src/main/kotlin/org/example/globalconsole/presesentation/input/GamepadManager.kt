@@ -180,13 +180,14 @@ class GamepadManager {
         // 1. Botón central (Guía/PS/Xbox)
         checkButtonPress(buttons, GLFW_GAMEPAD_BUTTON_GUIDE, GamepadEvent.Button.HOME)
 
-        // 2. Combo de seguridad: START + BACK simultáneamente
+        // 2. Combo de seguridad: START + BACK (Select + Start) simultáneamente para volver a la interfaz
         val startPressed = buttons.get(GLFW_GAMEPAD_BUTTON_START).toInt() == GLFW_PRESS
         val backPressed = buttons.get(GLFW_GAMEPAD_BUTTON_BACK).toInt() == GLFW_PRESS
-        val wasStartPressed = lastButtonsState[GLFW_GAMEPAD_BUTTON_START] ?: false
-        val wasBackPressed = lastButtonsState[GLFW_GAMEPAD_BUTTON_BACK] ?: false
+        val wasStartPressed = lastButtonsState[GLFW_GAMEPAD_BUTTON_START]
+        val wasBackPressed = lastButtonsState[GLFW_GAMEPAD_BUTTON_BACK]
         
-        if (startPressed && backPressed && !(wasStartPressed && wasBackPressed)) {
+        // Se activa cuando ambos están pulsados y al menos uno de ellos acaba de pasar a pulsado
+        if (startPressed && backPressed && (!wasStartPressed || !wasBackPressed)) {
             _events.emit(GamepadEvent.ButtonPressed(GamepadEvent.Button.HOME))
         }
         lastButtonsState[GLFW_GAMEPAD_BUTTON_START] = startPressed
@@ -194,7 +195,7 @@ class GamepadManager {
 
         // 3. Combo de ocultación manual del ratón: X + BACK simultáneamente
         val xPressed = buttons.get(GLFW_GAMEPAD_BUTTON_X).toInt() == GLFW_PRESS
-        val wasXPressed = lastButtonsState[GLFW_GAMEPAD_BUTTON_X] ?: false
+        val wasXPressed = lastButtonsState[GLFW_GAMEPAD_BUTTON_X]
         if (xPressed && backPressed && !(wasXPressed && wasBackPressed)) {
             isMouseAllowedWhenSuspended = !isMouseAllowedWhenSuspended
             if (!isMouseAllowedWhenSuspended) {
@@ -213,7 +214,7 @@ class GamepadManager {
             moveMouseWithRightStick(axes)
 
             val aPressed = buttons.get(GLFW_GAMEPAD_BUTTON_A).toInt() == GLFW_PRESS
-            val aWasPressed = lastButtonsState[GLFW_GAMEPAD_BUTTON_A] ?: false
+            val aWasPressed = lastButtonsState[GLFW_GAMEPAD_BUTTON_A]
             if (aPressed && !aWasPressed) {
                 awtRobot?.mousePress(InputEvent.BUTTON1_DOWN_MASK)
                 awtRobot?.mouseRelease(InputEvent.BUTTON1_DOWN_MASK)
@@ -236,7 +237,7 @@ class GamepadManager {
         // 1. Botones de acción
         // El botón A (Cruz) depende del modo de entrada actual
         val aPressed = buttons.get(GLFW_GAMEPAD_BUTTON_A).toInt() == GLFW_PRESS
-        val aWasPressed = lastButtonsState[GLFW_GAMEPAD_BUTTON_A] ?: false
+        val aWasPressed = lastButtonsState[GLFW_GAMEPAD_BUTTON_A]
         if (aPressed && !aWasPressed) {
             if (_inputMode.value == InputMode.MOUSE) {
                 awtRobot?.mousePress(InputEvent.BUTTON1_DOWN_MASK)
@@ -361,7 +362,7 @@ class GamepadManager {
         eventButton: GamepadEvent.Button
     ) {
         val isPressed = buttons.get(glfwButtonId).toInt() == GLFW_PRESS
-        val wasPressed = lastButtonsState[glfwButtonId] ?: false
+        val wasPressed = lastButtonsState[glfwButtonId]
 
         if (isPressed && !wasPressed) {
             _events.emit(GamepadEvent.ButtonPressed(eventButton))
