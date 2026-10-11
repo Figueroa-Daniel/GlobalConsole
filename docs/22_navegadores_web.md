@@ -88,9 +88,10 @@ Durante la ejecución de un navegador, el gamepad pasa a modo suspendido con emu
 - **Clic izquierdo:** Botón A (o Cruz).
 - **Combo de Salida:** Pulsar simultáneamente `BACK` (Select) + `START` emite `GamepadEvent.Button.HOME` para forzar el cierre escalonado y regresar a la biblioteca.
 - **Teclado en Pantalla Flotante (OSK Overlay):**
-  - Al pulsar `START + R2` (Right Trigger), aparece una ventana flotante (`alwaysOnTop = true`, sin bordes) con el teclado [GamepadOSK](file:///home/figue/Documentos/GlobalConsole/docs/15_busqueda_y_osk.md) sobre la ventana del navegador.
-  - El usuario puede navegar con la cruceta o stick izquierdo, seleccionar letras con A, borrar con X, alternar mayúsculas con Y, o cancelar con B / `START + R2`.
-  - Al pulsar Intro (↵) o START, el texto se inyecta de forma instantánea y universal en el campo enfocado del navegador mediante el portapapeles (`Ctrl + V`) y simulación de la tecla Intro vía AWT Robot.
+  - **Apertura automática:** Al hacer clic con **A** sobre un campo de texto en el navegador, el sistema detecta el cursor `xterm`/`ibeam` mediante `SystemCursorDetector` (usando `XFixesGetCursorImage` en X11) o mediante una doble pulsación rápida con **A**, abriendo el teclado flotante tras enfocar el campo.
+  - **Atajos manuales:** Puede abrirse y cerrarse en cualquier momento pulsando **`R3`** (clic hacia adentro del stick analógico derecho) o mediante el combo **`START + R2`** / **`START + R1`**.
+  - **Interacción:** El usuario navega con la cruceta o stick izquierdo, selecciona letras con A, borra con X, alterna mayúsculas con Y, o cancela con B o `R3`.
+  - **Inyección de texto:** Al pulsar Intro (↵) o START, el texto se inyecta de forma instantánea en el campo enfocado del navegador mediante el portapapeles (`Ctrl + V`) y simulación de la tecla Intro vía AWT Robot.
 
 ---
 
