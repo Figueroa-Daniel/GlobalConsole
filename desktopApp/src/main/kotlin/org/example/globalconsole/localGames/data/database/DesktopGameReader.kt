@@ -10,7 +10,7 @@ import java.util.Locale
  * @since 2026-10-11
  */
 internal object DesktopGameReader {
-    private val excluded = setOf("pcsx2", "dolphin", "dolphin-emu", "duckstation", "melonds", "rpcs3", "heroic", "bottles", "azahar", "citra", "retroarch", "steam", "lutris", "globalconsole")
+    private val excluded = setOf("pcsx2", "dolphin", "dolphin-emu", "duckstation", "melonds", "rpcs3", "heroic", "azahar", "retroarch", "steam", "lutris", "globalconsole")
 
     /**
      * Identifica emuladores y lanzadores ya gestionados o agregadores de juegos.
