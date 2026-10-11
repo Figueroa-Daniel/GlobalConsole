@@ -23,6 +23,10 @@ dependencies {
     // Koin - Inyección de dependencias
     implementation(libs.koin.core)
 
+    // JNA - Acceso a APIs del sistema nativo (X11, cursor, etc.)
+    implementation(libs.jna)
+    implementation(libs.jna.platform)
+
     // Coil - Carga de imágenes
     implementation(libs.coil.compose)
     implementation(libs.compose.components.resources)

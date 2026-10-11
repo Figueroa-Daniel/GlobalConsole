@@ -29,5 +29,7 @@ enum class Platforms {
     AZAHAR,
 
     /** Emulador DuckStation para juegos de PlayStation 1. */
-    DUCKSTATION
+    DUCKSTATION,
+    /** Navegador web. */
+    NAVWEB
 }

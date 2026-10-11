@@ -25,7 +25,9 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.collectLatest
+import globalconsole.shared.generated.resources.*
 import org.example.globalconsole.presesentation.input.GamepadEvent
 import org.example.globalconsole.presesentation.input.GamepadManager
 import org.example.globalconsole.presesentation.viewModel.home.HomeUiState
@@ -109,7 +111,8 @@ fun HomeScreen(
                 runningGame.id.contains("-launcher", ignoreCase = true) ||
                 runningGame.platform == org.example.globalconsole.generalDomain.entititys.Platforms.MELONDS ||
                 runningGame.platform == org.example.globalconsole.generalDomain.entititys.Platforms.PS3 ||
-                runningGame.platform == org.example.globalconsole.generalDomain.entititys.Platforms.HEORIC_GAMES_LAUCHER
+                runningGame.platform == org.example.globalconsole.generalDomain.entititys.Platforms.HEORIC_GAMES_LAUCHER ||
+                runningGame.platform == org.example.globalconsole.generalDomain.entititys.Platforms.NAVWEB
         )
     }
 
@@ -449,8 +452,8 @@ fun HomeScreen(
                         ) {
                             if (state.items.isEmpty()) {
                                 Column(Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text("SIN COINCIDENCIAS", color = LocalMetroPalette.current.text, fontSize = 22.sp)
-                                    Text("Vuelve a Buscar para cambiar el texto.", color = LocalMetroPalette.current.muted, fontSize = 16.sp)
+                                    Text(stringResource(Res.string.home_no_results_title), color = LocalMetroPalette.current.text, fontSize = 22.sp)
+                                    Text(stringResource(Res.string.home_no_results_message), color = LocalMetroPalette.current.muted, fontSize = 16.sp)
                                 }
                             }
                             LazyVerticalGrid(
@@ -504,7 +507,7 @@ fun HomeScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = "BIBLIOTECA VACÍA",
+                                text = stringResource(Res.string.home_empty_title),
                                 color = Color.White,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
@@ -512,14 +515,14 @@ fun HomeScreen(
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "No se encontraron juegos en la ruta configurada.",
+                                text = stringResource(Res.string.home_empty_message),
                                 color = LocalMetroPalette.current.muted,
                                 fontSize = 14.sp,
                                 fontFamily = FontFamily.SansSerif
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             MetroButton(
-                                text = "CAMBIAR RUTA",
+                                text = stringResource(Res.string.action_change_path),
                                 isFocused = focusedTopBar == TopBarFocus.NONE,
                                 inputMode = inputMode,
                                 onClick = { showPathDialog = true },
@@ -535,7 +538,7 @@ fun HomeScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = "ERROR DE SISTEMA",
+                                text = stringResource(Res.string.home_error_title),
                                 color = Color.Red,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
@@ -543,14 +546,14 @@ fun HomeScreen(
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = state.message,
+                                text = state.message.ifBlank { stringResource(Res.string.home_unknown_error) },
                                 color = LocalMetroPalette.current.muted,
                                 fontSize = 14.sp,
                                 fontFamily = FontFamily.SansSerif
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             MetroButton(
-                                text = "REINTENTAR",
+                                text = stringResource(Res.string.action_retry),
                                 isFocused = focusedTopBar == TopBarFocus.NONE,
                                 inputMode = inputMode,
                                 onClick = { viewModel.loadGames() }
@@ -573,7 +576,7 @@ fun HomeScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = "JUEGO EN EJECUCIÓN",
+                                text = stringResource(Res.string.home_game_running_title),
                                 color = LocalMetroPalette.current.accent,
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
@@ -581,21 +584,29 @@ fun HomeScreen(
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
-                                text = "Ejecutando: ${state.game.name}",
+                                text = stringResource(Res.string.home_running_game, state.game.name),
                                 color = Color.White,
                                 fontSize = 14.sp,
                                 fontFamily = FontFamily.SansSerif
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "El entorno está suspendido. Se reactivará al cerrar el emulador.",
+                                text = stringResource(Res.string.home_game_suspended),
                                 color = LocalMetroPalette.current.muted,
                                 fontSize = 14.sp,
                                 fontFamily = FontFamily.SansSerif
                             )
-                            Spacer(modifier = Modifier.height(32.dp))
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = stringResource(Res.string.home_navweb_suspended_controls),
+                                color = LocalMetroPalette.current.accent,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                fontFamily = FontFamily.Monospace
+                            )
+                            Spacer(modifier = Modifier.height(28.dp))
                             MetroButton(
-                                text = "FORZAR REACTIVACIÓN",
+                                text = stringResource(Res.string.action_force_resume),
                                 onClick = { viewModel.loadGames() }
                             )
                         }

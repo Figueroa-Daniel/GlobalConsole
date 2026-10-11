@@ -19,6 +19,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import org.jetbrains.compose.resources.stringResource
+import globalconsole.shared.generated.resources.*
 import org.example.globalconsole.presesentation.input.GamepadEvent
 import org.example.globalconsole.presesentation.input.GamepadManager
 import java.io.File
@@ -147,7 +149,7 @@ fun GamepadFolderPickerDialog(
                     .padding(24.dp)
             ) {
                 Text(
-                    text = "SELECCIONAR CARPETA",
+                    text = stringResource(Res.string.folder_picker_title),
                     color = Color.White,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
@@ -156,7 +158,7 @@ fun GamepadFolderPickerDialog(
                 )
 
                 Text(
-                    text = "Ruta actual: ${currentDir.absolutePath}",
+                    text = stringResource(Res.string.folder_current_path, currentDir.absolutePath),
                     color = LocalMetroPalette.current.accent,
                     fontSize = 14.sp,
                     fontFamily = FontFamily.Monospace,
@@ -176,7 +178,7 @@ fun GamepadFolderPickerDialog(
                     ) {
                         itemsIndexed(folders) { index, folder ->
                             MetroButton(
-                                text = if (folder.name == "..") "↑  Carpeta superior" else "▸  ${folder.name}",
+                                text = if (folder.name == "..") stringResource(Res.string.folder_parent) else "▸  ${folder.name}",
                                 onClick = {
                                     focusedIndex = index
                                     if (folder.name == "..") currentDir.parentFile?.let { currentDir = it }
@@ -199,21 +201,21 @@ fun GamepadFolderPickerDialog(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
-                        text = "A Entrar · B Subir · X Cancelar",
+                        text = stringResource(Res.string.folder_controls),
                         color = LocalMetroPalette.current.muted,
                         fontSize = 14.sp,
                         fontFamily = FontFamily.SansSerif
                     )
                     Row {
                         MetroButton(
-                            text = "CANCELAR",
+                            text = stringResource(Res.string.action_cancel),
                             inputMode = inputMode,
                             isFocused = false,
                             onClick = onDismiss
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         MetroButton(
-                            text = "START: SELECCIONAR AQUÍ",
+                            text = stringResource(Res.string.folder_select_current),
                             inputMode = inputMode,
                             isPrimary = true,
                             isFocused = false,

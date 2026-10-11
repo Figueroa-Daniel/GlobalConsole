@@ -19,6 +19,25 @@ import org.example.globalconsole.melonDS.domain.usecase.HideMelonDSLauncherUseCa
 import org.example.globalconsole.PS3Launcher.domain.usecase.EnablePS3LauncherUseCase
 import org.example.globalconsole.PS3Launcher.domain.usecase.FindPS3LauncherUseCase
 import org.example.globalconsole.PS3Launcher.domain.usecase.HidePS3LauncherUseCase
+import org.example.globalconsole.generalDomain.entititys.NavigatorsWeb
+import org.example.globalconsole.navigatorWeb.domain.usecase.AddNavUseCase
+import org.example.globalconsole.navigatorWeb.domain.usecase.GetInstalledNavsUseCase
+import org.example.globalconsole.navigatorWeb.domain.usecase.IsEnabledNavUseCase
+import org.example.globalconsole.navigatorWeb.domain.usecase.RemoveNavUseCase
+
+/**
+ * Fila de la configuración de navegadores: un navegador instalado en el sistema.
+ *
+ * @property navigator Tipo de navegador.
+ * @property enabled True si el usuario lo ha habilitado como componente de la biblioteca.
+ *
+ * @author Daniel Figueroa Vidal
+ * @since 2026-10-11
+ */
+data class NavigatorSettingItem(
+    val navigator: NavigatorsWeb,
+    val enabled: Boolean
+)
 
 /**
  * ViewModel del diálogo de configuración de rutas de emuladores y preferencias de launchers.
@@ -61,7 +80,11 @@ class SettingsViewModel(
     private val hideAzaharLauncherUseCase: org.example.globalconsole.azahar.domain.usecase.HideAzaharLauncherUseCase? = null,
     private val findDuckStationLauncherUseCase: org.example.globalconsole.duckstation.domain.usecase.FindDuckStationLauncherUseCase? = null,
     private val enableDuckStationLauncherUseCase: org.example.globalconsole.duckstation.domain.usecase.EnableDuckStationLauncherUseCase? = null,
-    private val hideDuckStationLauncherUseCase: org.example.globalconsole.duckstation.domain.usecase.HideDuckStationLauncherUseCase? = null
+    private val hideDuckStationLauncherUseCase: org.example.globalconsole.duckstation.domain.usecase.HideDuckStationLauncherUseCase? = null,
+    private val getInstalledNavsUseCase: GetInstalledNavsUseCase? = null,
+    private val isEnabledNavUseCase: IsEnabledNavUseCase? = null,
+    private val addNavUseCase: AddNavUseCase? = null,
+    private val removeNavUseCase: RemoveNavUseCase? = null
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<SettingsUiState>(SettingsUiState.Idle)
@@ -124,6 +147,16 @@ class SettingsViewModel(
 
     private val _duckstationGamesPath = MutableStateFlow("")
     val duckstationGamesPath: StateFlow<String> = _duckstationGamesPath.asStateFlow()
+
+    private val _navigators = MutableStateFlow<List<NavigatorSettingItem>>(emptyList())
+
+    /**
+     * Navegadores instalados en el sistema con su estado de habilitación.
+     *
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-11
+     */
+    val navigators: StateFlow<List<NavigatorSettingItem>> = _navigators.asStateFlow()
 
     private val _mouseSensitivity = MutableStateFlow(14f)
 
@@ -368,6 +401,52 @@ class SettingsViewModel(
                 hideDuckStationLauncherUseCase?.invoke()
             }
             _duckStationEnabled.value = enabled
+        }
+    }
+
+    /**
+     * Carga los navegadores instalados en el sistema y su estado de habilitación, y actualiza [navigators].
+     *
+     * @return Unit
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-11
+     */
+    fun loadNavigators() {
+        viewModelScope.launch {
+            _navigators.value = buildNavigatorItems()
+        }
+    }
+
+    /**
+     * Habilita o deshabilita un navegador como componente de la biblioteca.
+     *      *
+     * @param navigator Navegador a modificar.
+     * @param enabled True para habilitarlo, false para deshabilitarlo.
+     * @return Unit
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-11
+     */
+    fun setNavigatorEnabled(navigator: NavigatorsWeb, enabled: Boolean) {
+        viewModelScope.launch {
+            if (enabled) addNavUseCase?.invoke(navigator) else removeNavUseCase?.invoke(navigator)
+            _navigators.value = buildNavigatorItems()
+        }
+    }
+
+    /**
+     * Construye las filas de configuración combinando instalados y habilitados.
+     *
+     * @return Lista de [NavigatorSettingItem] de los navegadores instalados.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-11
+     */
+    private suspend fun buildNavigatorItems(): List<NavigatorSettingItem> {
+        val installed = getInstalledNavsUseCase?.invoke() ?: return emptyList()
+        return installed.map { navigator ->
+            NavigatorSettingItem(
+                navigator = navigator,
+                enabled = isEnabledNavUseCase?.invoke(navigator) == true
+            )
         }
     }
 }

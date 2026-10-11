@@ -14,12 +14,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import globalconsole.shared.generated.resources.*
 import org.example.globalconsole.presesentation.input.GamepadEvent
 import org.example.globalconsole.presesentation.input.GamepadManager
 import org.example.globalconsole.presesentation.viewModel.home.GroupingMode
 import org.example.globalconsole.presesentation.viewModel.home.HomeViewModel
+import org.example.globalconsole.presesentation.viewModel.home.AppearanceSettingsError
 import org.example.globalconsole.presesentation.viewModel.home.LauncherPosition
 import org.example.globalconsole.settings.domain.AppearanceSettings
 
@@ -43,12 +46,21 @@ fun ViewSettingsDialog(homeViewModel: HomeViewModel, gamepadManager: GamepadMana
     val palette = LocalMetroPalette.current
     var focusedRow by remember { mutableStateOf(0) }
     val requesters = remember { List(5) { BringIntoViewRequester() } }
-    val labels = listOf("Agrupación", "Emuladores", "Color del brillo", "Intensidad del brillo")
+    val labels = listOf(
+        stringResource(Res.string.view_setting_grouping),
+        stringResource(Res.string.view_setting_launchers),
+        stringResource(Res.string.view_setting_glow_color),
+        stringResource(Res.string.view_setting_glow_intensity)
+    )
     val values = listOf(
-        when (grouping) { GroupingMode.NONE -> "Sin agrupar"; GroupingMode.PLATFORM -> "Por plataforma"; GroupingMode.CONSOLE_SERIES -> "Por familia" },
-        if (position == LauncherPosition.TOP) "Arriba del todo" else "Junto a los juegos",
+        when (grouping) {
+            GroupingMode.NONE -> stringResource(Res.string.grouping_none)
+            GroupingMode.PLATFORM -> stringResource(Res.string.grouping_platform)
+            GroupingMode.CONSOLE_SERIES -> stringResource(Res.string.grouping_console_family)
+        },
+        if (position == LauncherPosition.TOP) stringResource(Res.string.launcher_position_top) else stringResource(Res.string.launcher_position_inline),
         metroAccentLabel(appearance.accentColor),
-        if (appearance.glowIntensity == 0) "Sin halo · foco visible" else "${appearance.glowIntensity}%"
+        if (appearance.glowIntensity == 0) stringResource(Res.string.glow_disabled) else "${appearance.glowIntensity}%"
     )
     val change by rememberUpdatedState<(Int, Int) -> Unit> { row, delta ->
         when (row) {
@@ -84,9 +96,9 @@ fun ViewSettingsDialog(homeViewModel: HomeViewModel, gamepadManager: GamepadMana
         Box(Modifier.fillMaxSize().background(palette.background.copy(alpha = .92f)), contentAlignment = Alignment.Center) {
             Column(Modifier.widthIn(max = 760.dp).fillMaxWidth(.94f).heightIn(max = 780.dp).fillMaxHeight(.94f)
                 .metroPanel(palette).padding(24.dp)) {
-                Text("TU BIBLIOTECA, A TU ESTILO", color = palette.accent, fontSize = 13.sp, letterSpacing = 2.sp)
-                Text("Vista y apariencia", color = palette.text, fontSize = 28.sp, fontWeight = FontWeight.Light)
-                Text("Fondo oscuro · cambios guardados automáticamente", color = palette.muted, fontSize = 14.sp,
+                Text(stringResource(Res.string.view_settings_kicker), color = palette.accent, fontSize = 13.sp, letterSpacing = 2.sp)
+                Text(stringResource(Res.string.view_settings_title), color = palette.text, fontSize = 28.sp, fontWeight = FontWeight.Light)
+                Text(stringResource(Res.string.view_settings_description), color = palette.muted, fontSize = 14.sp,
                     modifier = Modifier.padding(top = 8.dp, bottom = 20.dp))
                 Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     labels.forEachIndexed { index, label ->
@@ -104,10 +116,15 @@ fun ViewSettingsDialog(homeViewModel: HomeViewModel, gamepadManager: GamepadMana
                         }
                     }
                 }
-                Text(error ?: "↑ ↓ Elegir   ·   ← → Ajustar   ·   A Siguiente valor   ·   B Cerrar",
+                val footerText = when (error) {
+                    AppearanceSettingsError.LOAD_FAILED -> stringResource(Res.string.appearance_load_error)
+                    AppearanceSettingsError.SAVE_FAILED -> stringResource(Res.string.appearance_save_error)
+                    null -> stringResource(Res.string.view_settings_controls)
+                }
+                Text(footerText,
                     color = if (error != null) androidx.compose.ui.graphics.Color(0xFFFF9A9A) else palette.muted,
                     fontSize = 13.sp, modifier = Modifier.padding(vertical = 16.dp))
-                MetroButton("LISTO", onDismiss, Modifier.fillMaxWidth().bringIntoViewRequester(requesters[4]),
+                MetroButton(stringResource(Res.string.action_done), onDismiss, Modifier.fillMaxWidth().bringIntoViewRequester(requesters[4]),
                     isFocused = focusedRow == 4, inputMode = inputMode, isPrimary = true)
             }
         }

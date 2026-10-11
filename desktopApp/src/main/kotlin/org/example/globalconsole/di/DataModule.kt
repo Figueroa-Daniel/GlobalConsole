@@ -111,4 +111,10 @@ val dataModule = module {
             gameAdapter = get()
         )
     }
+
+    // Navegadores web: adaptador (detección/ejecución nativa) y repositorio con caché en memoria
+    single { org.example.globalconsole.navigatorWeb.data.database.NavigatorAccesAdapter() }
+    single<org.example.globalconsole.navigatorWeb.data.repository.NavWebRepository> {
+        org.example.globalconsole.navigatorWeb.data.repositoryImpl.NavWebRepositoryImpl(navigatorAccesAdapter = get())
+    }
 }

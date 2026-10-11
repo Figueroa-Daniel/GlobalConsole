@@ -51,3 +51,56 @@ No sustituye una prueba con un mando físico.
 
 @author Daniel Figueroa Vidal
 @since 2026-10-04
+
+## 6. Teclado sobre navegadores externos
+
+La ventana del OSK no debe tomar el foco del navegador: se configura como no
+activable antes de mostrarla y se controla mediante eventos del mando. Su
+contenido solo existe mientras está visible, para no consumir pulsaciones desde
+una ventana oculta y para reiniciar el texto en cada apertura. Koin se inicializa
+una sola vez, fuera de las recomposiciones provocadas por la visibilidad.
+
+R3 y START + R2/R1 alternan el teclado; START confirma una vez liberado el
+atajo de apertura. Los botones usados para abrirlo no escriben letras por arrastre.
+Al finalizar la aplicación externa se cierra también el teclado.
+
+En X11 la detección automática consulta el cursor al hacer clic con A o con el
+ratón físico. Los píxeles de XFixes son `unsigned long`: se leen con el tamaño
+nativo, también en Linux de 64 bits. La forma de cursor es una heurística y puede
+aparecer sobre texto no editable; R3 y el doble toque de A son alternativas cuando
+el navegador no permite reconocer el campo. Wayland no garantiza esta detección
+ni la inyección con AWT Robot.
+
+Validación manual pendiente con navegador y mando físicos: abrir con ambos
+órdenes de START/R2, cerrar con R3/B, escribir y confirmar, reabrir sin texto
+anterior, y comprobar clics sobre campos y retorno al dashboard. Véase también
+[Mando y foco](12_manejo_gamepad_y_foco.md).
+
+`OskShortcutUseCase` mantiene los flancos independientemente del resto de botones.
+Sus pruebas cubren ambos órdenes de START/R2, pulsaciones mantenidas, R1, R3,
+confirmación y reinicio. Verificación realizada: las 100 pruebas de escritorio
+pasan; una comprobación aislada con Xvfb distingue el cursor de texto del cursor
+normal y detecta pulsación y liberación del botón físico. Esto no verifica la
+superposición sobre ventanas de navegador en el gestor de ventanas del usuario.
+
+## 7. Sesiones de Brave ya abiertas
+
+Brave puede delegar la apertura en una instancia existente y terminar el proceso
+lanzador. Esperar solo a ese proceso devuelve prematuramente GlobalConsole a la
+biblioteca, desactivando los atajos del OSK. El adaptador debe seguir los procesos
+principales del navegador seleccionado cuando el lanzador termina correctamente.
+No se consideran procesos de renderizado, GPU ni navegadores distintos. El cierre
+se limita a los procesos de la sesión seguida; no debe usar `killall` sobre todos
+los navegadores instalados. Al compartir una instancia existente, cerrar esa
+sesión con START + BACK cierra también sus otras ventanas.
+
+La política de selección se valida en un caso de uso puro, incluidos Brave nativo,
+Flatpak, procesos auxiliares y selección de otro navegador. Véase
+[Arquitectura](01_arquitectura.md).
+
+Verificación: 102 pruebas de escritorio correctas y comprobación aislada del
+adaptador con procesos controlados: el lanzador termina, la sesión sigue activa,
+el cierre natural termina la espera, el cierre explícito no afecta a otro
+navegador y un lanzamiento fallido devuelve error. Falta la prueba interactiva
+con Brave real tras reiniciar GlobalConsole. Si Brave mantiene procesos en segundo
+plano al cerrar su última ventana, START + BACK termina la sesión seguida.

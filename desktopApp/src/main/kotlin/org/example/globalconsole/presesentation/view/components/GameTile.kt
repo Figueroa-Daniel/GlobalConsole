@@ -29,13 +29,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.jetbrains.compose.resources.stringResource
+import globalconsole.shared.generated.resources.Res
 import org.example.globalconsole.generalDomain.entititys.Game
 import org.example.globalconsole.generalDomain.entititys.Platforms
 import coil3.compose.AsyncImage
 import androidx.compose.foundation.Image
 import androidx.compose.ui.layout.ContentScale
 import org.jetbrains.compose.resources.painterResource
-import globalconsole.shared.generated.resources.Res
 import globalconsole.shared.generated.resources.*
 import java.io.File
 
@@ -104,7 +105,7 @@ fun GameTile(
             .background(Brush.linearGradient(listOf(palette.raised, palette.background)))) {
             val imagePath = game.image
             if (imagePath != null && File(imagePath).exists()) {
-                AsyncImage(model = File(imagePath), contentDescription = "Carátula de ${game.name}",
+                AsyncImage(model = File(imagePath), contentDescription = stringResource(Res.string.game_cover_description, game.name),
                     contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
             } else {
                 Box(Modifier.fillMaxSize().drawBehind {
@@ -134,16 +135,35 @@ fun GameTile(
                     Platforms.DUCKSTATION -> {
                         if (game.id == "duckstation-launcher-id") Res.drawable.playLogo else Res.drawable.playLogoGames
                     }
+                    Platforms.NAVWEB -> {
+                        val nav = game as? org.example.globalconsole.navigatorWeb.domain.entitys.NavWebObj
+                        when (nav?.navigatorType) {
+                            org.example.globalconsole.generalDomain.entititys.NavigatorsWeb.CHROME -> Res.drawable.Chrome_logo
+                            org.example.globalconsole.generalDomain.entititys.NavigatorsWeb.EDGE -> Res.drawable.Edge_logo
+                            org.example.globalconsole.generalDomain.entititys.NavigatorsWeb.FIREFOX -> Res.drawable.Firefox_logo
+                            org.example.globalconsole.generalDomain.entititys.NavigatorsWeb.BRAVE -> Res.drawable.brave_logo
+                            else -> null
+                        }
+                    }
                     else -> null
                 }
                 if (defaultImage != null) {
                     val isConsolePhoto = defaultImage == Res.drawable.playLogo
                     val isPlayStationScreen = defaultImage == Res.drawable.playLogoGames
-                    Image(painter = painterResource(defaultImage), contentDescription = null,
+                    val isBrowserLogo = game.platform == Platforms.NAVWEB
+                    val imageScale = when {
+                        isConsolePhoto || isPlayStationScreen -> 1f
+                        isBrowserLogo -> 0.72f
+                        else -> 0.58f
+                    }
+                    Image(
+                        painter = painterResource(defaultImage),
+                        contentDescription = null,
                         contentScale = if (isConsolePhoto) ContentScale.Crop else ContentScale.Fit,
                         modifier = Modifier.align(Alignment.Center)
-                            .fillMaxSize(if (isConsolePhoto || isPlayStationScreen) 1f else .58f)
-                            .then(if (isPlayStationScreen) Modifier.background(Color.Black).padding(8.dp) else Modifier))
+                            .fillMaxSize(imageScale)
+                            .then(if (isPlayStationScreen) Modifier.background(Color.Black).padding(8.dp) else Modifier)
+                    )
                 }
             }
             Box(Modifier.fillMaxSize().background(Brush.verticalGradient(
@@ -163,7 +183,7 @@ fun GameTile(
                 modifier = Modifier.height(44.dp))
             Spacer(Modifier.height(12.dp))
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text(if (isActive) "ABRIR" else platformLabel(game.platform.name),
+                Text(if (isActive) stringResource(Res.string.action_open) else platformLabel(game.platform.name),
                     color = if (isActive) palette.accent else palette.muted,
                     fontSize = 11.sp, letterSpacing = if (isActive) 1.5.sp else 0.sp,
                     maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))

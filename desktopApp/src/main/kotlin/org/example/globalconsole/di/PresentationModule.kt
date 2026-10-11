@@ -58,7 +58,10 @@ val presentationModule = module {
             closeLauncherDuckStationUseCase = get(),
             findDuckStationLauncherUseCase = get(),
             showDuckStationLauncherUseCase = get(),
-            deleteGameDuckStationUseCase = get()
+            deleteGameDuckStationUseCase = get(),
+            getNavigatorsWebUseCase = get(),
+            executeNavUseCase = get(),
+            closeNavUseCase = get()
         )
     }
     factory {
@@ -84,7 +87,11 @@ val presentationModule = module {
             hideAzaharLauncherUseCase = get(),
             findDuckStationLauncherUseCase = get(),
             enableDuckStationLauncherUseCase = get(),
-            hideDuckStationLauncherUseCase = get()
+            hideDuckStationLauncherUseCase = get(),
+            getInstalledNavsUseCase = get(),
+            isEnabledNavUseCase = get(),
+            addNavUseCase = get(),
+            removeNavUseCase = get()
         )
     }
 }

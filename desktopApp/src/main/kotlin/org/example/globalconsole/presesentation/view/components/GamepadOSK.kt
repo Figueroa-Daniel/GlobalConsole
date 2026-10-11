@@ -17,6 +17,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import org.jetbrains.compose.resources.stringResource
+import globalconsole.shared.generated.resources.*
 import org.example.globalconsole.input.domain.usecase.KeyboardAction
 import org.example.globalconsole.input.domain.usecase.KeyboardInputUseCase
 import org.example.globalconsole.input.domain.usecase.KeyboardState
@@ -25,13 +27,13 @@ import org.example.globalconsole.presesentation.input.GamepadManager
 
 /**
  * Teclado español con búsqueda reactiva, números y foco consistente entre capas.
+ * Envuelve [GamepadOSKContent] en un diálogo modal para la búsqueda en la biblioteca.
+ *
  * @param gamepadManager Entrada nativa del mando.
  * @param initialText Texto inicial de búsqueda.
  * @param onTextChanged Publica cada cambio de texto.
  * @param onConfirm Confirma con Intro o START.
  * @param onDismiss Cierra conservando la búsqueda reactiva.
- * @return Unit.
- * @throws Nothing No lanza excepciones.
  * @author Daniel Figueroa Vidal
  * @since 2026-10-04
  */
@@ -40,6 +42,73 @@ fun GamepadOSK(
     gamepadManager: GamepadManager,
     initialText: String = "",
     onTextChanged: (String) -> Unit,
+    onConfirm: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        GamepadOSKContent(
+            gamepadManager = gamepadManager,
+            initialText = initialText,
+            onTextChanged = onTextChanged,
+            onConfirm = onConfirm,
+            onDismiss = onDismiss
+        )
+    }
+}
+
+/**
+ * Teclado en pantalla flotante (Overlay) diseñado para colocarse en una ventana superior
+ * sobre navegadores web y procesos externos suspendidos.
+ *
+ * @param gamepadManager Entrada nativa del mando.
+ * @param onConfirm Callback invocado al pulsar Intro o START para inyectar el texto en el navegador.
+ * @param onDismiss Callback invocado para cerrar el overlay.
+ * @author Daniel Figueroa Vidal
+ * @since 2026-10-11
+ */
+@Composable
+fun OskOverlay(
+    gamepadManager: GamepadManager,
+    onConfirm: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    GamepadOSKContent(
+        gamepadManager = gamepadManager,
+        initialText = "",
+        title = stringResource(Res.string.osk_overlay_title),
+        placeholder = stringResource(Res.string.osk_overlay_placeholder),
+        submitLabel = stringResource(Res.string.osk_overlay_submit),
+        controlsLabel = stringResource(Res.string.osk_overlay_controls),
+        onConfirm = onConfirm,
+        onDismiss = onDismiss
+    )
+}
+
+/**
+ * Contenido principal y lógica de interacción del teclado en pantalla (OSK).
+ * Reutilizable tanto en el diálogo de búsqueda de biblioteca como en la ventana flotante del navegador.
+ *
+ * @param gamepadManager Entrada nativa del mando.
+ * @param initialText Texto inicial.
+ * @param title Título superior del teclado (opcional).
+ * @param placeholder Texto cuando no hay nada escrito (opcional).
+ * @param submitLabel Etiqueta de la tecla Intro/Confirmar (opcional).
+ * @param controlsLabel Ayuda de controles en la parte inferior (opcional).
+ * @param onTextChanged Callback reactivo ante cada cambio de texto.
+ * @param onConfirm Callback invocado al confirmar con Intro o botón START.
+ * @param onDismiss Callback invocado al cancelar o pulsar botón B.
+ * @author Daniel Figueroa Vidal
+ * @since 2026-10-11
+ */
+@Composable
+fun GamepadOSKContent(
+    gamepadManager: GamepadManager,
+    initialText: String = "",
+    title: String? = null,
+    placeholder: String? = null,
+    submitLabel: String? = null,
+    controlsLabel: String? = null,
+    onTextChanged: (String) -> Unit = {},
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -79,39 +148,38 @@ fun GamepadOSK(
             }
         }
     }
-    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        Box(Modifier.fillMaxSize().background(palette.background.copy(alpha = .8f)).padding(16.dp), contentAlignment = Alignment.BottomCenter) {
-            Column(Modifier.widthIn(max = 1100.dp).fillMaxWidth().heightIn(max = 520.dp).fillMaxHeight(.92f)
-                .metroPanel(palette).padding(20.dp)) {
-                Text("BUSCAR EN TU BIBLIOTECA", color = palette.accent, fontSize = 14.sp, letterSpacing = 2.sp)
-                Text(if (state.text.isEmpty()) "Escribe para buscar…" else state.text + "│",
-                    color = if (state.text.isEmpty()) palette.muted else palette.text,
-                    fontSize = 24.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 14.dp).background(palette.raised).padding(12.dp))
-                Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    useCase.layout(state).forEachIndexed { rowIndex, row ->
-                        Row(Modifier.fillMaxWidth().bringIntoViewRequester(requesters[rowIndex]), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            row.forEachIndexed { colIndex, key ->
-                                MetroButton(
-                                    text = if (key == "↵") "BUSCAR ↵" else key,
-                                    onClick = {
-                                        state = state.copy(row = rowIndex, column = colIndex,
-                                            preferredColumn = if (rowIndex == 4) colIndex * 4 + 1 else colIndex)
-                                        act(KeyboardAction.PRESS)
-                                    },
-                                    modifier = Modifier.weight(1f).heightIn(min = 48.dp),
-                                    isFocused = state.row == rowIndex && state.column == colIndex,
-                                    isPrimary = key == "⇧" && state.upperCase,
-                                    inputMode = inputMode,
-                                    onHover = { state = state.copy(row = rowIndex, column = colIndex, preferredColumn = if (rowIndex == 4) colIndex * 4 + 1 else colIndex) }
-                                )
-                            }
+    Box(Modifier.fillMaxSize().background(palette.background.copy(alpha = .85f)).padding(16.dp), contentAlignment = Alignment.BottomCenter) {
+        Column(Modifier.widthIn(max = 1100.dp).fillMaxWidth().heightIn(max = 520.dp).fillMaxHeight(.92f)
+            .metroPanel(palette).padding(20.dp)) {
+            Text(title ?: stringResource(Res.string.osk_title), color = palette.accent, fontSize = 14.sp, letterSpacing = 2.sp)
+            Text(if (state.text.isEmpty()) (placeholder ?: stringResource(Res.string.osk_placeholder)) else state.text + "│",
+                color = if (state.text.isEmpty()) palette.muted else palette.text,
+                fontSize = 24.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.fillMaxWidth().padding(vertical = 14.dp).background(palette.raised).padding(12.dp))
+            Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                useCase.layout(state).forEachIndexed { rowIndex, row ->
+                    Row(Modifier.fillMaxWidth().bringIntoViewRequester(requesters[rowIndex]), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        row.forEachIndexed { colIndex, key ->
+                            MetroButton(
+                                text = if (key == "↵") (submitLabel ?: stringResource(Res.string.osk_submit)) else key,
+                                onClick = {
+                                    state = state.copy(row = rowIndex, column = colIndex,
+                                        preferredColumn = if (rowIndex == 4) colIndex * 4 + 1 else colIndex)
+                                    act(KeyboardAction.PRESS)
+                                },
+                                modifier = Modifier.weight(1f).heightIn(min = 48.dp),
+                                isFocused = state.row == rowIndex && state.column == colIndex,
+                                isPrimary = key == "⇧" && state.upperCase,
+                                inputMode = inputMode,
+                                onHover = { state = state.copy(row = rowIndex, column = colIndex, preferredColumn = if (rowIndex == 4) colIndex * 4 + 1 else colIndex) }
+                            )
                         }
                     }
                 }
-                Text("A Escribir   ·   X Borrar   ·   Y Mayúsculas   ·   START Buscar   ·   B Cerrar",
-                    color = palette.muted, fontSize = 14.sp, modifier = Modifier.padding(top = 16.dp))
             }
+            Text(controlsLabel ?: stringResource(Res.string.osk_controls),
+                color = palette.muted, fontSize = 14.sp, modifier = Modifier.padding(top = 16.dp))
         }
     }
 }
+
