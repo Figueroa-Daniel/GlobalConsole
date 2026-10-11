@@ -1,9 +1,8 @@
 package org.example.globalconsole.localGames.data.database
 
 import com.sun.jna.platform.win32.Shell32Util
-import kotlinx.coroutines.NonCancellable
+import org.example.globalconsole.systemApps.data.NativeApplicationProcess
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.*
 import org.example.globalconsole.localGames.data.dto.LocalGameDto
@@ -21,19 +20,7 @@ class LocalGamesAccessAdapter(
     private val applicationDirectories: List<File> = defaultApplicationDirectories(),
     private val osName: String = System.getProperty("os.name")
 ) {
-    private val processLock = Any()
-    @Volatile private var active: Session? = null
-
-    /**
-     * Conserva los descendientes aunque el lanzador finalice antes que el juego.
-     * @property process Proceso creado por GlobalConsole.
-     * @author Daniel Figueroa Vidal
-     * @since 2026-10-11
-     */
-    private class Session(val process: Process) {
-        @Volatile var closing = false
-        val children = java.util.concurrent.ConcurrentHashMap<Long, ProcessHandle>()
-    }
+    private val process = NativeApplicationProcess()
 
     /**
      * Escanea el sistema sin ejecutar ningún juego.
@@ -112,58 +99,23 @@ class LocalGamesAccessAdapter(
     }
 
     /**
-     * Lanza argumentos sin shell y espera al proceso y a sus descendientes conocidos.
-     * @param game Metadatos resueltos desde la instalación actual.
-     * @return True si termina normalmente o mediante cierre solicitado.
-     * @throws Exception Si no puede iniciar el ejecutable o se cancela la espera.
+     * Ejecuta el juego mediante el gestor nativo compartido.
+     * @param game Juego resuelto desde la instalación actual.
+     * @return True al terminar correctamente o tras un cierre solicitado.
+     * @throws Exception Si falla el lanzamiento o se cancela la espera.
      * @author Daniel Figueroa Vidal
      * @since 2026-10-11
      */
-    suspend fun execute(game: LocalGameDto): Boolean = withContext(Dispatchers.IO) {
-        require(game.arguments.isNotEmpty()) { "El juego no tiene comando de ejecución" }
-        val session = synchronized(processLock) {
-            check(active == null) { "Ya hay un juego local en ejecución" }
-            val builder = ProcessBuilder(game.arguments).redirectOutput(ProcessBuilder.Redirect.INHERIT).redirectError(ProcessBuilder.Redirect.INHERIT)
-            game.workingDirectory?.let { builder.directory(File(it)) }
-            Session(builder.start()).also { active = it }
-        }
-        try {
-            while (session.process.isAlive || session.children.values.any { it.isAlive }) {
-                session.process.descendants().use { stream -> stream.forEach { session.children[it.pid()] = it } }
-                delay(50)
-            }
-            session.closing || session.process.exitValue() == 0
-        } finally {
-            try {
-                if (session.process.isAlive || session.children.values.any { it.isAlive }) {
-                    withContext(NonCancellable) { close() }
-                }
-            } finally {
-                synchronized(processLock) { if (active === session) active = null }
-            }
-        }
-    }
+    suspend fun execute(game: LocalGameDto): Boolean = process.execute(game.arguments, game.workingDirectory)
 
     /**
-     * Cierra únicamente el árbol de procesos iniciado para el juego actual.
-     * @return True si los procesos han terminado o no había juego activo.
-     * @throws Exception Si el sistema impide terminar procesos o se cancela la espera.
+     * Cierra el árbol del juego activo.
+     * @return True cuando todos sus procesos han terminado.
+     * @throws Exception Si falla el cierre.
      * @author Daniel Figueroa Vidal
      * @since 2026-10-11
      */
-    suspend fun close(): Boolean = withContext(Dispatchers.IO) {
-        val session = synchronized(processLock) { active?.also { it.closing = true } } ?: return@withContext true
-        session.process.descendants().use { stream -> stream.forEach { session.children[it.pid()] = it } }
-        val children = session.children.values.toList()
-        children.filter { it.isAlive }.forEach { it.destroy() }
-        if (children.isNotEmpty()) delay(150)
-        val handles = children + session.process.toHandle()
-        if (session.process.isAlive) session.process.destroy()
-        delay(350)
-        handles.filter { it.isAlive }.forEach { it.destroyForcibly() }
-        session.process.waitFor(2, TimeUnit.SECONDS)
-        handles.none { it.isAlive }
-    }
+    suspend fun close(): Boolean = process.close()
 
     companion object {
         /**

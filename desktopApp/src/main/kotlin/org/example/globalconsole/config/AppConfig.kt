@@ -24,6 +24,7 @@ import kotlinx.serialization.Serializable
  * @param azaharEnabled True si Azahar Launcher (3DS) debe aparecer en la biblioteca principal.
  * @param duckStationEnabled True si DuckStation debe aparecer en la biblioteca principal.
  * @param mouseSensitivity Velocidad de movimiento del ratón con el gamepad (por defecto 14f).
+ * @param enabledLocalApps Identificadores de aplicaciones visibles en la biblioteca.
  * @param enabledLocalGames Identificadores de juegos locales visibles en la biblioteca.
  * @param enabledNavigators Lista de identificadores de navegadores web habilitados en la biblioteca.
  * @param groupingMode Nombre del modo de agrupación de la biblioteca (por defecto "NONE").
@@ -46,6 +47,7 @@ data class AppConfig(
     val mouseSensitivity: Float = 14f,
     val enabledNavigators: List<String> = emptyList(),
     val enabledLocalGames: List<String> = emptyList(),
+    val enabledLocalApps: List<String> = emptyList(),
     val groupingMode: String = "NONE",
     val launcherPosition: String = "INLINE",
     val accentColor: String = "CYAN",
