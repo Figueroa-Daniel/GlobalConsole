@@ -27,3 +27,4 @@ Este directorio contiene la documentación técnica oficial del proyecto GlobalC
 19. **[20_persistencia_vista.md](20_persistencia_vista.md)**: Persistencia de la configuración de vista (agrupación y posición de launchers).
 
 20. **[21_metro_personalizable.md](21_metro_personalizable.md)**: Tema oscuro, brillos configurables y usabilidad con mando.
+21. **[22_navegadores_web.md](22_navegadores_web.md)**: Integración de Navegadores Web (Chrome, Firefox, Brave, Edge): detección multiplataforma, ciclo de vida y control por mando.
