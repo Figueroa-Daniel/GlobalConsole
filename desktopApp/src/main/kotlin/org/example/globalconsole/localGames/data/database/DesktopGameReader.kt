@@ -187,12 +187,13 @@ internal object DesktopGameReader {
      * @author Daniel Figueroa Vidal
      * @since 2026-10-11
      */
-    private fun resolveIcon(icon: String?): String? {
+    internal fun resolveIcon(icon: String?): String? {
         if (icon.isNullOrBlank()) return null
         val supported = setOf("png", "jpg", "jpeg", "webp")
         if (File(icon).isAbsolute) return icon.takeIf { File(it).isFile && File(it).extension.lowercase() in supported }
         val home = System.getProperty("user.home")
-        val cleanIcon = icon.substringBeforeLast('.')
+        val knownImageExtensions = setOf("png", "svg", "xpm", "ico", "jpg", "jpeg", "webp")
+        val cleanIcon = if (icon.substringAfterLast('.').lowercase() in knownImageExtensions) icon.substringBeforeLast('.') else icon
 
         // 1. Comprobación directa en app-info de Flatpak (donde Flatpak guarda PNGs de 128x128 y 64x64)
         val flatpakAppDirs = listOf("/var/lib/flatpak/app", "$home/.local/share/flatpak/app")
