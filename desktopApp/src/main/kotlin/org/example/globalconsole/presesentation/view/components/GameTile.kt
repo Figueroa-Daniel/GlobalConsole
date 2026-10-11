@@ -147,6 +147,10 @@ fun GameTile(
                     }
                     else -> null
                 }
+                if (defaultImage == null && game.platform == Platforms.LOCALGAME) {
+                    Text("PC", color = palette.accent, fontSize = 48.sp, fontWeight = FontWeight.Bold,
+                        modifier = Modifier.align(Alignment.Center))
+                }
                 if (defaultImage != null) {
                     val isConsolePhoto = defaultImage == Res.drawable.playLogo
                     val isPlayStationScreen = defaultImage == Res.drawable.playLogoGames

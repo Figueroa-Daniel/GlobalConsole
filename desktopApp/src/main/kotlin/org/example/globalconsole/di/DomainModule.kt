@@ -117,4 +117,11 @@ val domainModule = module {
     factory { org.example.globalconsole.navigatorWeb.domain.usecase.IsEnabledNavUseCase(repository = get()) }
     factory { org.example.globalconsole.navigatorWeb.domain.usecase.ExecuteNavUseCase(repository = get()) }
     factory { org.example.globalconsole.navigatorWeb.domain.usecase.CloseNavUseCase(repository = get()) }
+    factory { org.example.globalconsole.localGames.domain.usecase.GetInstalledLocalGamesUseCase(get()) }
+    factory { org.example.globalconsole.localGames.domain.usecase.GetLocalGamesUseCase(get()) }
+    factory { org.example.globalconsole.localGames.domain.usecase.AddLocalGameUseCase(get()) }
+    factory { org.example.globalconsole.localGames.domain.usecase.RemoveLocalGameUseCase(get()) }
+    factory { org.example.globalconsole.localGames.domain.usecase.IsEnabledLocalGameUseCase(get()) }
+    factory { org.example.globalconsole.localGames.domain.usecase.ExecuteLocalGameUseCase(get()) }
+    factory { org.example.globalconsole.localGames.domain.usecase.CloseLocalGameUseCase(get()) }
 }

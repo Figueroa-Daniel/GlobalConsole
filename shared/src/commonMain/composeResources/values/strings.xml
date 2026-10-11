@@ -116,4 +116,11 @@
     <string name="setup_navigators_empty">No se han encontrado navegadores instalados.</string>
     <string name="action_close">CERRAR</string>
     <string name="platform_navweb">Navegador web</string>
+    <string name="local_games_title">Juegos Locales de PC</string>
+    <string name="local_games_description">Detecta y gestiona los juegos instalados en tu sistema.</string>
+    <string name="local_games_manage">ADD Local Game</string>
+    <string name="local_games_busy">Actualizando juegos y preferencias…</string>
+    <string name="local_games_empty">No se han detectado juegos locales compatibles.</string>
+    <string name="local_games_controls">↑ ↓ Navegar · A Habilitar / Deshabilitar · B Volver</string>
+    <string name="local_games_refresh">Volver a detectar</string>
 </resources>

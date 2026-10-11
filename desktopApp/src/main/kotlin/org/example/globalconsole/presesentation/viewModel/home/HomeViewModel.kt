@@ -1,5 +1,8 @@
 package org.example.globalconsole.presesentation.viewModel.home
 
+import org.example.globalconsole.localGames.domain.usecase.*
+import org.example.globalconsole.localGames.domain.entitys.LocalGameObj
+
 import org.example.globalconsole.settings.domain.AppearanceSettings
 import org.example.globalconsole.settings.domain.usecase.GetAppearanceSettingsUseCase
 import org.example.globalconsole.settings.domain.usecase.SaveAppearanceSettingsUseCase
@@ -104,7 +107,10 @@ class HomeViewModel(
     private val saveAppearanceSettingsUseCase: SaveAppearanceSettingsUseCase? = null,
     private val getNavigatorsWebUseCase: org.example.globalconsole.navigatorWeb.domain.usecase.GetNavigatorsWebUseCase? = null,
     private val executeNavUseCase: org.example.globalconsole.navigatorWeb.domain.usecase.ExecuteNavUseCase? = null,
-    private val closeNavUseCase: org.example.globalconsole.navigatorWeb.domain.usecase.CloseNavUseCase? = null
+    private val closeNavUseCase: org.example.globalconsole.navigatorWeb.domain.usecase.CloseNavUseCase? = null,
+    private val getLocalGamesUseCase: GetLocalGamesUseCase? = null,
+    private val executeLocalGameUseCase: ExecuteLocalGameUseCase? = null,
+    private val closeLocalGameUseCase: CloseLocalGameUseCase? = null
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
@@ -384,7 +390,9 @@ class HomeViewModel(
 
                 val navigatorEntries: List<Game> = getNavigatorsWebUseCase?.invoke() ?: emptyList()
 
-                val allGames: List<Game> = (pcsx2Games + heroicEntry + melonDSEntry + dsGames + dolphinEntry + dolphinGames + ps3Entry + azaharEntry + azaharGames + duckStationEntry + duckStationGames + navigatorEntries).sortedBy { it.name }
+                val localGames: List<Game> = getLocalGamesUseCase?.invoke() ?: emptyList()
+
+                val allGames: List<Game> = (pcsx2Games + heroicEntry + melonDSEntry + dsGames + dolphinEntry + dolphinGames + ps3Entry + azaharEntry + azaharGames + duckStationEntry + duckStationGames + navigatorEntries + localGames).sortedBy { it.name }
 
                 _uiState.value = if (allGames.isEmpty()) {
                     HomeUiState.Empty
@@ -443,8 +451,14 @@ class HomeViewModel(
             val success = when (game.platform) {
                 Platforms.PCSX2 -> executeGameP2UseCase?.invoke(game.id) ?: false
                 Platforms.LOCALGAME -> {
-                    // TODO: Implementar lanzamiento de juego local nativo
-                    false
+                    try {
+                        (game as? LocalGameObj)?.let { executeLocalGameUseCase?.invoke(it) } ?: false
+                    } catch (e: kotlinx.coroutines.CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        _uiState.value = HomeUiState.Error("No se pudo iniciar ${game.name}: ${e.message}")
+                        return@launch
+                    }
                 }
                 Platforms.HEORIC_GAMES_LAUCHER -> executeHGLauncherUseCase?.invoke() ?: false
                 Platforms.MELONDS -> {
@@ -479,6 +493,11 @@ class HomeViewModel(
                 }
             }
 
+            if (game.platform == Platforms.LOCALGAME && !success) {
+                _uiState.value = HomeUiState.Error("El juego ${game.name} no pudo ejecutarse correctamente")
+                return@launch
+            }
+
             // Al terminar la ejecución, volvemos a cargar la vista
             loadGames()
         }
@@ -495,7 +514,15 @@ class HomeViewModel(
             val game = state.game
             when (game.platform) {
                 Platforms.PCSX2 -> closeGameP2UseCase?.invoke()
-                Platforms.LOCALGAME -> {}
+                Platforms.LOCALGAME -> {
+                    try {
+                        closeLocalGameUseCase?.invoke()
+                    } catch (e: kotlinx.coroutines.CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        System.err.println("No se pudo cerrar el juego local: ${e.message}")
+                    }
+                }
                 Platforms.HEORIC_GAMES_LAUCHER -> closeHGLauncherUseCase?.invoke()
                 Platforms.MELONDS -> {
                     if (game.id == "melonds-launcher") {

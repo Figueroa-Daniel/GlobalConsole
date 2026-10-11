@@ -61,7 +61,10 @@ val presentationModule = module {
             deleteGameDuckStationUseCase = get(),
             getNavigatorsWebUseCase = get(),
             executeNavUseCase = get(),
-            closeNavUseCase = get()
+            closeNavUseCase = get(),
+            getLocalGamesUseCase = get(),
+            executeLocalGameUseCase = get(),
+            closeLocalGameUseCase = get()
         )
     }
     factory {
@@ -91,7 +94,11 @@ val presentationModule = module {
             getInstalledNavsUseCase = get(),
             isEnabledNavUseCase = get(),
             addNavUseCase = get(),
-            removeNavUseCase = get()
+            removeNavUseCase = get(),
+            getInstalledLocalGamesUseCase = get(),
+            isEnabledLocalGameUseCase = get(),
+            addLocalGameUseCase = get(),
+            removeLocalGameUseCase = get()
         )
     }
 }

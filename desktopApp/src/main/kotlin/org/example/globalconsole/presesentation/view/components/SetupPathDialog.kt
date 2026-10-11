@@ -37,6 +37,7 @@ private enum class DialogButton {
     AZAHAR_TOGGLE,
     DUCKSTATION_TOGGLE,
     NAVIGATORS_OPEN,
+    LOCAL_GAMES_OPEN,
     PCSX2_BROWSE,
     MELONDS_GAMES_BROWSE,
     DOLPHIN_GAMES_BROWSE,
@@ -89,6 +90,7 @@ fun SetupPathDialog(
     var focusedButton by remember { mutableStateOf(DialogButton.CONFIRM) }
     var showFolderPickerFor by remember { mutableStateOf<DialogButton?>(null) }
     var showNavigators by remember { mutableStateOf(false) }
+    var showLocalGames by remember { mutableStateOf(false) }
 
     // Requesters para auto-scroll del gamepad
     val requesters = remember { DialogButton.values().associateWith { BringIntoViewRequester() } }
@@ -108,8 +110,8 @@ fun SetupPathDialog(
         settingsViewModel.loadMouseSensitivity()
     }
 
-    LaunchedEffect(gamepadManager, showFolderPickerFor, showNavigators) {
-        if (showFolderPickerFor != null || showNavigators) return@LaunchedEffect
+    LaunchedEffect(gamepadManager, showFolderPickerFor, showNavigators, showLocalGames) {
+        if (showFolderPickerFor != null || showNavigators || showLocalGames) return@LaunchedEffect
 
         gamepadManager.events.collect { event ->
             when (event) {
@@ -129,7 +131,8 @@ fun SetupPathDialog(
                             DialogButton.DUCKSTATION_GAMES_BROWSE -> DialogButton.AZAHAR_GAMES_BROWSE
 
                             DialogButton.NAVIGATORS_OPEN -> DialogButton.DUCKSTATION_TOGGLE
-                            DialogButton.CANCEL -> DialogButton.NAVIGATORS_OPEN
+                            DialogButton.LOCAL_GAMES_OPEN -> DialogButton.NAVIGATORS_OPEN
+                            DialogButton.CANCEL -> DialogButton.LOCAL_GAMES_OPEN
                             DialogButton.CONFIRM -> DialogButton.DUCKSTATION_GAMES_BROWSE
                             else -> focusedButton
                         }
@@ -141,7 +144,8 @@ fun SetupPathDialog(
                             DialogButton.PS3_TOGGLE -> DialogButton.AZAHAR_TOGGLE
                             DialogButton.AZAHAR_TOGGLE -> DialogButton.DUCKSTATION_TOGGLE
                             DialogButton.DUCKSTATION_TOGGLE -> DialogButton.NAVIGATORS_OPEN
-                            DialogButton.NAVIGATORS_OPEN -> DialogButton.CANCEL
+                            DialogButton.NAVIGATORS_OPEN -> DialogButton.LOCAL_GAMES_OPEN
+                            DialogButton.LOCAL_GAMES_OPEN -> DialogButton.CANCEL
 
                             DialogButton.PCSX2_BROWSE -> DialogButton.MELONDS_GAMES_BROWSE
                             DialogButton.MELONDS_GAMES_BROWSE -> DialogButton.DOLPHIN_GAMES_BROWSE
@@ -191,6 +195,7 @@ fun SetupPathDialog(
                             DialogButton.AZAHAR_TOGGLE -> settingsViewModel.setAzaharEnabled(!azaharEnabled)
                             DialogButton.DUCKSTATION_TOGGLE -> settingsViewModel.setDuckStationEnabled(!duckStationEnabled)
                             DialogButton.NAVIGATORS_OPEN -> showNavigators = true
+                            DialogButton.LOCAL_GAMES_OPEN -> showLocalGames = true
                             DialogButton.SENSITIVITY_SLIDER -> {}
                             DialogButton.PCSX2_BROWSE -> showFolderPickerFor = DialogButton.PCSX2_BROWSE
                             DialogButton.MELONDS_GAMES_BROWSE -> showFolderPickerFor = DialogButton.MELONDS_GAMES_BROWSE
@@ -386,6 +391,21 @@ fun SetupPathDialog(
                             MetroButton(inputMode = inputMode, text = stringResource(Res.string.setup_navigators_manage), isPrimary = focusedButton == DialogButton.NAVIGATORS_OPEN, isFocused = focusedButton == DialogButton.NAVIGATORS_OPEN, onClick = { showNavigators = true })
                         }
                         Spacer(modifier = Modifier.height(20.dp))
+                        Column(
+                            Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.LOCAL_GAMES_OPEN]!!)
+                                .border(1.dp, LocalMetroPalette.current.border, RectangleShape).padding(16.dp)
+                        ) {
+                            Text(stringResource(Res.string.local_games_title), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text(stringResource(Res.string.local_games_description), color = LocalMetroPalette.current.muted, fontSize = 14.sp)
+                            Spacer(Modifier.height(8.dp))
+                            MetroButton(
+                                text = stringResource(Res.string.local_games_manage), inputMode = inputMode,
+                                isFocused = focusedButton == DialogButton.LOCAL_GAMES_OPEN,
+                                onHover = { focusedButton = DialogButton.LOCAL_GAMES_OPEN },
+                                onClick = { showLocalGames = true }
+                            )
+                        }
+                        Spacer(Modifier.height(20.dp))
                     }
 
                     // COLUMNA DERECHA (Rutas)
@@ -499,6 +519,14 @@ fun SetupPathDialog(
                 }
             }
         }
+    }
+
+    if (showLocalGames) {
+        org.example.globalconsole.localGames.presesentation.view.components.LocalGamesSettingsDialog(
+            settingsViewModel = settingsViewModel,
+            gamepadManager = gamepadManager,
+            onDismiss = { showLocalGames = false }
+        )
     }
 
     if (showNavigators) {
