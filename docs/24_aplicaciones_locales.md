@@ -99,3 +99,22 @@ usaban los juegos, incluidas las mejoras de Flatpak y nombres reverse-DNS.
 `config/LocalSelectionStore` comparte el bloqueo entre ambos módulos locales.
 No cambia la admisión previa de Bottles/Citra dentro de juegos locales; el filtro
 independiente de aplicaciones sí los excluye de este nuevo catálogo.
+
+## 9. Corrección de carga innecesaria (2026-10-11)
+
+La implementación inicial llamaba al catálogo completo para cargar las entradas
+habilitadas, incluso con selección vacía. Además, el lector compartido resolvía
+iconos antes de clasificar: juegos también buscaba iconos de todas las aplicaciones.
+Cada icono ausente podía recorrer múltiples temas y directorios del usuario.
+
+Se corrige sin almacenar un catálogo obsoleto: selección vacía retorna sin escanear;
+en Linux se filtran identificadores antes de abrir accesos y se resuelve el icono
+solo después de aceptar la categoría. La detección completa queda para Ajustes.
+Habilitar o ejecutar valida únicamente el identificador solicitado. Windows evita
+la detección si la selección está vacía; con selección usa el detector nativo y
+filtra sus resultados. Se mantienen precedencia XDG, Hidden y las exclusiones.
+
+Las pruebas de casos de uso verificarán el trabajo omitido mediante un resolutor
+de iconos controlado, sin depender de límites de tiempo frágiles. Se medirán además
+los tiempos del catálogo real con configuración temporal. Véase
+[Juegos locales](23_juegos_locales.md) y [Contexto](19_contexto_ia.md).
