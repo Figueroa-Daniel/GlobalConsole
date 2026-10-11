@@ -111,6 +111,7 @@ fun platformLabel(name: String): String {
         "PS3" -> Res.string.platform_ps3
         "AZAHAR" -> Res.string.platform_azahar
         "DUCKSTATION" -> Res.string.platform_duckstation
+        "NAVWEB" -> Res.string.platform_navweb
         else -> return name
     }
     return stringResource(resource)

@@ -36,6 +36,7 @@ private enum class DialogButton {
     PS3_TOGGLE,
     AZAHAR_TOGGLE,
     DUCKSTATION_TOGGLE,
+    NAVIGATORS_OPEN,
     PCSX2_BROWSE,
     MELONDS_GAMES_BROWSE,
     DOLPHIN_GAMES_BROWSE,
@@ -87,6 +88,7 @@ fun SetupPathDialog(
     var errorMessage by remember { mutableStateOf("") }
     var focusedButton by remember { mutableStateOf(DialogButton.CONFIRM) }
     var showFolderPickerFor by remember { mutableStateOf<DialogButton?>(null) }
+    var showNavigators by remember { mutableStateOf(false) }
 
     // Requesters para auto-scroll del gamepad
     val requesters = remember { DialogButton.values().associateWith { BringIntoViewRequester() } }
@@ -106,8 +108,8 @@ fun SetupPathDialog(
         settingsViewModel.loadMouseSensitivity()
     }
 
-    LaunchedEffect(gamepadManager, showFolderPickerFor) {
-        if (showFolderPickerFor != null) return@LaunchedEffect
+    LaunchedEffect(gamepadManager, showFolderPickerFor, showNavigators) {
+        if (showFolderPickerFor != null || showNavigators) return@LaunchedEffect
 
         gamepadManager.events.collect { event ->
             when (event) {
@@ -126,7 +128,8 @@ fun SetupPathDialog(
                             DialogButton.AZAHAR_GAMES_BROWSE -> DialogButton.DOLPHIN_GAMES_BROWSE
                             DialogButton.DUCKSTATION_GAMES_BROWSE -> DialogButton.AZAHAR_GAMES_BROWSE
 
-                            DialogButton.CANCEL -> DialogButton.DUCKSTATION_TOGGLE
+                            DialogButton.NAVIGATORS_OPEN -> DialogButton.DUCKSTATION_TOGGLE
+                            DialogButton.CANCEL -> DialogButton.NAVIGATORS_OPEN
                             DialogButton.CONFIRM -> DialogButton.DUCKSTATION_GAMES_BROWSE
                             else -> focusedButton
                         }
@@ -137,7 +140,8 @@ fun SetupPathDialog(
                             DialogButton.DOLPHIN_TOGGLE -> DialogButton.PS3_TOGGLE
                             DialogButton.PS3_TOGGLE -> DialogButton.AZAHAR_TOGGLE
                             DialogButton.AZAHAR_TOGGLE -> DialogButton.DUCKSTATION_TOGGLE
-                            DialogButton.DUCKSTATION_TOGGLE -> DialogButton.CANCEL
+                            DialogButton.DUCKSTATION_TOGGLE -> DialogButton.NAVIGATORS_OPEN
+                            DialogButton.NAVIGATORS_OPEN -> DialogButton.CANCEL
 
                             DialogButton.PCSX2_BROWSE -> DialogButton.MELONDS_GAMES_BROWSE
                             DialogButton.MELONDS_GAMES_BROWSE -> DialogButton.DOLPHIN_GAMES_BROWSE
@@ -186,6 +190,7 @@ fun SetupPathDialog(
                             DialogButton.PS3_TOGGLE -> settingsViewModel.setPs3Enabled(!ps3Enabled)
                             DialogButton.AZAHAR_TOGGLE -> settingsViewModel.setAzaharEnabled(!azaharEnabled)
                             DialogButton.DUCKSTATION_TOGGLE -> settingsViewModel.setDuckStationEnabled(!duckStationEnabled)
+                            DialogButton.NAVIGATORS_OPEN -> showNavigators = true
                             DialogButton.SENSITIVITY_SLIDER -> {}
                             DialogButton.PCSX2_BROWSE -> showFolderPickerFor = DialogButton.PCSX2_BROWSE
                             DialogButton.MELONDS_GAMES_BROWSE -> showFolderPickerFor = DialogButton.MELONDS_GAMES_BROWSE
@@ -370,6 +375,18 @@ fun SetupPathDialog(
                             }
                         }
                         Spacer(modifier = Modifier.height(20.dp))
+
+                        // Navegadores web
+                        val navigatorsBorderColor = if (inputMode == org.example.globalconsole.presesentation.input.InputMode.GAMEPAD && focusedButton == DialogButton.NAVIGATORS_OPEN) LocalMetroPalette.current.accent else LocalMetroPalette.current.border
+                        Column(
+                            modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.NAVIGATORS_OPEN]!!).border(1.dp, navigatorsBorderColor, RectangleShape).padding(16.dp)
+                        ) {
+                            Text(stringResource(Res.string.setup_navigators_title), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text(stringResource(Res.string.setup_navigators_description), color = LocalMetroPalette.current.muted, fontSize = 14.sp)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            MetroButton(inputMode = inputMode, text = stringResource(Res.string.setup_navigators_manage), isPrimary = focusedButton == DialogButton.NAVIGATORS_OPEN, isFocused = focusedButton == DialogButton.NAVIGATORS_OPEN, onClick = { showNavigators = true })
+                        }
+                        Spacer(modifier = Modifier.height(20.dp))
                     }
 
                     // COLUMNA DERECHA (Rutas)
@@ -483,6 +500,14 @@ fun SetupPathDialog(
                 }
             }
         }
+    }
+
+    if (showNavigators) {
+        NavigatorsSettingsDialog(
+            settingsViewModel = settingsViewModel,
+            gamepadManager = gamepadManager,
+            onDismiss = { showNavigators = false }
+        )
     }
 
     if (showFolderPickerFor != null) {

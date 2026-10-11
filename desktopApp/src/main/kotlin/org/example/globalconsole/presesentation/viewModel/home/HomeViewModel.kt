@@ -29,6 +29,7 @@ import org.example.globalconsole.PS3Launcher.domain.usecase.ExecutePS3LauncherUs
 import org.example.globalconsole.PS3Launcher.domain.usecase.FindPS3LauncherUseCase
 import org.example.globalconsole.PS3Launcher.domain.usecase.ShowPS3LauncherUseCase
 import org.example.globalconsole.PS3Launcher.domain.usecase.ClosePS3LauncherUseCase
+import org.example.globalconsole.navigatorWeb.domain.entitys.NavWebObj
 
 enum class AppearanceSettingsError {
     LOAD_FAILED,
@@ -100,7 +101,10 @@ class HomeViewModel(
     private val getViewSettingsUseCase: org.example.globalconsole.settings.domain.usecase.GetViewSettingsUseCase? = null,
     private val saveViewSettingsUseCase: org.example.globalconsole.settings.domain.usecase.SaveViewSettingsUseCase? = null,
     private val getAppearanceSettingsUseCase: GetAppearanceSettingsUseCase? = null,
-    private val saveAppearanceSettingsUseCase: SaveAppearanceSettingsUseCase? = null
+    private val saveAppearanceSettingsUseCase: SaveAppearanceSettingsUseCase? = null,
+    private val getNavigatorsWebUseCase: org.example.globalconsole.navigatorWeb.domain.usecase.GetNavigatorsWebUseCase? = null,
+    private val executeNavUseCase: org.example.globalconsole.navigatorWeb.domain.usecase.ExecuteNavUseCase? = null,
+    private val closeNavUseCase: org.example.globalconsole.navigatorWeb.domain.usecase.CloseNavUseCase? = null
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
@@ -253,6 +257,8 @@ class HomeViewModel(
                         Platforms.PCSX2, Platforms.DUCKSTATION, Platforms.PS3 -> "PlayStation"
                         Platforms.MELONDS, Platforms.AZAHAR, Platforms.DOLPHIN -> "Nintendo"
                         Platforms.HEORIC_GAMES_LAUCHER, Platforms.LOCALGAME -> "PC"
+                        Platforms.NAVWEB -> "Web"
+                        else -> "Otros"
                     }
                 }
                 else -> ""
@@ -376,7 +382,9 @@ class HomeViewModel(
                     )
                 } ?: emptyList()
 
-                val allGames: List<Game> = (pcsx2Games + heroicEntry + melonDSEntry + dsGames + dolphinEntry + dolphinGames + ps3Entry + azaharEntry + azaharGames + duckStationEntry + duckStationGames).sortedBy { it.name }
+                val navigatorEntries: List<Game> = getNavigatorsWebUseCase?.invoke() ?: emptyList()
+
+                val allGames: List<Game> = (pcsx2Games + heroicEntry + melonDSEntry + dsGames + dolphinEntry + dolphinGames + ps3Entry + azaharEntry + azaharGames + duckStationEntry + duckStationGames + navigatorEntries).sortedBy { it.name }
 
                 _uiState.value = if (allGames.isEmpty()) {
                     HomeUiState.Empty
@@ -454,6 +462,7 @@ class HomeViewModel(
                     }
                 }
                 Platforms.PS3 -> executePS3LauncherUseCase?.invoke() ?: false
+                Platforms.NAVWEB -> (game as? NavWebObj)?.let { executeNavUseCase?.invoke(it) } ?: false
                 Platforms.AZAHAR -> {
                     if (game.id == "azahar-launcher") {
                         executeLauncherAzaharUseCase?.invoke() ?: false
@@ -503,6 +512,7 @@ class HomeViewModel(
                     }
                 }
                 Platforms.PS3 -> closePS3LauncherUseCase?.invoke()
+                Platforms.NAVWEB -> closeNavUseCase?.invoke()
                 Platforms.AZAHAR -> {
                     if (game.id == "azahar-launcher") {
                         closeLauncherAzaharUseCase?.invoke()
@@ -553,6 +563,9 @@ class HomeViewModel(
                     // TODO: Implementar eliminación de juego de Azahar
                 }
                 Platforms.DUCKSTATION -> deleteGameDuckStationUseCase?.invoke(game.id)
+                Platforms.NAVWEB -> {
+                    // Los navegadores se deshabilitan desde la configuración, no se eliminan aquí
+                }
             }
         }
     }

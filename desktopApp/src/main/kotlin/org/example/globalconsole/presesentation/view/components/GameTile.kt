@@ -135,16 +135,35 @@ fun GameTile(
                     Platforms.DUCKSTATION -> {
                         if (game.id == "duckstation-launcher-id") Res.drawable.playLogo else Res.drawable.playLogoGames
                     }
+                    Platforms.NAVWEB -> {
+                        val nav = game as? org.example.globalconsole.navigatorWeb.domain.entitys.NavWebObj
+                        when (nav?.navigatorType) {
+                            org.example.globalconsole.generalDomain.entititys.NavigatorsWeb.CHROME -> Res.drawable.Chrome_logo
+                            org.example.globalconsole.generalDomain.entititys.NavigatorsWeb.EDGE -> Res.drawable.Edge_logo
+                            org.example.globalconsole.generalDomain.entititys.NavigatorsWeb.FIREFOX -> Res.drawable.Firefox_logo
+                            org.example.globalconsole.generalDomain.entititys.NavigatorsWeb.BRAVE -> Res.drawable.brave_logo
+                            else -> null
+                        }
+                    }
                     else -> null
                 }
                 if (defaultImage != null) {
                     val isConsolePhoto = defaultImage == Res.drawable.playLogo
                     val isPlayStationScreen = defaultImage == Res.drawable.playLogoGames
-                    Image(painter = painterResource(defaultImage), contentDescription = null,
+                    val isBrowserLogo = game.platform == Platforms.NAVWEB
+                    val imageScale = when {
+                        isConsolePhoto || isPlayStationScreen -> 1f
+                        isBrowserLogo -> 0.72f
+                        else -> 0.58f
+                    }
+                    Image(
+                        painter = painterResource(defaultImage),
+                        contentDescription = null,
                         contentScale = if (isConsolePhoto) ContentScale.Crop else ContentScale.Fit,
                         modifier = Modifier.align(Alignment.Center)
-                            .fillMaxSize(if (isConsolePhoto || isPlayStationScreen) 1f else .58f)
-                            .then(if (isPlayStationScreen) Modifier.background(Color.Black).padding(8.dp) else Modifier))
+                            .fillMaxSize(imageScale)
+                            .then(if (isPlayStationScreen) Modifier.background(Color.Black).padding(8.dp) else Modifier)
+                    )
                 }
             }
             Box(Modifier.fillMaxSize().background(Brush.verticalGradient(
