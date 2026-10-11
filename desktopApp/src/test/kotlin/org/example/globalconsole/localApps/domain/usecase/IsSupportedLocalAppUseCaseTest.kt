@@ -40,7 +40,7 @@ class IsSupportedLocalAppUseCaseTest {
         for (category in listOf("Game", "ActionGame", "BoardGame", "Emulator", "WebBrowser")) {
             assertFalse(useCase("custom", "Aplicación", listOf("custom"), setOf(category)))
         }
-        for (command in listOf("brave-browser", "firefox", "google-chrome", "msedge", "opera", "chromium", "duckstation", "pcsx2-qt", "citra", "rpcs3", "melonDS", "azahar", "retroarch", "dolphin-emu", "steam", "heroic", "lutris")) {
+        for (command in listOf("brave-browser", "firefox", "google-chrome", "msedge", "opera", "chromium", "duckstation", "pcsx2-qt", "citra", "rpcs3", "melonDS", "azahar", "retroarch", "dolphin-emu", "steam", "heroic", "lutris", "curseforge", "prismlauncher")) {
             assertFalse(useCase("custom", "Personalizado", listOf("/usr/bin/$command"), emptySet()), command)
         }
         assertFalse(useCase("custom", "Navegador", listOf("C:\\Apps\\Brave\\brave.exe"), emptySet()))

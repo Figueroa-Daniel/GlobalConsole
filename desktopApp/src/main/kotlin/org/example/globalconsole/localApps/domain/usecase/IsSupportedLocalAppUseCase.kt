@@ -17,14 +17,14 @@ class IsSupportedLocalAppUseCase {
         "cemu", "yuzu", "ryujinx", "suyu", "sudachi", "mame", "dosbox", "dosbox-x",
         "desmume", "mgba", "snes9x", "fceux", "mednafen", "xemu", "xenia", "shadps4",
         "steam", "heroic", "heroicgameslauncher", "lutris", "bottles", "epicgameslauncher",
-        "goggalaxy", "galaxyclient", "ubisoftconnect", "eaapp", "eadesktop", "globalconsole"
+        "curseforge", "prismlauncher", "goggalaxy", "galaxyclient", "ubisoftconnect", "eaapp", "eadesktop", "globalconsole"
     )
     private val excludedIds = setOf(
         "com.brave.browser", "org.mozilla.firefox", "com.google.chrome", "com.microsoft.edge",
         "com.opera.opera", "org.chromium.chromium", "org.gnome.epiphany", "org.dolphinemu.dolphin-emu",
         "net.pcsx2.pcsx2", "org.duckstation.duckstation", "net.kuribo64.melonds", "net.rpcs3.rpcs3",
         "org.libretro.retroarch", "org.citra_emu.citra", "org.azahar_emu.azahar", "io.github.zen_browser.zen",
-        "com.valvesoftware.steam", "com.heroicgameslauncher.hgl", "com.usebottles.bottles", "net.lutris.lutris"
+        "com.overwolf.curseforge", "org.prismlauncher.prismlauncher", "com.valvesoftware.steam", "com.heroicgameslauncher.hgl", "com.usebottles.bottles", "net.lutris.lutris"
     )
 
     /**
