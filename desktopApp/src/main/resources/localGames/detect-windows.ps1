@@ -24,7 +24,7 @@ $keys = @(
 )
 foreach ($key in $keys) {
     Get-ItemProperty -Path $key -ErrorAction SilentlyContinue | ForEach-Object {
-        $isGame = ($_.Category -match '^(Game|Games|Juego|Juegos)$') -or ($_.InstallLocation -match '[\\/](Games|Juegos)[\\/]')
+        $isGame = ($_.Category -match '^(Game|Games|Juego|Juegos)$') -or ($_.InstallLocation -match '[\\/](Games|Juegos|Epic Games|GOG Games)[\\/]|[\\/]steamapps[\\/]common[\\/]')
         $target = ([string]$_.DisplayIcon -replace ',\s*-?\d+$', '').Trim('"')
         if ($isGame -and $_.DisplayName -and $target -match '\.exe$' -and (Test-Path -LiteralPath $target -PathType Leaf)) {
             $items.Add(@{ id = $_.PSPath; name = $_.DisplayName; target = $target; arguments = ''; directory = $_.InstallLocation; icon = '' })

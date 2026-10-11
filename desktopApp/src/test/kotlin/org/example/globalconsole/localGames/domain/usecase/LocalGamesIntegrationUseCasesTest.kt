@@ -82,4 +82,26 @@ class LocalGamesIntegrationUseCasesTest {
             assertEquals("broken", config.readText())
         } finally { root.deleteRecursively() }
     }
+    /**
+     * Conserva accesos de juegos Steam y argumentos Flatpak sin mostrar launchers.
+     * @return Unit.
+     * @throws Exception Si falla un archivo temporal.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-11
+     */
+    @Test
+    fun discovery_keepsGameLaunchArguments() = runTest {
+        val root = Files.createTempDirectory("local-launch-args").toFile()
+        try {
+            root.resolve("steam.desktop").writeText("[Desktop Entry]\nType=Application\nName=Steam\nCategories=Game;\nExec=steam\n")
+            root.resolve("steam-game.desktop").writeText("[Desktop Entry]\nType=Application\nName=Portal\nCategories=Game;\nExec=steam steam://rungameid/400\n")
+            root.resolve("flatpak.desktop").writeText("[Desktop Entry]\nType=Application\nName=Puzzle\nCategories=Game;\nX-Flatpak=org.example.Puzzle\nExec=flatpak run --branch=stable --command=puzzle org.example.Puzzle --fullscreen %U\n")
+            root.resolve("invalid.desktop").writeText("[Desktop Entry]\nType=Application\nName=Invalid\nCategories=Game;\nExec=game %z\n")
+            val repo = LocalGamesRepositoryImpl(LocalGamesAccessAdapter(listOf(root), "Linux"), root.resolve("config.json"))
+            val games = GetInstalledLocalGamesUseCase(repo)()
+            assertEquals(listOf("Portal", "Puzzle"), games.map { it.name })
+            assertEquals(listOf("steam", "steam://rungameid/400"), games.first().arguments)
+            assertEquals(listOf("flatpak", "run", "--branch=stable", "--command=puzzle", "org.example.Puzzle", "--fullscreen"), games.last().arguments)
+        } finally { root.deleteRecursively() }
+    }
 }
