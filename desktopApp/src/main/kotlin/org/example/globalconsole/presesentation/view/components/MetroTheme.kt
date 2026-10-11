@@ -112,6 +112,7 @@ fun platformLabel(name: String): String {
         "AZAHAR" -> Res.string.platform_azahar
         "DUCKSTATION" -> Res.string.platform_duckstation
         "NAVWEB" -> Res.string.platform_navweb
+        "LOCALAPP" -> Res.string.local_apps_title
         else -> return name
     }
     return stringResource(resource)

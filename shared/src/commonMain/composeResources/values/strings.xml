@@ -123,4 +123,11 @@
     <string name="local_games_empty">No se han detectado juegos locales compatibles.</string>
     <string name="local_games_controls">↑ ↓ Navegar · A Habilitar / Deshabilitar · B Volver</string>
     <string name="local_games_refresh">Volver a detectar</string>
+    <string name="local_apps_title">Aplicaciones</string>
+    <string name="local_apps_description">Elige las aplicaciones de tu sistema. Juegos, emuladores y navegadores se gestionan por separado.</string>
+    <string name="local_apps_manage">Añadir aplicación</string>
+    <string name="local_apps_busy">Actualizando aplicaciones y preferencias…</string>
+    <string name="local_apps_empty">No se han detectado aplicaciones locales compatibles.</string>
+    <string name="local_apps_controls">↑ ↓ Navegar · A Habilitar / Deshabilitar · B Volver</string>
+    <string name="local_apps_refresh">Volver a detectar</string>
 </resources>

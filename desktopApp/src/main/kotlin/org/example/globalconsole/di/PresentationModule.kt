@@ -64,7 +64,10 @@ val presentationModule = module {
             closeNavUseCase = get(),
             getLocalGamesUseCase = get(),
             executeLocalGameUseCase = get(),
-            closeLocalGameUseCase = get()
+            closeLocalGameUseCase = get(),
+            getLocalAppsUseCase = get(),
+            executeLocalAppUseCase = get(),
+            closeLocalAppUseCase = get()
         )
     }
     factory {
@@ -98,7 +101,11 @@ val presentationModule = module {
             getInstalledLocalGamesUseCase = get(),
             isEnabledLocalGameUseCase = get(),
             addLocalGameUseCase = get(),
-            removeLocalGameUseCase = get()
+            removeLocalGameUseCase = get(),
+            getInstalledLocalAppsUseCase = get(),
+            isEnabledLocalAppUseCase = get(),
+            addLocalAppUseCase = get(),
+            removeLocalAppUseCase = get()
         )
     }
 }

@@ -1,5 +1,6 @@
 package org.example.globalconsole.presesentation.viewModel.settings
 
+import org.example.globalconsole.localApps.domain.usecase.*
 import org.example.globalconsole.localGames.domain.usecase.*
 import org.example.globalconsole.localGames.domain.entitys.LocalGameObj
 
@@ -57,6 +58,10 @@ data class NavigatorSettingItem(
  * @param hideHGLauncherUseCase UseCase para desactivar la visibilidad de Heroic en la biblioteca.
  * @param getMouseSensitivityUseCase UseCase para recuperar la sensibilidad del ratón.
  * @param saveMouseSensitivityUseCase UseCase para persistir la sensibilidad del ratón.
+ * @param getInstalledLocalAppsUseCase Detecta las aplicaciones admitidas.
+ * @param isEnabledLocalAppUseCase Consulta su selección persistida.
+ * @param addLocalAppUseCase Añade una aplicación a la biblioteca.
+ * @param removeLocalAppUseCase Oculta una aplicación sin desinstalarla.
  *
  * @author Daniel Figueroa Vidal
  * @since 2026-08-10
@@ -91,7 +96,11 @@ class SettingsViewModel(
     private val getInstalledLocalGamesUseCase: GetInstalledLocalGamesUseCase? = null,
     private val isEnabledLocalGameUseCase: IsEnabledLocalGameUseCase? = null,
     private val addLocalGameUseCase: AddLocalGameUseCase? = null,
-    private val removeLocalGameUseCase: RemoveLocalGameUseCase? = null
+    private val removeLocalGameUseCase: RemoveLocalGameUseCase? = null,
+    private val getInstalledLocalAppsUseCase: GetInstalledLocalAppsUseCase? = null,
+    private val isEnabledLocalAppUseCase: IsEnabledLocalAppUseCase? = null,
+    private val addLocalAppUseCase: AddLocalAppUseCase? = null,
+    private val removeLocalAppUseCase: RemoveLocalAppUseCase? = null
 ) : ViewModel() {
 
     private val _localGames = MutableStateFlow(LocalGamesSettingsState())
@@ -144,6 +153,60 @@ class SettingsViewModel(
                 throw e
             } catch (e: Exception) {
                 _localGames.value = _localGames.value.copy(busy = false, error = e.message ?: "No se pudo guardar la selección")
+            }
+        }
+    }
+
+    private val _localApps = MutableStateFlow(LocalAppsSettingsState())
+    val localApps: StateFlow<LocalAppsSettingsState> = _localApps.asStateFlow()
+
+    /**
+     * Detecta las aplicaciones instaladas y publica sus preferencias en una única lista.
+     * @return Unit.
+     * @throws Nothing Publica los errores de detección en el estado de la vista.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-11
+     */
+    fun loadLocalApps() {
+        if (_localApps.value.busy) return
+        _localApps.value = _localApps.value.copy(busy = true, error = null)
+        viewModelScope.launch {
+            try {
+                val installed = getInstalledLocalAppsUseCase?.invoke().orEmpty()
+                val items = installed.map { LocalAppSettingItem(it, isEnabledLocalAppUseCase?.invoke(it.id) == true) }
+                _localApps.value = LocalAppsSettingsState(items = items)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _localApps.value = _localApps.value.copy(busy = false, error = e.message ?: "No se pudieron detectar las aplicaciones")
+            }
+        }
+    }
+
+    /**
+     * Persiste el cambio antes de actualizar la fila y evita pulsaciones concurrentes.
+     * @param id Identificador de la aplicación instalada.
+     * @param enabled Estado solicitado.
+     * @return Unit.
+     * @throws Nothing Publica los errores de persistencia en el estado de la vista.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-11
+     */
+    fun setLocalAppEnabled(id: String, enabled: Boolean) {
+        if (_localApps.value.busy) return
+        _localApps.value = _localApps.value.copy(busy = true, error = null)
+        viewModelScope.launch {
+            try {
+                if (enabled) addLocalAppUseCase?.invoke(id) else removeLocalAppUseCase?.invoke(id)
+                val saved = isEnabledLocalAppUseCase?.invoke(id) == true
+                check(saved == enabled) { "La aplicación ya no está disponible. Vuelve a detectar las aplicaciones." }
+                _localApps.value = _localApps.value.copy(
+                    busy = false, items = _localApps.value.items.map { if (it.app.id == id) it.copy(enabled = saved) else it }
+                )
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _localApps.value = _localApps.value.copy(busy = false, error = e.message ?: "No se pudo guardar la selección")
             }
         }
     }

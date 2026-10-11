@@ -124,4 +124,11 @@ val domainModule = module {
     factory { org.example.globalconsole.localGames.domain.usecase.IsEnabledLocalGameUseCase(get()) }
     factory { org.example.globalconsole.localGames.domain.usecase.ExecuteLocalGameUseCase(get()) }
     factory { org.example.globalconsole.localGames.domain.usecase.CloseLocalGameUseCase(get()) }
+    factory { org.example.globalconsole.localApps.domain.usecase.GetInstalledLocalAppsUseCase(get()) }
+    factory { org.example.globalconsole.localApps.domain.usecase.GetLocalAppsUseCase(get()) }
+    factory { org.example.globalconsole.localApps.domain.usecase.AddLocalAppUseCase(get()) }
+    factory { org.example.globalconsole.localApps.domain.usecase.RemoveLocalAppUseCase(get()) }
+    factory { org.example.globalconsole.localApps.domain.usecase.IsEnabledLocalAppUseCase(get()) }
+    factory { org.example.globalconsole.localApps.domain.usecase.ExecuteLocalAppUseCase(get()) }
+    factory { org.example.globalconsole.localApps.domain.usecase.CloseLocalAppUseCase(get()) }
 }

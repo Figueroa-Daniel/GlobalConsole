@@ -121,4 +121,8 @@ val dataModule = module {
     single<org.example.globalconsole.localGames.data.repository.LocalGamesRepository> {
         org.example.globalconsole.localGames.data.repositoryImpl.LocalGamesRepositoryImpl(get())
     }
+    single { org.example.globalconsole.localApps.data.database.LocalAppsAccessAdapter() }
+    single<org.example.globalconsole.localApps.domain.repository.LocalAppsRepository> {
+        org.example.globalconsole.localApps.data.repositoryImpl.LocalAppsRepositoryImpl(get())
+    }
 }
