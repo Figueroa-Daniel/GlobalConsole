@@ -13,7 +13,8 @@ foreach ($folder in $folders) {
     Get-ChildItem -LiteralPath $folder -Filter '*.lnk' -Recurse -ErrorAction SilentlyContinue | ForEach-Object {
         $link = $ws.CreateShortcut($_.FullName)
         if ($link.TargetPath -match '\.exe$' -and (Test-Path -LiteralPath $link.TargetPath -PathType Leaf)) {
-            $items.Add(@{ id = $_.FullName; name = $_.BaseName; target = $link.TargetPath; arguments = $link.Arguments; directory = $link.WorkingDirectory; icon = '' })
+            $iconPath = if ($link.IconLocation -and ($link.IconLocation -split ',')[0] -match '\.(ico|png|jpg|exe)$') { ($link.IconLocation -split ',')[0].Trim('"') } else { $link.TargetPath }
+            $items.Add(@{ id = $_.FullName; name = $_.BaseName; target = $link.TargetPath; arguments = $link.Arguments; directory = $link.WorkingDirectory; icon = $iconPath })
         }
     }
 }
@@ -27,7 +28,7 @@ foreach ($key in $keys) {
         $isGame = ($_.Category -match '^(Game|Games|Juego|Juegos)$') -or ($_.InstallLocation -match '[\\/](Games|Juegos|Epic Games|GOG Games)[\\/]|[\\/]steamapps[\\/]common[\\/]')
         $target = ([string]$_.DisplayIcon -replace ',\s*-?\d+$', '').Trim('"')
         if ($isGame -and $_.DisplayName -and $target -match '\.exe$' -and (Test-Path -LiteralPath $target -PathType Leaf)) {
-            $items.Add(@{ id = $_.PSPath; name = $_.DisplayName; target = $target; arguments = ''; directory = $_.InstallLocation; icon = '' })
+            $items.Add(@{ id = $_.PSPath; name = $_.DisplayName; target = $target; arguments = ''; directory = $_.InstallLocation; icon = $target })
         }
     }
 }
@@ -36,7 +37,7 @@ foreach ($key in @('HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\GameUX', 'HK
         $entry = Get-ItemProperty -LiteralPath $_.PSPath -ErrorAction SilentlyContinue
         $target = $entry.ConfigApplicationPath
         if ($target -and $target -match '\.exe$' -and (Test-Path -LiteralPath $target -PathType Leaf)) {
-            $items.Add(@{ id = $_.PSPath; name = [System.IO.Path]::GetFileNameWithoutExtension($target); target = $target; arguments = ''; directory = [System.IO.Path]::GetDirectoryName($target); icon = '' })
+            $items.Add(@{ id = $_.PSPath; name = [System.IO.Path]::GetFileNameWithoutExtension($target); target = $target; arguments = ''; directory = [System.IO.Path]::GetDirectoryName($target); icon = $target })
         }
     }
 }

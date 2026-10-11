@@ -1,8 +1,8 @@
 package org.example.globalconsole.localGames.data.database
 
-import org.example.globalconsole.localGames.data.dto.LocalGameDto
 import java.io.File
 import java.util.Locale
+import org.example.globalconsole.localGames.data.dto.LocalGameDto
 
 /**
  * Lee accesos Linux sin ejecutar el contenido durante el escaneo.
@@ -10,7 +10,21 @@ import java.util.Locale
  * @since 2026-10-11
  */
 internal object DesktopGameReader {
-    private val excluded = setOf("pcsx2", "dolphin", "dolphin-emu", "duckstation", "melonds", "rpcs3", "heroic", "azahar", "retroarch", "steam", "lutris", "globalconsole")
+    private val excluded =
+            setOf(
+                    "pcsx2",
+                    "dolphin",
+                    "dolphin-emu",
+                    "duckstation",
+                    "melonds",
+                    "rpcs3",
+                    "heroic",
+                    "azahar",
+                    "retroarch",
+                    "steam",
+                    "lutris",
+                    "globalconsole"
+            )
 
     /**
      * Identifica emuladores y lanzadores ya gestionados o agregadores de juegos.
@@ -22,8 +36,10 @@ internal object DesktopGameReader {
      * @since 2026-10-11
      */
     fun isExcluded(name: String, arguments: List<String>): Boolean {
-        val tokens = (listOf(name) + arguments).flatMap { it.lowercase().split(Regex("[^a-z0-9-]+")) }
-        val steamGame = arguments.any { it.startsWith("steam://rungameid/", true) || it == "-applaunch" }
+        val tokens =
+                (listOf(name) + arguments).flatMap { it.lowercase().split(Regex("[^a-z0-9-]+")) }
+        val steamGame =
+                arguments.any { it.startsWith("steam://rungameid/", true) || it == "-applaunch" }
         return tokens.any { it in excluded && !(it == "steam" && steamGame) }
     }
 
@@ -46,11 +62,17 @@ internal object DesktopGameReader {
                 values.putIfAbsent(line.substringBefore('='), line.substringAfter('='))
             }
         }
-        if (values["Type"] != "Application" || values["Hidden"].equals("true", true) ||
-            values["NoDisplay"].equals("true", true) || values["Terminal"].equals("true", true) ||
-            "Game" !in values["Categories"].orEmpty().split(';')) return null
+        if (values["Type"] != "Application" ||
+                        values["Hidden"].equals("true", true) ||
+                        values["NoDisplay"].equals("true", true) ||
+                        values["Terminal"].equals("true", true) ||
+                        "Game" !in values["Categories"].orEmpty().split(';')
+        )
+                return null
         val locale = Locale.getDefault()
-        val name = values["Name[${locale.language}_${locale.country}]"] ?: values["Name[${locale.language}]"] ?: values["Name"] ?: return null
+        val name =
+                values["Name[${locale.language}_${locale.country}]"]
+                        ?: values["Name[${locale.language}]"] ?: values["Name"] ?: return null
         val icon = values["Icon"]
         val exec = values["Exec"] ?: values["X-Flatpak"]?.let { "flatpak run $it" } ?: return null
         val tokens = tokenize(exec) ?: return null
@@ -66,12 +88,14 @@ internal object DesktopGameReader {
                         if (token[i] != '%') expanded.append(token[i])
                         else {
                             if (++i >= token.length) return null
-                            expanded.append(when (token[i]) {
-                                '%' -> "%"
-                                'c' -> name
-                                'k' -> file.absolutePath
-                                else -> return null
-                            })
+                            expanded.append(
+                                    when (token[i]) {
+                                        '%' -> "%"
+                                        'c' -> name
+                                        'k' -> file.absolutePath
+                                        else -> return null
+                                    }
+                            )
                         }
                         i++
                     }
@@ -82,7 +106,13 @@ internal object DesktopGameReader {
         if (args.isEmpty() || args.first().isBlank() || isExcluded(name, args)) return null
         val tryExec = values["TryExec"]
         if (tryExec != null && !executableExists(tryExec)) return null
-        return LocalGameDto("local:linux:$desktopId", name, args, resolveIcon(icon), values["Path"]?.takeIf { File(it).isDirectory })
+        return LocalGameDto(
+                "local:linux:$desktopId",
+                name,
+                args,
+                resolveIcon(icon),
+                values["Path"]?.takeIf { File(it).isDirectory }
+        )
     }
 
     /**
@@ -94,7 +124,12 @@ internal object DesktopGameReader {
      * @since 2026-10-11
      */
     private fun tokenize(command: String): List<String>? {
-        val decoded = command.replace("\\s", " ").replace("\\n", "\n").replace("\\t", "\t").replace("\\r", "\r").replace("\\\\", "\\")
+        val decoded =
+                command.replace("\\s", " ")
+                        .replace("\\n", "\n")
+                        .replace("\\t", "\t")
+                        .replace("\\r", "\r")
+                        .replace("\\\\", "\\")
         val result = mutableListOf<String>()
         val current = StringBuilder()
         var quoted = false
@@ -102,13 +137,26 @@ internal object DesktopGameReader {
         var started = false
         for (char in decoded) {
             when {
-                escaped -> { current.append(char); escaped = false; started = true }
-                char == '\\' -> escaped = true
-                char == '"' -> { quoted = !quoted; started = true }
-                char.isWhitespace() && !quoted -> if (started) {
-                    result.add(current.toString()); current.clear(); started = false
+                escaped -> {
+                    current.append(char)
+                    escaped = false
+                    started = true
                 }
-                else -> { current.append(char); started = true }
+                char == '\\' -> escaped = true
+                char == '"' -> {
+                    quoted = !quoted
+                    started = true
+                }
+                char.isWhitespace() && !quoted ->
+                        if (started) {
+                            result.add(current.toString())
+                            current.clear()
+                            started = false
+                        }
+                else -> {
+                    current.append(char)
+                    started = true
+                }
             }
         }
         if (quoted || escaped) return null
@@ -125,8 +173,11 @@ internal object DesktopGameReader {
      * @since 2026-10-11
      */
     private fun executableExists(command: String): Boolean =
-        if ('/' in command) File(command).canExecute()
-        else System.getenv("PATH").orEmpty().split(File.pathSeparator).any { File(it, command).canExecute() }
+            if ('/' in command) File(command).canExecute()
+            else
+                    System.getenv("PATH").orEmpty().split(File.pathSeparator).any {
+                        File(it, command).canExecute()
+                    }
 
     /**
      * Resuelve iconos comunes de temas y Flatpak; deja el fallback visual a Compose.
@@ -138,15 +189,56 @@ internal object DesktopGameReader {
      */
     private fun resolveIcon(icon: String?): String? {
         if (icon.isNullOrBlank()) return null
-        if (File(icon).isAbsolute) return icon.takeIf { File(it).isFile && File(it).extension.lowercase() in setOf("png", "jpg", "jpeg", "webp") }
+        val supported = setOf("png", "jpg", "jpeg", "webp")
+        if (File(icon).isAbsolute) return icon.takeIf { File(it).isFile && File(it).extension.lowercase() in supported }
         val home = System.getProperty("user.home")
-        val roots = listOf("$home/.local/share/icons", "/usr/share/icons", "$home/.local/share/flatpak/exports/share/icons", "/var/lib/flatpak/exports/share/icons")
-        for (root in roots) for (size in listOf("256x256", "128x128", "64x64", "48x48", "scalable")) {
-            for (ext in listOf("png", "jpg", "jpeg")) {
-                val file = File(root, "hicolor/$size/apps/${if (icon.endsWith(".$ext")) icon else "$icon.$ext"}")
-                if (file.isFile) return file.absolutePath
+        val cleanIcon = icon.substringBeforeLast('.')
+
+        // 1. Comprobación directa en app-info de Flatpak (donde Flatpak guarda PNGs de 128x128 y 64x64)
+        val flatpakAppDirs = listOf("/var/lib/flatpak/app", "$home/.local/share/flatpak/app")
+        val appInfoSizes = listOf("128x128", "64x64", "48x48")
+        for (base in flatpakAppDirs) {
+            for (size in appInfoSizes) {
+                val candidate = File("$base/$cleanIcon/current/active/files/share/app-info/icons/flatpak/$size/$cleanIcon.png")
+                if (candidate.isFile) return candidate.absolutePath
             }
         }
-        return listOf(File("/usr/share/pixmaps", icon), File("/usr/share/pixmaps", "$icon.png")).firstOrNull { it.isFile }?.absolutePath
+
+        // 2. Comprobación en temas de iconos (incluyendo tamaños 512, 256, 128, 64, 48 y 0x0 de AppImage)
+        val roots = listOf(
+            "$home/.local/share/icons",
+            "/usr/share/icons",
+            "$home/.local/share/flatpak/exports/share/icons",
+            "/var/lib/flatpak/exports/share/icons"
+        )
+        val sizes = listOf("512x512", "256x256", "128x128", "64x64", "48x48", "32x32", "0x0")
+        val extensions = listOf("png", "jpg", "jpeg", "webp")
+        for (root in roots) {
+            for (size in sizes) {
+                for (ext in extensions) {
+                    val file = File(root, "hicolor/$size/apps/$cleanIcon.$ext")
+                    if (file.isFile) return file.absolutePath
+                }
+            }
+        }
+
+        // 3. Comprobación en pixmaps del sistema
+        for (ext in extensions) {
+            val pixmap = File("/usr/share/pixmaps", "$cleanIcon.$ext")
+            if (pixmap.isFile) return pixmap.absolutePath
+        }
+        val exactPixmap = File("/usr/share/pixmaps", icon)
+        if (exactPixmap.isFile && exactPixmap.extension.lowercase() in supported) return exactPixmap.absolutePath
+
+        // 4. Búsqueda profunda en ~/.local/share/icons para iconos de temas instalados
+        val userIcons = File("$home/.local/share/icons")
+        if (userIcons.isDirectory) {
+            val match = userIcons.walkTopDown().maxDepth(5).firstOrNull { f ->
+                f.isFile && f.nameWithoutExtension == cleanIcon && f.extension.lowercase() in supported
+            }
+            if (match != null) return match.absolutePath
+        }
+
+        return null
     }
 }

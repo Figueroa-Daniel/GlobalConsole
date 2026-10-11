@@ -104,6 +104,7 @@ class LocalGamesAccessAdapter(
                 if (DesktopGameReader.isExcluded(name, args)) return@mapNotNull null
                 LocalGameDto(
                     "local:windows:" + row.getValue("id").jsonPrimitive.content.lowercase(), name, args,
+                    iconPath = row["icon"]?.jsonPrimitive?.contentOrNull?.takeIf { it.isNotBlank() && File(it).exists() },
                     workingDirectory = row["directory"]?.jsonPrimitive?.contentOrNull?.takeIf { it.isNotBlank() && File(it).isDirectory }
                 )
             }
