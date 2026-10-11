@@ -82,3 +82,25 @@ confirmación y reinicio. Verificación realizada: las 100 pruebas de escritorio
 pasan; una comprobación aislada con Xvfb distingue el cursor de texto del cursor
 normal y detecta pulsación y liberación del botón físico. Esto no verifica la
 superposición sobre ventanas de navegador en el gestor de ventanas del usuario.
+
+## 7. Sesiones de Brave ya abiertas
+
+Brave puede delegar la apertura en una instancia existente y terminar el proceso
+lanzador. Esperar solo a ese proceso devuelve prematuramente GlobalConsole a la
+biblioteca, desactivando los atajos del OSK. El adaptador debe seguir los procesos
+principales del navegador seleccionado cuando el lanzador termina correctamente.
+No se consideran procesos de renderizado, GPU ni navegadores distintos. El cierre
+se limita a los procesos de la sesión seguida; no debe usar `killall` sobre todos
+los navegadores instalados. Al compartir una instancia existente, cerrar esa
+sesión con START + BACK cierra también sus otras ventanas.
+
+La política de selección se valida en un caso de uso puro, incluidos Brave nativo,
+Flatpak, procesos auxiliares y selección de otro navegador. Véase
+[Arquitectura](01_arquitectura.md).
+
+Verificación: 102 pruebas de escritorio correctas y comprobación aislada del
+adaptador con procesos controlados: el lanzador termina, la sesión sigue activa,
+el cierre natural termina la espera, el cierre explícito no afecta a otro
+navegador y un lanzamiento fallido devuelve error. Falta la prueba interactiva
+con Brave real tras reiniciar GlobalConsole. Si Brave mantiene procesos en segundo
+plano al cerrar su última ventana, START + BACK termina la sesión seguida.

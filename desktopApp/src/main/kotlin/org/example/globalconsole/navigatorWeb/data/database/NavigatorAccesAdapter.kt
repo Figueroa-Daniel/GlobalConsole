@@ -1,8 +1,11 @@
 package org.example.globalconsole.navigatorWeb.data.database
 
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.example.globalconsole.generalDomain.entititys.NavigatorsWeb
+import org.example.globalconsole.navigatorWeb.domain.usecase.MatchNavigatorProcessUseCase
 
 /**
  * Adaptador encargado de detectar los navegadores web instalados en el sistema y de
@@ -14,7 +17,18 @@ import org.example.globalconsole.generalDomain.entititys.NavigatorsWeb
  */
 class NavigatorAccesAdapter {
 
-    private var activeProcess: Process? = null
+    @Volatile
+    private var activeSession: BrowserSession? = null
+    private val matchProcess = MatchNavigatorProcessUseCase()
+
+    /**
+     * Procesos seguidos durante una ejecución, incluso si el lanzador ya terminó.
+     * @author Daniel Figueroa Vidal
+     */
+    private class BrowserSession(val launcher: Process) {
+        @Volatile var closed = false
+        @Volatile var browsers: List<ProcessHandle> = emptyList()
+    }
     private val hiddenNavigators = mutableSetOf<NavigatorsWeb>()
 
     /**
@@ -108,69 +122,92 @@ class NavigatorAccesAdapter {
         hiddenNavigators.remove(navigatorType)
 
     /**
-     * Ejecuta el navegador con el comando indicado y bloquea hasta que se cierre
-     * (ciclo de vida: lanzamiento -> espera -> retorno).
-     *
-     * @param urlExecute Comando de ejecución del navegador (ver [getUrlExecutionNavigator]).
-     * @return True si el proceso se inició y finalizó correctamente, false en caso de error.
-     * @throws Exception Capturada internamente; cualquier fallo del proceso devuelve false.
+     * Mantiene la sesión mientras el lanzador o la instancia delegada siguen vivos.
+     * @param urlExecute Comando de ejecución del navegador.
+     * @param navigator Navegador cuyos procesos principales deben seguirse.
+     * @return True si el lanzamiento terminó correctamente o se cerró desde la interfaz.
+     * @throws CancellationException Si se cancela la espera de la sesión.
      * @author Daniel Figueroa Vidal
      * @since 2026-10-11
      */
-    suspend fun executeNavigator(urlExecute:String): Boolean = withContext(Dispatchers.IO) {
+    suspend fun executeNavigator(urlExecute: String, navigator: NavigatorsWeb): Boolean = withContext(Dispatchers.IO) {
+        var session: BrowserSession? = null
         try {
             val process = shellProcessBuilder(urlExecute).inheritIO().start()
-            activeProcess = process
-            println("Navegador iniciado con: $urlExecute")
-            process.waitFor()
-            activeProcess = null
+            val current = BrowserSession(process)
+            session = current
+            activeSession = current
+            println("[Navegador] Iniciado $navigator; lanzador=${process.pid()}")
+            current.browsers = findBrowserProcesses(navigator)
+            while (process.isAlive && !current.closed) {
+                delay(100)
+            }
+            if (current.closed) return@withContext true
+            if (process.exitValue() != 0) return@withContext false
+
+            current.browsers = findBrowserProcesses(navigator)
+            if (current.browsers.isNotEmpty()) {
+                println("[Navegador] $navigator continúa en instancia existente: ${current.browsers.map { it.pid() }}")
+            }
+            while (!current.closed && current.browsers.any { it.isAlive }) {
+                delay(100)
+            }
             true
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             System.err.println("Error al lanzar el navegador: ${e.message}")
-            e.printStackTrace()
             false
+        } finally {
+            if (activeSession === session) activeSession = null
         }
     }
 
     /**
-     * Cierra forzosamente el navegador en ejecución junto a sus procesos hijos.
-     *
-     * @return True si se cerró correctamente (o no había proceso), false en caso de error.
+     * Selecciona procesos principales del navegador del mismo usuario de GlobalConsole.
+     * @param navigator Navegador cuya instancia puede haber recibido la apertura.
+     * @return Procesos vivos coincidentes, excluyendo auxiliares y otros navegadores.
+     * @throws SecurityException Si el sistema impide consultar procesos.
      * @author Daniel Figueroa Vidal
      * @since 2026-10-11
      */
-    suspend fun closeNavigator(): Boolean {
-        return try {
-            activeProcess?.let { process ->
-                process.descendants().forEach { it.destroyForcibly() }
-                process.destroyForcibly()
-            }
-            activeProcess = null
+    private fun findBrowserProcesses(navigator: NavigatorsWeb): List<ProcessHandle> {
+        val user = ProcessHandle.current().info().user().orElse(null) ?: return emptyList()
+        return ProcessHandle.allProcesses().use { processes ->
+            processes.filter { process ->
+                val info = process.info()
+                process.isAlive && info.user().orElse(null) == user &&
+                    matchProcess(navigator, info.command().orElse(null), info.arguments().orElse(emptyArray()).toList())
+            }.toList()
+        }
+    }
 
-            // Fallback robusto a nivel de sistema operativo para asegurar el cierre
-            val os = System.getProperty("os.name").lowercase()
-            if (os.contains("linux")) {
-                val targets = listOf("chrome", "google-chrome", "firefox", "firefox-bin", "brave", "brave-browser", "msedge", "opera")
-                targets.forEach { target ->
-                    try {
-                        ProcessBuilder("killall", "-9", target).start()
-                    } catch (_: Exception) {}
-                }
-                try {
-                    ProcessBuilder("flatpak", "kill", "org.mozilla.firefox").start()
-                } catch (_: Exception) {}
-            } else if (os.contains("windows")) {
-                val targets = listOf("chrome.exe", "firefox.exe", "brave.exe", "msedge.exe", "opera.exe")
-                targets.forEach { target ->
-                    try {
-                        ProcessBuilder("taskkill", "/IM", target, "/F").start()
-                    } catch (_: Exception) {}
-                }
-            }
-            true
+    /**
+     * Cierra únicamente el lanzador y los procesos de la sesión del navegador seleccionado.
+     * @return True si no quedan procesos vivos o no había una sesión activa.
+     * @throws CancellationException Si se cancela la espera del cierre.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-11
+     */
+    suspend fun closeNavigator(): Boolean = withContext(Dispatchers.IO) {
+        val session = activeSession ?: return@withContext true
+        session.closed = true
+        try {
+            val roots = (session.browsers + session.launcher.toHandle()).distinctBy { it.pid() }
+            val descendants = roots.flatMap { root -> root.descendants().use { it.toList() } }
+            roots.filter { it.isAlive }.forEach { it.destroy() }
+            delay(500)
+            val remaining = (descendants + roots).distinctBy { it.pid() }.filter { it.isAlive }
+            remaining.forEach { it.destroyForcibly() }
+            delay(100)
+            remaining.none { it.isAlive }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
-            e.printStackTrace()
+            System.err.println("Error al cerrar el navegador: ${e.message}")
             false
+        } finally {
+            if (activeSession === session) activeSession = null
         }
     }
 

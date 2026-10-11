@@ -126,7 +126,7 @@ class NavWebRepositoryImpl(
      * @since 2026-10-11
      */
     override suspend fun executeNavigator(navWebObj: NavWebObj): Boolean =
-        navigatorAccesAdapter.executeNavigator(navWebObj.urlGameExecute)
+        navigatorAccesAdapter.executeNavigator(navWebObj.urlGameExecute, navWebObj.navigatorType)
 
     /**
      * Obtiene los navegadores habilitados, que son los que se muestran en la biblioteca.
