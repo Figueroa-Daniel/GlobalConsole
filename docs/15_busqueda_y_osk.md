@@ -173,3 +173,19 @@ limitaciones X11/Wayland. Véase [Mando](12_manejo_gamepad_y_foco.md).
 Validación del apartado 10: 129 pruebas correctas, incluyendo apertura al soltar,
 no repetición, rechazo de clics fuera de texto y cancelación al salir del contexto.
 Pendiente de comprobar en el navegador y mando físicos del usuario.
+
+## 11. Cursor del campo externo con L1 y R1 (2026-10-12)
+
+Mientras el teclado flotante esté visible sobre una aplicación externa, L1 envía
+una pulsación de flecha izquierda y R1 una de flecha derecha al campo que conserva
+el foco. El teclado flotante no cambia la tecla seleccionada ni el texto de su
+búfer. La cruceta y el stick izquierdo siguen moviendo el foco entre teclas.
+
+La decisión de flanco se aísla en un caso de uso de Domain; `GamepadManager`
+inyecta las flechas con AWT Robot como ya hace con Backspace. Solo se procesa
+con el teclado flotante activo y una aplicación suspendida, y se restablece el
+estado al cerrarlo. Se verifica que cada pulsación produce un único movimiento,
+que mantener pulsado no repite y que L1/R1 no alteran los atajos existentes.
+La interacción real con el cursor de un navegador depende del foco de la ventana
+externa y requiere comprobación en el entorno gráfico del usuario. Véase
+[Mando y foco](12_manejo_gamepad_y_foco.md) y [Contexto](19_contexto_ia.md).
