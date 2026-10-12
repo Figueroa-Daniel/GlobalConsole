@@ -481,6 +481,8 @@ class GamepadManager {
      * @since 2026-10-12
      */
     private suspend fun processOskInput(buttons: ByteBuffer, axes: java.nio.FloatBuffer, shortcut: OskShortcutAction) {
+        lastButtonsState[GLFW_GAMEPAD_BUTTON_LEFT_BUMPER] = buttons.get(GLFW_GAMEPAD_BUTTON_LEFT_BUMPER).toInt() == GLFW_PRESS
+        lastButtonsState[GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER] = buttons.get(GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER).toInt() == GLFW_PRESS
         val bPressed = buttons.get(GLFW_GAMEPAD_BUTTON_B).toInt() == GLFW_PRESS
         val wasBPressed = lastButtonsState[GLFW_GAMEPAD_BUTTON_B]
         lastButtonsState[GLFW_GAMEPAD_BUTTON_B] = bPressed
