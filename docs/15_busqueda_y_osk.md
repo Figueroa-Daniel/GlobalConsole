@@ -195,3 +195,20 @@ pulsaciones mantenidas y rechazo fuera del teclado externo. La ayuda del OSK
 muestra «L1/R1 Cursor». Al cerrar el OSK, el estado de ambos botones queda
 sincronizado para no emitir pulsaciones a la vista del fondo. Falta confirmar el foco y la inyección de flechas en un
 navegador real con mando físico.
+
+## 12. Edición del texto pendiente con L2 y R2 (2026-10-12)
+
+Dentro del teclado flotante, L2 desplaza el cursor una posición a la izquierda
+**en el texto preparado para enviar** y R2 una a la derecha. Ese cursor se muestra
+en la vista previa. Al pulsar una tecla, su carácter se inserta en esa posición;
+X/⌫ borra el carácter anterior. Los movimientos se detienen al principio y al
+final del texto y respetan caracteres Unicode completos. L1/R1 siguen actuando
+solo sobre el cursor del campo externo; cruceta y stick izquierdo siguen eligiendo
+teclas.
+
+Se usa el mismo mapeo físico de gatillos (incluido el GUID HJDX) y la histéresis
+ya documentada. START + R2 conserva prioridad para abrir/cerrar el OSK: ese
+combo no desplaza el cursor de edición ni al soltar START si R2 continúa pulsado.
+Las pruebas se limitan a casos de uso: inserción/borrado en el cursor, límites,
+Unicode, flancos y prioridad del combo. Véase [Mando](12_manejo_gamepad_y_foco.md)
+y [Contexto](19_contexto_ia.md).
