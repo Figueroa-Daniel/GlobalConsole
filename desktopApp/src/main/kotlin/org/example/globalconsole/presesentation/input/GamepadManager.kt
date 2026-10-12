@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.example.globalconsole.input.domain.usecase.OpenOskOnTextClickUseCase
+import org.example.globalconsole.input.domain.usecase.OskExternalCursorAction
+import org.example.globalconsole.input.domain.usecase.OskExternalCursorUseCase
 import org.example.globalconsole.input.domain.usecase.OskShortcutAction
 import org.example.globalconsole.input.domain.usecase.OskShortcutState
 import org.example.globalconsole.input.domain.usecase.OskRightTriggerUseCase
@@ -126,6 +128,7 @@ class GamepadManager {
     private val oskShortcuts = OskShortcutUseCase()
     private val rightTriggerPress = TriggerPressUseCase()
     private val oskRightTrigger = OskRightTriggerUseCase()
+    private val oskExternalCursor = OskExternalCursorUseCase()
     private val mouseTextClick = OpenOskOnTextClickUseCase()
     private val gamepadTextClick = OpenOskOnTextClickUseCase()
     private var cursorDetector: SystemCursorDetector? = null
@@ -158,6 +161,7 @@ class GamepadManager {
      * @since 2026-10-11
      */
     fun hideOskOverlay() {
+        oskExternalCursor.reset()
         _isOskOverlayVisible.value = false
     }
 
@@ -485,6 +489,17 @@ class GamepadManager {
             return
         }
 
+        val cursorAction = oskExternalCursor(
+            left = buttons.get(GLFW_GAMEPAD_BUTTON_LEFT_BUMPER).toInt() == GLFW_PRESS,
+            right = buttons.get(GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER).toInt() == GLFW_PRESS,
+            active = isSuspended && _isOskOverlayVisible.value
+        )
+        when (cursorAction) {
+            OskExternalCursorAction.LEFT -> sendCursorMoveToSystem(KeyEvent.VK_LEFT)
+            OskExternalCursorAction.RIGHT -> sendCursorMoveToSystem(KeyEvent.VK_RIGHT)
+            OskExternalCursorAction.NONE -> Unit
+        }
+
         val activeDirection = when {
             buttons.get(GLFW_GAMEPAD_BUTTON_DPAD_UP).toInt() == GLFW_PRESS -> GamepadEvent.Direction.UP
             buttons.get(GLFW_GAMEPAD_BUTTON_DPAD_DOWN).toInt() == GLFW_PRESS -> GamepadEvent.Direction.DOWN
@@ -526,6 +541,23 @@ class GamepadManager {
         oskButtonPress(buttons, GLFW_GAMEPAD_BUTTON_Y, GamepadEvent.Button.OPTIONS)
         if (shortcut == OskShortcutAction.CONFIRM) {
             emitEvent(GamepadEvent.ButtonPressed(GamepadEvent.Button.MENU))
+        }
+    }
+
+    /**
+     * Envía una flecha al campo que conserva el foco bajo el teclado flotante.
+     * @param keyCode Código AWT de flecha izquierda o derecha.
+     * @return Unit.
+     * @throws Nothing Los errores de Robot se registran sin detener la lectura del mando.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-12
+     */
+    private fun sendCursorMoveToSystem(keyCode: Int) {
+        try {
+            awtRobot?.keyPress(keyCode)
+            awtRobot?.keyRelease(keyCode)
+        } catch (e: Exception) {
+            System.err.println("Error al mover el cursor externo: ${e.message}")
         }
     }
 
