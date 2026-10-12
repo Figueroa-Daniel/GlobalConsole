@@ -25,7 +25,6 @@ import org.example.globalconsole.HeroicGames.domain.usecase.ShowHGLauncherUseCas
 import org.example.globalconsole.melonDS.domain.usecase.FindMelonDSLauncherUseCase
 import org.example.globalconsole.melonDS.domain.usecase.ShowMelonDSLauncherUseCase
 import org.example.globalconsole.melonDS.domain.usecase.ExecuteLauncherMelonDSUseCase
-import org.example.globalconsole.juegosPcsx2.domain.usecase.DeleteGameP2UseCase
 import org.example.globalconsole.juegosPcsx2.domain.usecase.ExecuteGameP2UseCase
 import org.example.globalconsole.juegosPcsx2.domain.usecase.GetGamesP2UseCase
 import org.example.globalconsole.melonDS.domain.usecase.ExecuteGameMelonDSUseCase
@@ -49,7 +48,6 @@ enum class AppearanceSettingsError {
  *
  * @param getGamesP2UseCase UseCase para obtener la lista de juegos de PCSX2.
  * @param executeGameP2UseCase UseCase para lanzar un juego de PCSX2 en el emulador.
- * @param deleteGameP2UseCase UseCase para eliminar un juego de PCSX2 del sistema.
  * @param executeHGLauncherUseCase UseCase para lanzar Heroic Games Launcher.
  * @param findHGLauncherUseCase UseCase para consultar si Heroic debe aparecer en la biblioteca.
  * @param showHGLauncherUseCase UseCase para obtener los datos de Heroic Games Launcher como entidad de dominio.
@@ -67,7 +65,6 @@ enum class AppearanceSettingsError {
 class HomeViewModel(
     private val getGamesP2UseCase: GetGamesP2UseCase,
     private val executeGameP2UseCase: ExecuteGameP2UseCase? = null,
-    private val deleteGameP2UseCase: DeleteGameP2UseCase? = null,
     private val executeHGLauncherUseCase: ExecuteHGLauncherUseCase? = null,
     private val findHGLauncherUseCase: FindHGLauncherUseCase? = null,
     private val showHGLauncherUseCase: ShowHGLauncherUseCase? = null,
@@ -105,7 +102,6 @@ class HomeViewModel(
     private val closeLauncherDuckStationUseCase: org.example.globalconsole.duckstation.domain.usecase.CloseLauncherDuckStationUseCase? = null,
     private val findDuckStationLauncherUseCase: org.example.globalconsole.duckstation.domain.usecase.FindDuckStationLauncherUseCase? = null,
     private val showDuckStationLauncherUseCase: org.example.globalconsole.duckstation.domain.usecase.ShowDuckStationLauncherUseCase? = null,
-    private val deleteGameDuckStationUseCase: org.example.globalconsole.duckstation.domain.usecase.DeleteGameDuckStationUseCase? = null,
     private val getViewSettingsUseCase: org.example.globalconsole.settings.domain.usecase.GetViewSettingsUseCase? = null,
     private val saveViewSettingsUseCase: org.example.globalconsole.settings.domain.usecase.SaveViewSettingsUseCase? = null,
     private val getAppearanceSettingsUseCase: GetAppearanceSettingsUseCase? = null,
@@ -587,43 +583,4 @@ class HomeViewModel(
         }
     }
 
-    /**
-     * Elimina el juego indicado del sistema de almacenamiento.
-     * La acción delega al UseCase de la plataforma correspondiente.
-     *
-     * @param game Juego a eliminar del sistema.
-     * @return Unit
-     * @author Daniel Figueroa Vidal
-     * @since 2026-08-05
-     */
-    fun onGameDeleted(game: Game) {
-        viewModelScope.launch {
-            when (game.platform) {
-                Platforms.LOCALAPP -> Unit
-                Platforms.PCSX2 -> deleteGameP2UseCase?.invoke(game.id)
-                Platforms.LOCALGAME -> {
-                    // TODO: Implementar eliminación de juego local nativo
-                }
-                Platforms.HEORIC_GAMES_LAUCHER -> {
-                    // TODO: Implementar eliminación de entrada de Heroic Games
-                }
-                Platforms.MELONDS -> {
-                    // TODO: Implementar eliminación de juego de Melon DS
-                }
-                Platforms.DOLPHIN -> {
-                    // TODO: Implementar eliminación de juego de Dolphin
-                }
-                Platforms.PS3 -> {
-                    // TODO: Implementar eliminación de entrada de PS3
-                }
-                Platforms.AZAHAR -> {
-                    // TODO: Implementar eliminación de juego de Azahar
-                }
-                Platforms.DUCKSTATION -> deleteGameDuckStationUseCase?.invoke(game.id)
-                Platforms.NAVWEB -> {
-                    // Los navegadores se deshabilitan desde la configuración, no se eliminan aquí
-                }
-            }
-        }
-    }
 }
