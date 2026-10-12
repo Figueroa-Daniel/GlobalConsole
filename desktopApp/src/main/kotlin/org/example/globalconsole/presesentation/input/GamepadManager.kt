@@ -99,6 +99,7 @@ class GamepadManager {
             field = value
             oskShortcuts.reset()
             rightTriggerPress.reset()
+            leftTriggerPress.reset()
             if (!value) hideOskOverlay()
         }
 
@@ -123,6 +124,7 @@ class GamepadManager {
 
     private val oskShortcuts = OskShortcutUseCase()
     private val rightTriggerPress = TriggerPressUseCase()
+    private val leftTriggerPress = TriggerPressUseCase()
     private var lastSystemMousePressed = false
     private var systemClickOnText = false
     private var lastAClickTime = 0L
@@ -411,7 +413,8 @@ class GamepadManager {
         return oskShortcuts(
             OskShortcutState(
                 start = buttons.get(GLFW_GAMEPAD_BUTTON_START).toInt() == GLFW_PRESS,
-                rightTrigger = rightTriggerPress(axes.get(GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER)),
+                rightTrigger = rightTriggerPress(axes.get(GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER)) or
+                    leftTriggerPress(axes.get(GLFW_GAMEPAD_AXIS_LEFT_TRIGGER)),
                 rightBumper = buttons.get(GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER).toInt() == GLFW_PRESS,
                 rightStick = buttons.get(GLFW_GAMEPAD_BUTTON_RIGHT_THUMB).toInt() == GLFW_PRESS
             ),
