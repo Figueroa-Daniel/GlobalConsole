@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import org.example.globalconsole.input.domain.usecase.OpenOskOnTextClickUseCase
 import org.example.globalconsole.input.domain.usecase.OskShortcutAction
 import org.example.globalconsole.input.domain.usecase.OskShortcutState
 import org.example.globalconsole.input.domain.usecase.OskRightTriggerUseCase
@@ -125,6 +126,9 @@ class GamepadManager {
     private val oskShortcuts = OskShortcutUseCase()
     private val rightTriggerPress = TriggerPressUseCase()
     private val oskRightTrigger = OskRightTriggerUseCase()
+    private val mouseTextClick = OpenOskOnTextClickUseCase()
+    private val gamepadTextClick = OpenOskOnTextClickUseCase()
+    private var cursorDetector: SystemCursorDetector? = null
 
     /**
      * Alterna la visibilidad del teclado en pantalla (OSK Overlay).
@@ -232,6 +236,7 @@ class GamepadManager {
             throw IllegalStateException("No se pudo inicializar GLFW para soporte de mandos.")
         }
         isInitialized = true
+        cursorDetector = SystemCursorDetector()
         detectActiveGamepad()
 
         pollingJob = scope.launch(Dispatchers.IO) {
@@ -243,6 +248,8 @@ class GamepadManager {
                     if (selectedGamepadId == -1 || !glfwJoystickIsGamepad(selectedGamepadId)) {
                         detectActiveGamepad()
                     }
+
+                    processSystemMouseClick()
 
                     if (selectedGamepadId != -1) {
                         if (glfwGetGamepadState(selectedGamepadId, state)) {
@@ -272,6 +279,8 @@ class GamepadManager {
     fun stop() {
         pollingJob?.cancel()
         pollingJob = null
+        cursorDetector?.close()
+        cursorDetector = null
         if (isInitialized) {
             glfwTerminate()
             isInitialized = false
@@ -359,8 +368,10 @@ class GamepadManager {
             val aPressed = buttons.get(GLFW_GAMEPAD_BUTTON_A).toInt() == GLFW_PRESS
             val aWasPressed = lastButtonsState[GLFW_GAMEPAD_BUTTON_A]
             if (aPressed && !aWasPressed) {
+                gamepadTextClick(true, cursorDetector?.isTextCursor() == true, true)
                 awtRobot?.mousePress(InputEvent.BUTTON1_DOWN_MASK)
                 awtRobot?.mouseRelease(InputEvent.BUTTON1_DOWN_MASK)
+                if (gamepadTextClick(false, false, true)) openOskAfterTextClick()
             }
             lastButtonsState[GLFW_GAMEPAD_BUTTON_A] = aPressed
         }
@@ -535,6 +546,36 @@ class GamepadManager {
             emitEvent(GamepadEvent.ButtonPressed(eventButton))
         }
         lastButtonsState[glfwButtonId] = isPressed
+    }
+
+    /**
+     * Observa el clic físico incluso sin mando y abre después de liberar el campo.
+     * @return Unit.
+     * @throws CancellationException Si se cancela la espera posterior al clic.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-12
+     */
+    private suspend fun processSystemMouseClick() {
+        val enabled = isSuspended && isMouseAllowedWhenSuspended && !_isOskOverlayVisible.value
+        val pressed = enabled && cursorDetector?.isPrimaryButtonPressed() == true
+        if (mouseTextClick(pressed, pressed && cursorDetector?.isTextCursor() == true, enabled)) {
+            openOskAfterTextClick()
+        }
+    }
+
+    /**
+     * Da tiempo al sistema para enfocar el campo y revalida la aplicación externa.
+     * @return Unit.
+     * @throws CancellationException Si se cancela la espera.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-12
+     */
+    private suspend fun openOskAfterTextClick() {
+        delay(60)
+        if (isSuspended && isMouseAllowedWhenSuspended && !_isOskOverlayVisible.value) {
+            _inputMode.value = InputMode.GAMEPAD
+            showOskOverlay()
+        }
     }
 
     /**
