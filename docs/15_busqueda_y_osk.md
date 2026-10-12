@@ -64,13 +64,13 @@ START + R2 físico alterna el teclado; START confirma una vez liberado el
 atajo de apertura. Los botones usados para abrirlo no escriben letras por arrastre.
 Al finalizar la aplicación externa se cierra también el teclado.
 
-La apertura automática por cursor o doble pulsación de A está desactivada.
-Los clics conservan su función de ratón. La inyección con AWT Robot depende del
+El clic sobre cursor de texto abre el teclado al soltar el botón (ratón o A).
+El doble A fuera de texto no lo abre. La inyección con AWT Robot depende del
 sistema gráfico; Wayland no garantiza su funcionamiento.
 
 Validación manual pendiente con navegador y mando físicos: abrir con ambos
 órdenes de START/R2, cerrar con el mismo combo o B, escribir y confirmar,
-reabrir sin texto anterior y comprobar que L2/R3/R1 y los clics no abren el OSK.
+reabrir sin texto anterior y comprobar que L2/R3/R1 no abren el OSK y el clic en texto sí lo abre.
 Véase también [Mando y foco](12_manejo_gamepad_y_foco.md).
 
 `OskShortcutUseCase` mantiene los flancos independientemente del resto de botones.
@@ -144,8 +144,8 @@ explicada en el apartado 9, conservando un único detector con histéresis.
 ## 9. Apertura exclusiva con START + R2 físico (2026-10-12)
 
 Sustituye las alternativas de los apartados 6–8: en aplicaciones externas solo
-START + R2 alterna el teclado. R3, START + R1, START + L2, clic sobre texto y doble
-pulsación de A no lo abren. START con el teclado abierto conserva la confirmación;
+START + R2 es el único atajo de mando. R3, START + R1 y START + L2 no lo abren.
+La apertura por clic en texto se mantiene según el apartado 10. START con el teclado abierto conserva la confirmación;
 B conserva el cierre. El buscador interno conserva su interacción propia.
 
 El GUID HJDX documentado en 8.1 selecciona el eje izquierdo de GLFW como R2 físico;
@@ -159,3 +159,17 @@ y [Contexto](19_contexto_ia.md).
 Validación del apartado 9: pruebas de exclusión fallidas antes del cambio y
 correctas después; batería completa sin fallos. El mapeo HJDX se basa en el
 diagnóstico previo documentado, pendiente de repetir con el mando físico.
+
+## 10. Restaurar clic sobre campos de texto (2026-10-12)
+
+La exclusividad de START + R2 se aplica a los atajos de mando, no al clic sobre
+campos de texto. Se restaura la apertura por clic físico y por A usado como clic
+sobre un cursor de texto. Se espera a liberar el clic para que el campo conserve
+el foco. No se restaura el doble A sobre zonas arbitrarias ni R3/START+L2/R1.
+Un caso de uso controla el flanco de clic y cancela la apertura si el contexto
+externo deja de estar activo. Se conserva la detección de cursor existente y sus
+limitaciones X11/Wayland. Véase [Mando](12_manejo_gamepad_y_foco.md).
+
+Validación del apartado 10: 129 pruebas correctas, incluyendo apertura al soltar,
+no repetición, rechazo de clics fuera de texto y cancelación al salir del contexto.
+Pendiente de comprobar en el navegador y mando físicos del usuario.

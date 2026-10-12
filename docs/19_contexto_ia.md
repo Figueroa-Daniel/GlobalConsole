@@ -100,7 +100,8 @@ en hardware. Detalles en [Aplicaciones locales](24_aplicaciones_locales.md).
 ## 6. Apertura exclusiva del teclado externo (2026-10-12)
 
 `OskShortcutUseCase` solo alterna con START + R2. Se eliminan R3 y START + R1
-como alternativas, además de apertura por clic/doble A en `GamepadManager`.
+como alternativas. Se conserva la apertura por clic sobre texto (ratón o A),
+restaurada con `OpenOskOnTextClickUseCase`; el doble A fuera de texto no abre.
 `OskRightTriggerUseCase` selecciona el eje 4 para el GUID HJDX documentado y el
 5 para mandos estándar: L2 deja de aceptarse como equivalente de R2. Se mantiene
 la histéresis, confirmación con START y cierre con B. Pruebas de casos de uso
