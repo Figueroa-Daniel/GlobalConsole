@@ -8,6 +8,7 @@ package org.example.globalconsole.input.domain.usecase
  * @property column Columna seleccionada.
  * @property preferredColumn Ancla horizontal al cruzar teclas anchas.
  * @property confirmed Solicitud de confirmar la edición.
+ * @property externalDeletes Borrados solicitados al campo externo por pulsar borrar sin texto en el búfer.
  * @author Daniel Figueroa Vidal
  */
 data class KeyboardState(
@@ -16,7 +17,8 @@ data class KeyboardState(
     val row: Int = 0,
     val column: Int = 0,
     val preferredColumn: Int = 0,
-    val confirmed: Boolean = false
+    val confirmed: Boolean = false,
+    val externalDeletes: Int = 0
 )
 
 /** Acciones independientes del dispositivo. @author Daniel Figueroa Vidal */
@@ -68,7 +70,11 @@ class KeyboardInputUseCase {
             }
             KeyboardAction.SHIFT -> state.copy(upperCase = !state.upperCase)
             KeyboardAction.CONFIRM -> state.copy(confirmed = true)
-            KeyboardAction.DELETE -> state.copy(text = if (state.text.isEmpty()) "" else state.text.substring(0, state.text.offsetByCodePoints(state.text.length, -1)))
+            KeyboardAction.DELETE -> if (state.text.isEmpty()) {
+                state.copy(externalDeletes = state.externalDeletes + 1)
+            } else {
+                state.copy(text = state.text.substring(0, state.text.offsetByCodePoints(state.text.length, -1)))
+            }
             KeyboardAction.PRESS -> when (val key = layout(state)[state.row][state.column]) {
                 "⇧" -> invoke(state, KeyboardAction.SHIFT)
                 "↵" -> invoke(state, KeyboardAction.CONFIRM)
