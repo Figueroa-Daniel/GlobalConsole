@@ -63,6 +63,7 @@ fun GamepadOSK(
  * @param gamepadManager Entrada nativa del mando.
  * @param onConfirm Callback invocado al pulsar Intro o START para inyectar el texto en el navegador.
  * @param onDismiss Callback invocado para cerrar el overlay.
+ * @param onExternalDelete Callback invocado al borrar con el búfer vacío, para borrar en el campo externo.
  * @author Daniel Figueroa Vidal
  * @since 2026-10-11
  */
@@ -70,10 +71,13 @@ fun GamepadOSK(
 fun OskOverlay(
     gamepadManager: GamepadManager,
     onConfirm: (String) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onExternalDelete: () -> Unit = {}
 ) {
     GamepadOSKContent(
         gamepadManager = gamepadManager,
+        useOverlayEvents = true,
+        onExternalDelete = onExternalDelete,
         initialText = "",
         title = stringResource(Res.string.osk_overlay_title),
         placeholder = stringResource(Res.string.osk_overlay_placeholder),
@@ -97,6 +101,8 @@ fun OskOverlay(
  * @param onTextChanged Callback reactivo ante cada cambio de texto.
  * @param onConfirm Callback invocado al confirmar con Intro o botón START.
  * @param onDismiss Callback invocado al cancelar o pulsar botón B.
+ * @param useOverlayEvents Si es true escucha [GamepadManager.oskEvents] (ventana flotante) en lugar de los eventos generales.
+ * @param onExternalDelete Callback invocado al borrar con el búfer vacío.
  * @author Daniel Figueroa Vidal
  * @since 2026-10-11
  */
@@ -110,7 +116,9 @@ fun GamepadOSKContent(
     controlsLabel: String? = null,
     onTextChanged: (String) -> Unit = {},
     onConfirm: (String) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    useOverlayEvents: Boolean = false,
+    onExternalDelete: () -> Unit = {}
 ) {
     val useCase = remember { KeyboardInputUseCase() }
     var state by remember { mutableStateOf(KeyboardState(text = initialText, row = 1)) }
@@ -120,16 +128,20 @@ fun GamepadOSKContent(
     val confirm by rememberUpdatedState(onConfirm)
     val changed by rememberUpdatedState(onTextChanged)
     val dismiss by rememberUpdatedState(onDismiss)
+    val externalDelete by rememberUpdatedState(onExternalDelete)
     val act: (KeyboardAction) -> Unit = { action ->
         val previous = state.text
+        val previousDeletes = state.externalDeletes
         state = useCase(state, action)
         if (previous != state.text) changed(state.text)
+        if (state.externalDeletes != previousDeletes) externalDelete()
         if (state.confirmed) confirm(state.text)
     }
     val currentAct by rememberUpdatedState(act)
     LaunchedEffect(state.row) { requesters[state.row].bringIntoView() }
-    LaunchedEffect(gamepadManager) {
-        gamepadManager.events.collect { event ->
+    LaunchedEffect(gamepadManager, useOverlayEvents) {
+        val source = if (useOverlayEvents) gamepadManager.oskEvents else gamepadManager.events
+        source.collect { event ->
             when (event) {
                 is GamepadEvent.DirectionPressed -> currentAct(when (event.direction) {
                     GamepadEvent.Direction.UP -> KeyboardAction.UP
