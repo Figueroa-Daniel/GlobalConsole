@@ -4,6 +4,7 @@ package org.example.globalconsole.input.domain.usecase
  * Estado puro de edición y posición del teclado, sin dependencias de Compose.
  * @property text Texto en edición.
  * @property upperCase Capa de mayúsculas activa.
+ * @property textCursor Posición de edición en el texto pendiente, en unidades UTF-16.
  * @property row Fila seleccionada.
  * @property column Columna seleccionada.
  * @property preferredColumn Ancla horizontal al cruzar teclas anchas.
@@ -13,6 +14,7 @@ package org.example.globalconsole.input.domain.usecase
  */
 data class KeyboardState(
     val text: String = "",
+    val textCursor: Int = text.length,
     val upperCase: Boolean = false,
     val row: Int = 0,
     val column: Int = 0,
@@ -22,7 +24,7 @@ data class KeyboardState(
 )
 
 /** Acciones independientes del dispositivo. @author Daniel Figueroa Vidal */
-enum class KeyboardAction { UP, DOWN, LEFT, RIGHT, PRESS, DELETE, SHIFT, CONFIRM }
+enum class KeyboardAction { UP, DOWN, LEFT, RIGHT, TEXT_LEFT, TEXT_RIGHT, PRESS, DELETE, SHIFT, CONFIRM }
 
 /**
  * Resuelve la entrada y el desplazamiento seguro entre teclas de diferentes tamaños.
@@ -68,20 +70,44 @@ class KeyboardInputUseCase {
                 val col = (state.column + if (action == KeyboardAction.LEFT) count - 1 else 1) % count
                 state.copy(column = col, preferredColumn = if (state.row == 4) col * 4 + 1 else col)
             }
+            KeyboardAction.TEXT_LEFT -> state.copy(
+                textCursor = if (state.textCursor == 0) 0 else state.text.offsetByCodePoints(state.textCursor, -1)
+            )
+            KeyboardAction.TEXT_RIGHT -> state.copy(
+                textCursor = if (state.textCursor == state.text.length) state.text.length
+                else state.text.offsetByCodePoints(state.textCursor, 1)
+            )
             KeyboardAction.SHIFT -> state.copy(upperCase = !state.upperCase)
             KeyboardAction.CONFIRM -> state.copy(confirmed = true)
             KeyboardAction.DELETE -> if (state.text.isEmpty()) {
                 state.copy(externalDeletes = state.externalDeletes + 1)
+            } else if (state.textCursor == 0) {
+                state
             } else {
-                state.copy(text = state.text.substring(0, state.text.offsetByCodePoints(state.text.length, -1)))
+                val before = state.text.offsetByCodePoints(state.textCursor, -1)
+                state.copy(text = state.text.removeRange(before, state.textCursor), textCursor = before)
             }
             KeyboardAction.PRESS -> when (val key = layout(state)[state.row][state.column]) {
                 "⇧" -> invoke(state, KeyboardAction.SHIFT)
                 "↵" -> invoke(state, KeyboardAction.CONFIRM)
                 "⌫" -> invoke(state, KeyboardAction.DELETE)
-                "ESPACIO" -> state.copy(text = state.text + " ")
-                else -> state.copy(text = state.text + key)
+                "ESPACIO" -> insertText(state, " ")
+                else -> insertText(state, key)
             }
         }
     }
+
+    /**
+     * Inserta una tecla en el cursor del texto preparado para enviar.
+     * @param state Estado anterior con cursor válido.
+     * @param value Carácter o espacio que debe insertarse.
+     * @return Estado con texto y cursor avanzados sin mover la tecla seleccionada.
+     * @throws Nothing No lanza excepciones para estados válidos.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-12
+     */
+    private fun insertText(state: KeyboardState, value: String): KeyboardState = state.copy(
+        text = state.text.substring(0, state.textCursor) + value + state.text.substring(state.textCursor),
+        textCursor = state.textCursor + value.length
+    )
 }

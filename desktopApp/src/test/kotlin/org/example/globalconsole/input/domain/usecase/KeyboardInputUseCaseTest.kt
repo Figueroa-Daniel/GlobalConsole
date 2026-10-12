@@ -82,4 +82,56 @@ class KeyboardInputUseCaseTest {
         assertEquals(2, state.externalDeletes)
         assertEquals("", state.text)
     }
+    /**
+     * Edita en la posición pendiente sin mover el foco de la tecla seleccionada.
+     * @return Unit.
+     * @throws AssertionError Si la inserción, el borrado o los límites son incorrectos.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-12
+     */
+    @Test
+    fun triggersMoveCaretInsidePendingText() {
+        val useCase = KeyboardInputUseCase()
+        var state = KeyboardState(text = "abc", row = 3, column = 2, preferredColumn = 2)
+        state = useCase(state, KeyboardAction.TEXT_LEFT)
+        assertEquals(2, state.textCursor)
+        assertEquals(3, state.row)
+        assertEquals(2, state.column)
+        state = useCase(state, KeyboardAction.PRESS)
+        assertEquals("abxc", state.text)
+        assertEquals(3, state.textCursor)
+        state = useCase(state, KeyboardAction.DELETE)
+        assertEquals("abc", state.text)
+        assertEquals(2, state.textCursor)
+        state = useCase(state, KeyboardAction.TEXT_RIGHT)
+        assertEquals(3, state.textCursor)
+        assertEquals(KeyboardState(text = "abc").textCursor, useCase(state, KeyboardAction.TEXT_RIGHT).textCursor)
+        state = useCase(KeyboardState(text = "abc", textCursor = 0), KeyboardAction.TEXT_LEFT)
+        assertEquals(0, state.textCursor)
+        assertEquals("abc", useCase(state, KeyboardAction.DELETE).text)
+        assertEquals(0, useCase(state, KeyboardAction.DELETE).externalDeletes)
+    }
+
+    /**
+     * Mueve y borra caracteres Unicode completos, incluso emojis fuera del BMP.
+     * @return Unit.
+     * @throws AssertionError Si el cursor separa un par sustituto.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-12
+     */
+    @Test
+    fun caretMovementPreservesUnicodeCodePoints() {
+        val useCase = KeyboardInputUseCase()
+        var state = KeyboardState(text = "A🎮B")
+        state = useCase(state, KeyboardAction.TEXT_LEFT)
+        assertEquals(3, state.textCursor)
+        state = useCase(state, KeyboardAction.TEXT_LEFT)
+        assertEquals(1, state.textCursor)
+        state = useCase(state, KeyboardAction.TEXT_RIGHT)
+        assertEquals(3, state.textCursor)
+        state = useCase(state, KeyboardAction.DELETE)
+        assertEquals("AB", state.text)
+        assertEquals(1, state.textCursor)
+    }
+
 }
