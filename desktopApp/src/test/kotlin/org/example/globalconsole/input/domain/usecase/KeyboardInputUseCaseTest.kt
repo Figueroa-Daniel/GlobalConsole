@@ -62,4 +62,24 @@ class KeyboardInputUseCaseTest {
         assertEquals("", useCase(KeyboardState(), KeyboardAction.DELETE).text)
         assertEquals("", useCase(KeyboardState(text = "🎮"), KeyboardAction.DELETE).text)
     }
+
+    /**
+     * Con el búfer vacío el borrado se delega al campo externo; con texto no.
+     * @return Unit.
+     * @throws Nothing No lanza excepciones.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-12
+     */
+    @Test
+    fun delete_onEmptyBufferRequestsExternalDelete() {
+        val useCase = KeyboardInputUseCase()
+        val withText = useCase(KeyboardState(text = "ab"), KeyboardAction.DELETE)
+        assertEquals("a", withText.text)
+        assertEquals(0, withText.externalDeletes)
+        var state = useCase(KeyboardState(), KeyboardAction.DELETE)
+        assertEquals(1, state.externalDeletes)
+        state = useCase(state.copy(row = 0, column = 11), KeyboardAction.PRESS)
+        assertEquals(2, state.externalDeletes)
+        assertEquals("", state.text)
+    }
 }
