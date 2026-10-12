@@ -136,6 +136,7 @@ fun ImageCropperDialog(
         gamepadManager.events.collectLatest { event ->
             when (event) {
                 is GamepadEvent.ButtonPressed -> when (event.button) {
+                    GamepadEvent.Button.OPTIONS -> selectedButton = 1
                     GamepadEvent.Button.BACK -> if (!isSaving) onDismiss()
                     GamepadEvent.Button.CONFIRM -> {
                         if (!isSaving) {

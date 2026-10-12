@@ -81,3 +81,7 @@ Usuario (click derecho en GameTile)
 - Contexto de la carga de imágenes en [10_manejo_imagenes_y_caratulas.md](10_manejo_imagenes_y_caratulas.md).
 - Stack tecnológico en [02_tecnologias.md](02_tecnologias.md).
 - Arquitectura de capas en [01_arquitectura.md](01_arquitectura.md).
+
+## 7. Acceso desde la biblioteca
+
+X / cuadrado abre el recortador de la carátula activa. Y / triángulo se reserva para el [acceso rápido a controles](25_usabilidad_configuracion.md). Dentro del recortador, Y enfoca Confirmar sin guardar automáticamente.

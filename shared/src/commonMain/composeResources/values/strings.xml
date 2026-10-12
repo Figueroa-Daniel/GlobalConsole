@@ -46,12 +46,12 @@
     <string name="launcher_position_top">Arriba del todo</string>
     <string name="launcher_position_inline">Junto a los juegos</string>
     <string name="glow_disabled">Sin halo · foco visible</string>
-    <string name="view_settings_controls">↑ ↓ Elegir   ·   ← → Ajustar   ·   A Siguiente valor   ·   B Cerrar</string>
+    <string name="view_settings_controls">↑ ↓ Elegir   ·   ← → Ajustar   ·   A Siguiente valor   ·   B Cerrar   ·   Y / △ Ir a Cerrar</string>
     <string name="action_done">LISTO</string>
     <string name="folder_picker_title">SELECCIONAR CARPETA</string>
     <string name="folder_current_path">Ruta actual: %1$s</string>
     <string name="folder_parent">↑  Carpeta superior</string>
-    <string name="folder_controls">A Entrar · B Subir · X Cancelar</string>
+    <string name="folder_controls">A Entrar · B Subir · X Cancelar · Y / △ Acciones</string>
     <string name="action_cancel">CANCELAR</string>
     <string name="folder_select_current">START: SELECCIONAR AQUÍ</string>
     <string name="crop_save_error">No se pudo guardar el recorte. Puedes reintentar.</string>
@@ -121,13 +121,19 @@
     <string name="local_games_manage">ADD Local Game</string>
     <string name="local_games_busy">Actualizando juegos y preferencias…</string>
     <string name="local_games_empty">No se han detectado juegos locales compatibles.</string>
-    <string name="local_games_controls">↑ ↓ Navegar · A Habilitar / Deshabilitar · B Volver</string>
+    <string name="local_games_controls">↑ ↓ Navegar · A Habilitar / Deshabilitar · B Volver   ·   Y / △ Ir a Cerrar</string>
     <string name="local_games_refresh">Volver a detectar</string>
     <string name="local_apps_title">Aplicaciones</string>
     <string name="local_apps_description">Elige las aplicaciones de tu sistema. Juegos, emuladores y navegadores se gestionan por separado.</string>
     <string name="local_apps_manage">Añadir aplicación</string>
     <string name="local_apps_busy">Actualizando aplicaciones y preferencias…</string>
     <string name="local_apps_empty">No se han detectado aplicaciones locales compatibles.</string>
-    <string name="local_apps_controls">↑ ↓ Navegar · A Habilitar / Deshabilitar · B Volver</string>
+    <string name="local_apps_controls">↑ ↓ Navegar · A Habilitar / Deshabilitar · B Volver   ·   Y / △ Ir a Cerrar</string>
     <string name="local_apps_refresh">Volver a detectar</string>
+    <string name="setup_options_section">OPCIONES Y BIBLIOTECA</string>
+    <string name="setup_paths_section">CARPETAS DE JUEGOS</string>
+    <string name="setup_save_hint">Las opciones se aplican al momento. Guarda para aplicar las rutas.</string>
+    <string name="setup_shortcut_hint">Y / △ Acciones   ·   ← → Elegir   ·   A Confirmar   ·   B Cerrar</string>
+    <string name="settings_close_hint">Y / △ Ir a Cerrar   ·   A Confirmar   ·   B Cerrar</string>
+    <string name="home_shortcuts">Y / △ Controles superiores   ·   X / □ Ajustar carátula</string>
 </resources>

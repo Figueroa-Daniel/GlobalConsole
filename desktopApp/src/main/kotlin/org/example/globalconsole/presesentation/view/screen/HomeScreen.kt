@@ -118,7 +118,7 @@ fun HomeScreen(
     }
 
     LaunchedEffect(gamepadManager, uiState, showPathDialog, showOSK, showViewSettings, cropTargetGame != null) {
-        if (uiState !is HomeUiState.Empty && uiState !is HomeUiState.Error) return@LaunchedEffect
+        if (uiState is HomeUiState.Success || uiState is HomeUiState.GameRunning) return@LaunchedEffect
         if (showPathDialog || showOSK || showViewSettings || cropTargetGame != null) return@LaunchedEffect
         gamepadManager?.events?.collect { event ->
             when (event) {
@@ -132,7 +132,9 @@ fun HomeScreen(
                         GamepadEvent.Direction.RIGHT -> buttons[(index + 1).coerceIn(0, 3)]
                     }
                 }
-                is GamepadEvent.ButtonPressed -> if (event.button == GamepadEvent.Button.CONFIRM) {
+                is GamepadEvent.ButtonPressed -> if (event.button == GamepadEvent.Button.OPTIONS) {
+                    focusedTopBar = TopBarFocus.SEARCH
+                } else if (event.button == GamepadEvent.Button.CONFIRM) {
                     when (focusedTopBar) {
                         TopBarFocus.SEARCH -> showOSK = true
                         TopBarFocus.REFRESH -> viewModel.loadGames()
@@ -412,8 +414,9 @@ fun HomeScreen(
                                             GamepadEvent.Button.HOME -> {
                                                 viewModel.closeActiveGame()
                                             }
-                                            GamepadEvent.Button.OPTIONS -> {
-                                                // Triángulo/Y: abrir recortador del tile activo.
+                                            GamepadEvent.Button.OPTIONS -> focusedTopBar = TopBarFocus.SEARCH
+                                            GamepadEvent.Button.DELETE -> {
+                                                // X: abrir recortador del tile activo.
                                                 // En modo MOUSE usamos el último tile sobrevolado,
                                                 // en modo GAMEPAD el último enfocado con el mando.
                                                 val activeIndex = if (inputMode == org.example.globalconsole.presesentation.input.InputMode.MOUSE) {
@@ -422,7 +425,7 @@ fun HomeScreen(
                                                     focusedGameIndex
                                                 }
                                                 val targetItem = state.items.getOrNull(activeIndex)
-                                                if (targetItem is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.GameItem) {
+                                                if ((inputMode == org.example.globalconsole.presesentation.input.InputMode.MOUSE || focusedTopBar == TopBarFocus.NONE) && targetItem is org.example.globalconsole.presesentation.viewModel.home.HomeListItem.GameItem) {
                                                     val targetGame = targetItem.game
                                                     if (!targetGame.image.isNullOrBlank()) {
                                                         cropTargetGame = targetGame

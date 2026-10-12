@@ -15,7 +15,7 @@ Debido al sistema híbrido, un componente UI como un `GameTile` puede ser "selec
 - Si el modo es `GAMEPAD`, el elemento está seleccionado si posee el índice lógico (ej. `focusedGameIndex`).
 - Si el modo es `MOUSE`, el elemento está seleccionado si el ratón se encuentra encima de él (`isHovered` verdadero en Compose).
 
-Para las acciones del mando que aplican al "elemento actual" (ej. presionar botón Y/Triángulo para editar el tile actual), se debe verificar qué modo está activo y usar el índice correspondiente.
+Para las acciones del mando que aplican al "elemento actual" (ej. presionar botón X/cuadrado para editar el tile actual), se debe verificar qué modo está activo y usar el índice correspondiente.
 - Se debe rastrear `focusedGameIndex` escuchando eventos de navegación del mando.
 - Se debe rastrear `hoveredGameIndex` añadiendo `onHover` a los tiles y actualizando un estado local.
 

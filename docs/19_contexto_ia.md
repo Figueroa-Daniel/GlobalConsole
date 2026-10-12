@@ -123,3 +123,17 @@ insertan en el cursor y borrar elimina el carácter anterior. L1/R1 conservan
 el control del campo externo, mientras la cruceta y el stick seleccionan teclas.
 `OskTextTriggerUseCase` detecta flancos y cede prioridad a START + R2.
 Véase [Teclado en pantalla](15_busqueda_y_osk.md).
+
+## 9. Acceso rápido y ajustes (2026-10-12)
+
+En `feature/mejora-usabilidad-vista`, Y/triángulo enfoca Buscar en la biblioteca
+(incluidos carga, vacío y error), Guardar en ajustes, Cerrar en Vista/Navegadores/
+Juegos/Aplicaciones y Seleccionar en carpetas. No ejecuta la acción; A confirma.
+X/cuadrado conserva el recorte de la carátula, respetando el modo de entrada.
+La configuración presenta opciones compactas, encabezados, columnas con scroll
+independiente y pie fijo. Las opciones siguen aplicándose al momento y las rutas
+al guardar. No cambia el teclado virtual ni el procesamiento físico del mando.
+Ventana temporal Xvfb: comprobados Y, Y+izquierda+A, cierres y aislamiento del
+modal hijo. Validación gráfica a 1280×900 y 1000×700; suite de UseCases sin fallos.
+Pendiente únicamente comprobación física con el mando del usuario.
+Véase [usabilidad de configuración](25_usabilidad_configuracion.md).

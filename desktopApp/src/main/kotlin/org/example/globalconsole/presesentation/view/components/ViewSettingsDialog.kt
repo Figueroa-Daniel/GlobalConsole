@@ -85,6 +85,7 @@ fun ViewSettingsDialog(homeViewModel: HomeViewModel, gamepadManager: GamepadMana
                     GamepadEvent.Direction.RIGHT -> change(focusedRow, 1)
                 }
                 is GamepadEvent.ButtonPressed -> when (event.button) {
+                    GamepadEvent.Button.OPTIONS -> focusedRow = 4
                     GamepadEvent.Button.BACK -> dismiss()
                     GamepadEvent.Button.CONFIRM -> if (focusedRow == 4) dismiss() else change(focusedRow, 1)
                     else -> Unit

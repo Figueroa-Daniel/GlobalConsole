@@ -46,12 +46,12 @@
     <string name="launcher_position_top">At the top</string>
     <string name="launcher_position_inline">Alongside games</string>
     <string name="glow_disabled">No glow · focus remains visible</string>
-    <string name="view_settings_controls">↑ ↓ Choose   ·   ← → Adjust   ·   A Next value   ·   B Close</string>
+    <string name="view_settings_controls">↑ ↓ Choose   ·   ← → Adjust   ·   A Next value   ·   B Close   ·   Y / △ Go to Close</string>
     <string name="action_done">DONE</string>
     <string name="folder_picker_title">SELECT FOLDER</string>
     <string name="folder_current_path">Current path: %1$s</string>
     <string name="folder_parent">↑  Parent folder</string>
-    <string name="folder_controls">A Open · B Up · X Cancel</string>
+    <string name="folder_controls">A Open · B Up · X Cancel · Y / △ Actions</string>
     <string name="action_cancel">CANCEL</string>
     <string name="folder_select_current">START: SELECT HERE</string>
     <string name="crop_save_error">Could not save the crop. You can try again.</string>
@@ -116,4 +116,10 @@
     <string name="setup_navigators_empty">No installed browsers were found.</string>
     <string name="action_close">CLOSE</string>
     <string name="platform_navweb">Web browser</string>
+    <string name="setup_options_section">OPTIONS &amp; LIBRARY</string>
+    <string name="setup_paths_section">GAME FOLDERS</string>
+    <string name="setup_save_hint">Options apply immediately. Save to apply folder changes.</string>
+    <string name="setup_shortcut_hint">Y / △ Actions   ·   ← → Choose   ·   A Confirm   ·   B Close</string>
+    <string name="settings_close_hint">Y / △ Go to Close   ·   A Confirm   ·   B Close</string>
+    <string name="home_shortcuts">Y / △ Top controls   ·   X / □ Adjust cover</string>
 </resources>
