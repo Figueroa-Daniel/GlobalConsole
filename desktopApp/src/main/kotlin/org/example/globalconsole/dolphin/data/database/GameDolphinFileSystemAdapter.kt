@@ -34,14 +34,14 @@ class GameDolphinFileSystemAdapter(
 
         val supportedExtensions = listOf("iso", "rvz", "wbfs", "gcm", "ciso")
 
-        return directory.walkTopDown()
+        val games = directory.walkTopDown()
             .filter { file ->
                 file.isFile && supportedExtensions.any { ext -> file.name.lowercase().endsWith(".$ext") }
             }
-            .map { file ->
-                val imagePath = file.parentFile?.listFiles()?.firstOrNull { 
-                    it.isFile && it.extension.lowercase() in listOf("png", "jpg", "jpeg") 
-                }?.absolutePath
+            .toList()
+        val covers = org.example.globalconsole.generalData.GameCoverFiles(games)
+        return games.map { file ->
+                val imagePath = covers.find(file)
                 GameDolphin(
                     id = "dolphin_${file.absolutePath.hashCode()}",
                     name = file.nameWithoutExtension,

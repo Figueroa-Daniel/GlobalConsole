@@ -29,12 +29,12 @@ class GameDSFileSystemAdapter(
         var id: Int = 0
 
         if (dsFolder.exists() && dsFolder.isDirectory) {
-            dsFolder.walkTopDown().forEach { file ->
+            val games = dsFolder.walkTopDown().filter { it.isFile && it.extension.equals("nds", true) }.toList()
+            val covers = org.example.globalconsole.generalData.GameCoverFiles(games)
+            games.forEach { file ->
                 if (file.isFile && file.extension.equals("nds", ignoreCase = true)) {
                     id++
-                    val imagePath = file.parentFile?.listFiles()?.firstOrNull { 
-                        it.isFile && it.extension.lowercase() in listOf("png", "jpg", "jpeg") 
-                    }?.absolutePath
+                    val imagePath = covers.find(file)
                     listGames.add(
                         GameDsDto(
                             id = "melonds$id",

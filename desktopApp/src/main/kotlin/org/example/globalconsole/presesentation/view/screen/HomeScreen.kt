@@ -657,13 +657,22 @@ fun HomeScreen(
             )
         }
 
-        // Diálogo de recorte de carátula — se activa con botón Y (Triángulo) del mando
+        // Recorte asociado al juego activo; X/cuadrado abre este diálogo.
         val cropGame = cropTargetGame
         if (cropGame != null && !cropGame.image.isNullOrBlank()) {
-            val outputDir = File(cropGame.image!!).parent ?: ""
+            val emulatorGame = cropGame.platform in setOf(
+                org.example.globalconsole.generalDomain.entititys.Platforms.PCSX2,
+                org.example.globalconsole.generalDomain.entititys.Platforms.MELONDS,
+                org.example.globalconsole.generalDomain.entititys.Platforms.DOLPHIN,
+                org.example.globalconsole.generalDomain.entititys.Platforms.AZAHAR,
+                org.example.globalconsole.generalDomain.entititys.Platforms.DUCKSTATION
+            ) && File(cropGame.urlGameExecute).isFile
+            val outputDir = if (emulatorGame) File(cropGame.urlGameExecute).parent else File(cropGame.image!!).parent
+            val outputName = if (emulatorGame) File(cropGame.urlGameExecute).nameWithoutExtension + ".cover.png" else "cover_cropped.png"
             ImageCropperDialog(
                 imagePath = cropGame.image!!,
-                outputDir = outputDir,
+                outputDir = outputDir.orEmpty(),
+                outputName = outputName,
                 gamepadManager = gamepadManager,
                 onDismiss = { cropTargetGame = null },
                 onCropSaved = {

@@ -29,6 +29,7 @@ object ImageCropperUtils {
      * @param offsetY Desplazamiento vertical de la imagen aplicado por el usuario (en px de pantalla).
      * @param scale Escala visual aplicada por el usuario (1.0f = sin zoom).
      * @param previewSizePx Tamaño en píxeles del cuadro cuadrado de previsualización en pantalla.
+     * @param outputName Nombre de archivo propio del juego; por defecto mantiene el formato heredado.
      * @param outputDir Directorio donde se guardará el archivo de salida.
      * @return `true` si el recorte y guardado fueron exitosos, `false` en caso contrario.
      * @throws IllegalArgumentException si el archivo fuente no existe o no es una imagen válida.
@@ -41,7 +42,8 @@ object ImageCropperUtils {
         offsetY: Float,
         scale: Float,
         previewSizePx: Int,
-        outputDir: String
+        outputDir: String,
+        outputName: String = "cover_cropped.png"
     ): Boolean {
         return try {
             val sourceFile = File(sourcePath)
@@ -78,7 +80,7 @@ object ImageCropperUtils {
             g2d.drawImage(cropped, 0, 0, outputSize, outputSize, null)
             g2d.dispose()
 
-            val outputFile = File(outputDir, "cover_cropped.png")
+            val outputFile = File(outputDir, File(outputName).name)
             ImageIO.write(output, "png", outputFile)
             true
         } catch (e: Exception) {
