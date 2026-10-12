@@ -60,21 +60,18 @@ contenido solo existe mientras está visible, para no consumir pulsaciones desde
 una ventana oculta y para reiniciar el texto en cada apertura. Koin se inicializa
 una sola vez, fuera de las recomposiciones provocadas por la visibilidad.
 
-R3 y START + R2/R1 alternan el teclado; START confirma una vez liberado el
+START + R2 físico alterna el teclado; START confirma una vez liberado el
 atajo de apertura. Los botones usados para abrirlo no escriben letras por arrastre.
 Al finalizar la aplicación externa se cierra también el teclado.
 
-En X11 la detección automática consulta el cursor al hacer clic con A o con el
-ratón físico. Los píxeles de XFixes son `unsigned long`: se leen con el tamaño
-nativo, también en Linux de 64 bits. La forma de cursor es una heurística y puede
-aparecer sobre texto no editable; R3 y el doble toque de A son alternativas cuando
-el navegador no permite reconocer el campo. Wayland no garantiza esta detección
-ni la inyección con AWT Robot.
+La apertura automática por cursor o doble pulsación de A está desactivada.
+Los clics conservan su función de ratón. La inyección con AWT Robot depende del
+sistema gráfico; Wayland no garantiza su funcionamiento.
 
 Validación manual pendiente con navegador y mando físicos: abrir con ambos
-órdenes de START/R2, cerrar con R3/B, escribir y confirmar, reabrir sin texto
-anterior, y comprobar clics sobre campos y retorno al dashboard. Véase también
-[Mando y foco](12_manejo_gamepad_y_foco.md).
+órdenes de START/R2, cerrar con el mismo combo o B, escribir y confirmar,
+reabrir sin texto anterior y comprobar que L2/R3/R1 y los clics no abren el OSK.
+Véase también [Mando y foco](12_manejo_gamepad_y_foco.md).
 
 `OskShortcutUseCase` mantiene los flancos independientemente del resto de botones.
 Sus pruebas cubren ambos órdenes de START/R2, pulsaciones mantenidas, R1, R3,
@@ -137,12 +134,28 @@ sigue en la capa de presentación. Véase [Arquitectura](01_arquitectura.md) y
 
 El diagnóstico con el mando HJDX (GUID `03000000632500002605000010010000`) mostró
 que su R2 físico llega por el eje 4 (`LEFT_TRIGGER` del estándar GLFW) y su L2
-por el eje 5. Con un único eje fijo, START + R2 no abría el teclado. Decisión: el
-atajo acepta cualquiera de los dos gatillos, de modo que funciona en mandos con
-el mapeo estándar y en los intercambiados sin necesidad de configuración. El
-coste es que START + L2 también abre el teclado, aceptable porque L2 no tiene
-otra función con el mando en este contexto. `GamepadManager` mantiene un `TriggerPressUseCase` por eje, cada uno con su
-histéresis, y el atajo se activa si cualquiera de los dos está pulsado.
+por el eje 5. La solución anterior aceptaba ambos gatillos y provocaba la
+apertura no deseada con L2. Se sustituye por la selección del eje según GUID
+explicada en el apartado 9, conservando un único detector con histéresis.
 
 @author Daniel Figueroa Vidal
 @since 2026-10-12
+
+## 9. Apertura exclusiva con START + R2 físico (2026-10-12)
+
+Sustituye las alternativas de los apartados 6–8: en aplicaciones externas solo
+START + R2 alterna el teclado. R3, START + R1, START + L2, clic sobre texto y doble
+pulsación de A no lo abren. START con el teclado abierto conserva la confirmación;
+B conserva el cierre. El buscador interno conserva su interacción propia.
+
+El GUID HJDX documentado en 8.1 selecciona el eje izquierdo de GLFW como R2 físico;
+los demás mandos usan el eje derecho estándar. Un caso de uso puro resuelve ese
+valor y el detector con histéresis existente decide la pulsación. No se combinan
+los dos ejes: esa combinación causaba la apertura no deseada con L2.
+Las pruebas de casos de uso cubrirán ambos mapeos, controles excluidos, órdenes
+del combo y pulsaciones mantenidas. Véase [Mando](12_manejo_gamepad_y_foco.md)
+y [Contexto](19_contexto_ia.md).
+
+Validación del apartado 9: pruebas de exclusión fallidas antes del cambio y
+correctas después; batería completa sin fallos. El mapeo HJDX se basa en el
+diagnóstico previo documentado, pendiente de repetir con el mando físico.

@@ -96,3 +96,12 @@ Validación: 120 pruebas correctas y recorrido gráfico con configuración tempo
 selección, desplazamiento, reapertura, lanzamiento, cierre y retorno a biblioteca.
 Windows real, mando físico y OSK en programas externos requieren comprobación
 en hardware. Detalles en [Aplicaciones locales](24_aplicaciones_locales.md).
+
+## 6. Apertura exclusiva del teclado externo (2026-10-12)
+
+`OskShortcutUseCase` solo alterna con START + R2. Se eliminan R3 y START + R1
+como alternativas, además de apertura por clic/doble A en `GamepadManager`.
+`OskRightTriggerUseCase` selecciona el eje 4 para el GUID HJDX documentado y el
+5 para mandos estándar: L2 deja de aceptarse como equivalente de R2. Se mantiene
+la histéresis, confirmación con START y cierre con B. Pruebas de casos de uso
+verificadas; pendiente comprobación física. Ver [Teclado](15_busqueda_y_osk.md).
