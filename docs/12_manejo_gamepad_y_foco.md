@@ -39,6 +39,17 @@ LaunchedEffect(gamepadManager, games.size, gridColumns, cropTargetGame != null) 
 ```
 Esto garantiza que los inputs del usuario solo afecten al elemento activo superior y no atraviesen hacia el fondo.
 
+## Eventos del teclado flotante (`oskEvents`)
+Mientras el teclado flotante está visible, `GamepadManager` emite sus eventos
+(cruceta, A, X, Y, L2/R2 de texto y confirmación con START) por `oskEvents` y no
+por `events`. Así ninguna pantalla base, ni siquiera con GlobalConsole en primer
+plano, procesa la pulsación que pertenece al teclado: es la aplicación de la
+regla de fuga de eventos a una ventana que no es un diálogo de Compose.
+`OskOverlay` recoge `oskEvents`; el `GamepadOSK` modal de la búsqueda interna
+sigue usando `events`. Al abrir o cerrar el teclado se sincronizan los flancos
+de todos los botones para que ninguno atraviese hacia la vista de fondo. Véase
+[Búsqueda y OSK](15_busqueda_y_osk.md).
+
 ## Navegación en Vista Agrupada
 Con agrupación activa (`GroupingMode.PLATFORM` / `CONSOLE_SERIES`) la lista contiene `Header` intercalados con tiles. Para que el mando navegue correctamente:
 1. **Columnas reales:** `gridColumns` se calcula con la misma fórmula que `GridCells.Adaptive`: `(ancho + espaciado) / (mínimo + espaciado)`. Ignorar el espaciado desalinea las filas lógicas respecto a las visuales.

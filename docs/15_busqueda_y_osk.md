@@ -132,6 +132,10 @@ sigue en la capa de presentación. Véase [Arquitectura](01_arquitectura.md) y
 
 ### 8.1 Gatillos intercambiados en algunos mandos
 
+> **Superado por el apartado 9.** La decisión de aceptar ambos gatillos se
+> revirtió porque START + L2 abría el teclado sin querer. Se conserva el
+> diagnóstico del mando HJDX, que sigue justificando su mapeo propio.
+
 El diagnóstico con el mando HJDX (GUID `03000000632500002605000010010000`) mostró
 que su R2 físico llega por el eje 4 (`LEFT_TRIGGER` del estándar GLFW) y su L2
 por el eje 5. La solución anterior aceptaba ambos gatillos y provocaba la
@@ -218,3 +222,16 @@ borrado en el cursor, límites, Unicode, los dos mapeos físicos de gatillos y e
 bloqueo de movimiento durante START + R2. En una vista X11 temporal se observó
 `w│q` tras escribir `q`, mover el cursor y añadir `w`, sin desplazar la tecla
 virtual resaltada. Queda pendiente la comprobación con mando físico.
+
+## 13. Estado del registro de diagnóstico (2026-10-12)
+
+`GamepadManager` conserva el registro temporal `[OSK-DIAG]` (mando, GUID,
+botones y ejes 4 y 5) usado para localizar el mapeo de R2 descrito en 8.1. Sigue
+activo por decisión del usuario mientras se valida con el mando físico; es una
+salida de depuración y no forma parte del comportamiento funcional. Nota sobre
+las decisiones intermedias: el apartado 8.1 (aceptar ambos gatillos) y la
+cobertura de pruebas con R1/R3 del apartado 6 fueron sustituidos por el
+apartado 9, sin alterar su texto original.
+
+@author Daniel Figueroa Vidal
+@since 2026-10-12

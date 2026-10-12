@@ -137,3 +137,36 @@ Ventana temporal Xvfb: comprobados Y, Y+izquierda+A, cierres y aislamiento del
 modal hijo. Validación gráfica a 1280×900 y 1000×700; suite de UseCases sin fallos.
 Pendiente únicamente comprobación física con el mando del usuario.
 Véase [usabilidad de configuración](25_usabilidad_configuracion.md).
+
+## 10. Revisión del teclado (2026-10-12)
+
+Resumen de `bugfix/teclado-virtual-foco`, ya en `dev`: el atajo del teclado se
+evalúa también con GlobalConsole en primer plano; sus eventos viajan por
+`oskEvents`; R2 usa histéresis (`TriggerPressUseCase`) y el mapeo del mando HJDX
+se resuelve por GUID; borrar con el búfer vacío envía Retroceso al campo externo.
+El registro temporal `[OSK-DIAG]` de `GamepadManager` sigue activo; las
+decisiones intermedias de `15_busqueda_y_osk.md` (apartados 6 y 8.1) quedan
+marcadas como superadas por el apartado 9. Pendiente: comprobación con mando
+físico de los apartados 9 a 12 y de la usabilidad del apartado 9 de este archivo.
+Véase
+[Teclado](15_busqueda_y_osk.md) y [Mando y foco](12_manejo_gamepad_y_foco.md).
+
+
+## 11. Guías de uso (2026-10-12)
+
+Nueva carpeta `docs/guias/` con la documentación de uso (no técnica): instalación
+de emuladores por Flatpak, carpetas de juegos por emulador, mando, biblioteca y
+ajustes, emuladores, teclado en pantalla y solución de problemas. Índice en
+[guias/README.md](guias/README.md). Las guías se redactaron a partir del código
+actual; los datos que deben mantenerse al cambiar el código son los
+identificadores Flatpak, las extensiones admitidas por emulador, los comandos de
+lanzamiento y los atajos del mando.
+
+Hallazgos de la revisión, solo documentados y sin cambio de código: las rutas de
+ejecutables (`ROUTE_*_EXECUTABLE`) no se pueden configurar desde Ajustes; en Windows
+PCSX2 se busca como `pcsx2-qt.exe` dentro de la carpeta de juegos; DuckStation
+comprueba una ruta fija de AppImage del equipo de desarrollo antes de usar
+Flatpak; DuckStation lista `.bin` y `.cue` por separado y no toma carátula de
+carpeta; `onGameDeleted` existe en `HomeViewModel` pero no está conectado al
+mando; el `README.md` raíz del repositorio está vacío. Véase
+[Solución de problemas](guias/06_solucion_de_problemas.md).
