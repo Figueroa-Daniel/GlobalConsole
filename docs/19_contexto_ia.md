@@ -137,3 +137,17 @@ Ventana temporal Xvfb: comprobados Y, Y+izquierda+A, cierres y aislamiento del
 modal hijo. Validación gráfica a 1280×900 y 1000×700; suite de UseCases sin fallos.
 Pendiente únicamente comprobación física con el mando del usuario.
 Véase [usabilidad de configuración](25_usabilidad_configuracion.md).
+
+## 10. Revisión del teclado (2026-10-12)
+
+Resumen de `bugfix/teclado-virtual-foco`, ya en `dev`: el atajo del teclado se
+evalúa también con GlobalConsole en primer plano; sus eventos viajan por
+`oskEvents`; R2 usa histéresis (`TriggerPressUseCase`) y el mapeo del mando HJDX
+se resuelve por GUID; borrar con el búfer vacío envía Retroceso al campo externo.
+El registro temporal `[OSK-DIAG]` de `GamepadManager` sigue activo; las
+decisiones intermedias de `15_busqueda_y_osk.md` (apartados 6 y 8.1) quedan
+marcadas como superadas por el apartado 9. Pendiente: comprobación con mando
+físico de los apartados 9 a 12 y de la usabilidad del apartado 9 de este archivo.
+Véase
+[Teclado](15_busqueda_y_osk.md) y [Mando y foco](12_manejo_gamepad_y_foco.md).
+
