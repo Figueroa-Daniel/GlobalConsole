@@ -6,6 +6,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import org.example.globalconsole.presesentation.viewModel.home.HomeUiState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
@@ -59,6 +62,16 @@ fun main() = application {
         title = "GlobalConsole",
     ) {
         val coroutineScope = rememberCoroutineScope()
+        val homeState by viewModel.uiState.collectAsState()
+        val gameRunning = homeState is HomeUiState.GameRunning
+        var wasGameRunning by remember { mutableStateOf(false) }
+        LaunchedEffect(gameRunning) {
+            if (wasGameRunning && !gameRunning) {
+                window.toFront()
+                window.requestFocus()
+            }
+            wasGameRunning = gameRunning
+        }
         
         // Sincronizar la sensibilidad del ratón en tiempo real
         val mouseSensitivity by settingsViewModel.mouseSensitivity.collectAsState()

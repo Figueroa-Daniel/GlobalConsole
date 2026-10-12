@@ -69,3 +69,30 @@ Este documento actúa como memoria continua y estado del proyecto para las sesio
 - Módulos del proyecto: [03_modulos.md](03_modulos.md).
 - Errores de Datos: [06_analisis_errores_data.md](06_analisis_errores_data.md).
 - Persistencia de Configuración: [08_persistencia_configuracion.md](08_persistencia_configuracion.md).
+
+## 4. Juegos locales (2026-10-11)
+
+Implementado `localGames` en `feature/local-games`: detección Linux/Windows,
+preferencias `enabledLocalGames`, siete casos de uso, Koin, biblioteca y diálogo
+ADD Local Game. El diálogo base suspende su colector mientras la gestión local
+está abierta; el cierre y cancelación solo afectan al árbol de procesos iniciado.
+Validación: 110 pruebas, revisión gráfica X11 y recorrido de ejecución con procesos
+temporales. El escaneo real Linux detectó 4 juegos. Windows y mando físico quedan
+pendientes de validación. Ver [Juegos locales](23_juegos_locales.md).
+
+## 5. Aplicaciones locales (2026-10-11)
+
+Implementado `localApps` en `feature/local-apps`: detección Linux/Windows,
+selección `enabledLocalApps`, repositorio de dominio y ocho casos de uso
+(incluida clasificación). Ajustes → Aplicaciones → Añadir aplicación permite
+habilitar u ocultar herramientas; aparecen en su propia categoría de biblioteca.
+Se excluyen juegos, emuladores, navegadores y gestores de juegos conocidos.
+
+Juegos y aplicaciones comparten lectura de accesos, resolución de iconos,
+control de procesos y bloqueo de preferencias. Conservadas las mejoras previas
+de juegos (Bottles/Citra e iconos reverse-DNS). Navegación de mando del diálogo
+hijo aislada del padre; ratón/OSK permitidos durante una aplicación local.
+Validación: 120 pruebas correctas y recorrido gráfico con configuración temporal,
+selección, desplazamiento, reapertura, lanzamiento, cierre y retorno a biblioteca.
+Windows real, mando físico y OSK en programas externos requieren comprobación
+en hardware. Detalles en [Aplicaciones locales](24_aplicaciones_locales.md).

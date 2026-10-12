@@ -112,6 +112,7 @@ fun HomeScreen(
                 runningGame.platform == org.example.globalconsole.generalDomain.entititys.Platforms.MELONDS ||
                 runningGame.platform == org.example.globalconsole.generalDomain.entititys.Platforms.PS3 ||
                 runningGame.platform == org.example.globalconsole.generalDomain.entititys.Platforms.HEORIC_GAMES_LAUCHER ||
+                runningGame.platform == org.example.globalconsole.generalDomain.entititys.Platforms.LOCALAPP ||
                 runningGame.platform == org.example.globalconsole.generalDomain.entititys.Platforms.NAVWEB
         )
     }
