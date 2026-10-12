@@ -27,6 +27,10 @@ sealed class GamepadEvent {
         HOME,
         /** Botón de opciones / configuración (Y en Xbox, Triángulo en PlayStation). Usado para abrir el recortador de carátula. */
         OPTIONS,
+        /** Gatillo L2: mueve el cursor del texto pendiente una posición a la izquierda. */
+        TEXT_LEFT,
+        /** Gatillo R2: mueve el cursor del texto pendiente una posición a la derecha. */
+        TEXT_RIGHT,
         /** Bumper izquierdo (L1 / LB). Usado para avanzar página / scroll rápido arriba. */
         PAGE_UP,
         /** Bumper derecho (R1 / RB). Usado para retroceder página / scroll rápido abajo. */

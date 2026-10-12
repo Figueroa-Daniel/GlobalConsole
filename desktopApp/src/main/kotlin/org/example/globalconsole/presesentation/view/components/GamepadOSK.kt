@@ -150,6 +150,8 @@ fun GamepadOSKContent(
                     GamepadEvent.Direction.RIGHT -> KeyboardAction.RIGHT
                 })
                 is GamepadEvent.ButtonPressed -> when (event.button) {
+                    GamepadEvent.Button.TEXT_LEFT -> currentAct(KeyboardAction.TEXT_LEFT)
+                    GamepadEvent.Button.TEXT_RIGHT -> currentAct(KeyboardAction.TEXT_RIGHT)
                     GamepadEvent.Button.CONFIRM -> currentAct(KeyboardAction.PRESS)
                     GamepadEvent.Button.DELETE -> currentAct(KeyboardAction.DELETE)
                     GamepadEvent.Button.OPTIONS -> currentAct(KeyboardAction.SHIFT)
@@ -164,7 +166,9 @@ fun GamepadOSKContent(
         Column(Modifier.widthIn(max = 1100.dp).fillMaxWidth().heightIn(max = 520.dp).fillMaxHeight(.92f)
             .metroPanel(palette).padding(20.dp)) {
             Text(title ?: stringResource(Res.string.osk_title), color = palette.accent, fontSize = 14.sp, letterSpacing = 2.sp)
-            Text(if (state.text.isEmpty()) (placeholder ?: stringResource(Res.string.osk_placeholder)) else state.text + "│",
+            Text(
+                if (state.text.isEmpty()) placeholder ?: stringResource(Res.string.osk_placeholder)
+                else state.text.substring(0, state.textCursor) + "│" + state.text.substring(state.textCursor),
                 color = if (state.text.isEmpty()) palette.muted else palette.text,
                 fontSize = 24.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.fillMaxWidth().padding(vertical = 14.dp).background(palette.raised).padding(12.dp))

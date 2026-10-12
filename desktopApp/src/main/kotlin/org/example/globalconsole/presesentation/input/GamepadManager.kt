@@ -7,6 +7,8 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import org.example.globalconsole.input.domain.usecase.KeyboardAction
+import org.example.globalconsole.input.domain.usecase.OskTextTriggerUseCase
 import org.example.globalconsole.input.domain.usecase.OpenOskOnTextClickUseCase
 import org.example.globalconsole.input.domain.usecase.OskExternalCursorAction
 import org.example.globalconsole.input.domain.usecase.OskExternalCursorUseCase
@@ -103,6 +105,7 @@ class GamepadManager {
             field = value
             oskShortcuts.reset()
             rightTriggerPress.reset()
+            oskTextTriggers.reset()
             if (!value) hideOskOverlay()
         }
 
@@ -128,6 +131,7 @@ class GamepadManager {
     private val oskShortcuts = OskShortcutUseCase()
     private val rightTriggerPress = TriggerPressUseCase()
     private val oskRightTrigger = OskRightTriggerUseCase()
+    private val oskTextTriggers = OskTextTriggerUseCase()
     private val oskExternalCursor = OskExternalCursorUseCase()
     private val mouseTextClick = OpenOskOnTextClickUseCase()
     private val gamepadTextClick = OpenOskOnTextClickUseCase()
@@ -162,6 +166,7 @@ class GamepadManager {
      */
     fun hideOskOverlay() {
         oskExternalCursor.reset()
+        oskTextTriggers.reset()
         _isOskOverlayVisible.value = false
     }
 
@@ -336,6 +341,7 @@ class GamepadManager {
         }
 
         val shortcut = evaluateOskShortcut(buttons, axes)
+        val textMovement = evaluateOskTextTrigger(buttons, axes, shortcut)
         lastButtonsState[GLFW_GAMEPAD_BUTTON_START] = startPressed
         lastButtonsState[GLFW_GAMEPAD_BUTTON_BACK] = backPressed
 
@@ -345,7 +351,7 @@ class GamepadManager {
         }
 
         if (_isOskOverlayVisible.value) {
-            processOskInput(buttons, axes, shortcut)
+            processOskInput(buttons, axes, shortcut, textMovement)
             return
         }
 
@@ -407,6 +413,28 @@ class GamepadManager {
             _isOskOverlayVisible.value
         )
     }
+
+    /**
+     * Mantiene los flancos de ambos gatillos incluso durante START + R2.
+     * @param buttons Botones del mando para reconocer START.
+     * @param axes Ejes normalizados por GLFW.
+     * @param shortcut Atajo detectado antes de aplicar el movimiento del texto.
+     * @return Movimiento del texto pendiente o null.
+     * @throws Nothing No lanza excepciones.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-12
+     */
+    private fun evaluateOskTextTrigger(
+        buttons: ByteBuffer,
+        axes: java.nio.FloatBuffer,
+        shortcut: OskShortcutAction
+    ): KeyboardAction? = oskTextTriggers(
+        glfwGetJoystickGUID(selectedGamepadId),
+        axes.get(GLFW_GAMEPAD_AXIS_LEFT_TRIGGER),
+        axes.get(GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER),
+        buttons.get(GLFW_GAMEPAD_BUTTON_START).toInt() == GLFW_PRESS,
+        _isOskOverlayVisible.value && shortcut != OskShortcutAction.TOGGLE
+    )
 
     private var lastDiagnostic = ""
 
@@ -475,12 +503,18 @@ class GamepadManager {
      * @param buttons Buffer de botones GLFW.
      * @param axes Buffer de ejes GLFW.
      * @param shortcut Acción de atajo ya evaluada en este ciclo.
+     * @param textMovement Movimiento del texto pendiente, separado de las teclas virtuales.
      * @return Unit.
      * @throws CancellationException Si la corrutina se cancela durante la emisión.
      * @author Daniel Figueroa Vidal
      * @since 2026-10-12
      */
-    private suspend fun processOskInput(buttons: ByteBuffer, axes: java.nio.FloatBuffer, shortcut: OskShortcutAction) {
+    private suspend fun processOskInput(
+        buttons: ByteBuffer,
+        axes: java.nio.FloatBuffer,
+        shortcut: OskShortcutAction,
+        textMovement: KeyboardAction?
+    ) {
         lastButtonsState[GLFW_GAMEPAD_BUTTON_LEFT_BUMPER] = buttons.get(GLFW_GAMEPAD_BUTTON_LEFT_BUMPER).toInt() == GLFW_PRESS
         lastButtonsState[GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER] = buttons.get(GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER).toInt() == GLFW_PRESS
         val bPressed = buttons.get(GLFW_GAMEPAD_BUTTON_B).toInt() == GLFW_PRESS
@@ -489,6 +523,12 @@ class GamepadManager {
         if (bPressed && !wasBPressed) {
             hideOskOverlay()
             return
+        }
+
+        when (textMovement) {
+            KeyboardAction.TEXT_LEFT -> emitEvent(GamepadEvent.ButtonPressed(GamepadEvent.Button.TEXT_LEFT))
+            KeyboardAction.TEXT_RIGHT -> emitEvent(GamepadEvent.ButtonPressed(GamepadEvent.Button.TEXT_RIGHT))
+            else -> Unit
         }
 
         val cursorAction = oskExternalCursor(
@@ -624,12 +664,13 @@ class GamepadManager {
         val axes = state.axes()
 
         val shortcut = evaluateOskShortcut(buttons, axes)
+        val textMovement = evaluateOskTextTrigger(buttons, axes, shortcut)
         if (shortcut == OskShortcutAction.TOGGLE) {
             applyOskToggle(buttons)
             return
         }
         if (_isOskOverlayVisible.value) {
-            processOskInput(buttons, axes, shortcut)
+            processOskInput(buttons, axes, shortcut, textMovement)
             return
         }
 
