@@ -29,21 +29,25 @@ class OskShortcutUseCaseTest {
     }
 
     /**
-     * R3 y R1 alternan; Start solo confirma con el teclado abierto.
+     * R3 y R1 no abren el teclado; solo START con R2 lo alterna.
      * @return Unit.
      * @throws Nothing No lanza excepciones.
      * @author Daniel Figueroa Vidal
      * @since 2026-10-11
      */
     @Test
-    fun alternatives_toggleWithoutConfirmingAndResetOnReturn() {
+    fun alternativesDoNotOpenAndResetAllowsRightTriggerCombo() {
         val useCase = OskShortcutUseCase()
-        assertEquals(OskShortcutAction.NONE, useCase(OskShortcutState(start = true), false))
-        assertEquals(OskShortcutAction.TOGGLE, useCase(OskShortcutState(start = true, rightBumper = true), false))
-        assertEquals(OskShortcutAction.NONE, useCase(OskShortcutState(), true))
-        assertEquals(OskShortcutAction.TOGGLE, useCase(OskShortcutState(rightStick = true), true))
-        assertEquals(OskShortcutAction.NONE, useCase(OskShortcutState(rightStick = true), false))
+        for (state in listOf(OskShortcutState(start = true), OskShortcutState(rightStick = true),
+            OskShortcutState(start = true, rightBumper = true), OskShortcutState(start = true, rightStick = true))) {
+            useCase.reset()
+            assertEquals(OskShortcutAction.NONE, useCase(state, false))
+        }
         useCase.reset()
-        assertEquals(OskShortcutAction.TOGGLE, useCase(OskShortcutState(rightStick = true), false))
+        val combo = OskShortcutState(start = true, rightTrigger = true)
+        assertEquals(OskShortcutAction.TOGGLE, useCase(combo, false))
+        assertEquals(OskShortcutAction.NONE, useCase(combo, true))
+        useCase.reset()
+        assertEquals(OskShortcutAction.TOGGLE, useCase(combo, true))
     }
 }

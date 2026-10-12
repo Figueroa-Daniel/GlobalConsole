@@ -121,7 +121,8 @@ fun main() = application {
                     },
                     onDismiss = {
                         gamepadManager.hideOskOverlay()
-                    }
+                    },
+                    onExternalDelete = gamepadManager::sendBackspaceToSystem
                 )
             }
         }

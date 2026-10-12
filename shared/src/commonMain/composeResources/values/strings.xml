@@ -32,7 +32,7 @@
     <string name="osk_overlay_title">TECLADO EN PANTALLA</string>
     <string name="osk_overlay_placeholder">Escribe aquí…</string>
     <string name="osk_overlay_submit">ENVIAR ↵</string>
-    <string name="osk_overlay_controls">A Escribir   ·   X Borrar   ·   Y Mayúsculas   ·   START Enviar   ·   B / START+R2 Cerrar</string>
+    <string name="osk_overlay_controls">A Escribir   ·   X Borrar   ·   Y Mayúsculas   ·   L1/R1 Navegador   ·   L2/R2 Texto   ·   START Enviar   ·   B / START+R2 Cerrar</string>
     <string name="view_settings_kicker">TU BIBLIOTECA, A TU ESTILO</string>
     <string name="view_settings_title">Vista y apariencia</string>
     <string name="view_settings_description">Fondo oscuro · cambios guardados automáticamente</string>

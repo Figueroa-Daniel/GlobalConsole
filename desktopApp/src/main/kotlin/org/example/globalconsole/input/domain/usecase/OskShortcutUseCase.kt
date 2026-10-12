@@ -25,7 +25,7 @@ class OskShortcutUseCase {
     private var previous = OskShortcutState()
 
     /**
-     * Prioriza R3 y START + R2/R1 sobre la confirmación con START.
+     * Prioriza exclusivamente START + R2 sobre la confirmación con START.
      * @param current Controles de la lectura actual.
      * @param visible Indica si el teclado estaba abierto antes de esta lectura.
      * @return Una única acción, sin repetir mientras se mantiene el atajo.
@@ -34,10 +34,10 @@ class OskShortcutUseCase {
      * @since 2026-10-11
      */
     operator fun invoke(current: OskShortcutState, visible: Boolean): OskShortcutAction {
-        val combo = current.start && (current.rightTrigger || current.rightBumper)
-        val previousCombo = previous.start && (previous.rightTrigger || previous.rightBumper)
+        val combo = current.start && current.rightTrigger
+        val previousCombo = previous.start && previous.rightTrigger
         val action = when {
-            (combo && !previousCombo) || (current.rightStick && !previous.rightStick) -> OskShortcutAction.TOGGLE
+            combo && !previousCombo -> OskShortcutAction.TOGGLE
             visible && current.start && !previous.start && !combo -> OskShortcutAction.CONFIRM
             else -> OskShortcutAction.NONE
         }

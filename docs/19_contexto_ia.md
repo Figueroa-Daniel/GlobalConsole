@@ -96,3 +96,30 @@ Validación: 120 pruebas correctas y recorrido gráfico con configuración tempo
 selección, desplazamiento, reapertura, lanzamiento, cierre y retorno a biblioteca.
 Windows real, mando físico y OSK en programas externos requieren comprobación
 en hardware. Detalles en [Aplicaciones locales](24_aplicaciones_locales.md).
+
+## 6. Apertura exclusiva del teclado externo (2026-10-12)
+
+`OskShortcutUseCase` solo alterna con START + R2. Se eliminan R3 y START + R1
+como alternativas. Se conserva la apertura por clic sobre texto (ratón o A),
+restaurada con `OpenOskOnTextClickUseCase`; el doble A fuera de texto no abre.
+`OskRightTriggerUseCase` selecciona el eje 4 para el GUID HJDX documentado y el
+5 para mandos estándar: L2 deja de aceptarse como equivalente de R2. Se mantiene
+la histéresis, confirmación con START y cierre con B. Pruebas de casos de uso
+verificadas; pendiente comprobación física. Ver [Teclado](15_busqueda_y_osk.md).
+
+## 7. Cursor externo desde el teclado flotante (2026-10-12)
+
+Con el OSK abierto sobre una aplicación externa, L1/R1 envían flechas
+izquierda/derecha al campo que conserva el foco. La selección de teclas sigue
+en la cruceta y el stick izquierdo. `OskExternalCursorUseCase` detecta flancos y
+`GamepadManager` inyecta las flechas; el control se desactiva fuera de ese
+contexto. Véase [Teclado en pantalla](15_busqueda_y_osk.md).
+
+## 8. Texto pendiente del OSK con L2/R2 (2026-10-12)
+
+El teclado flotante mantiene un cursor propio en el texto que aún no se ha
+enviado. L2/R2 lo desplazan por caracteres Unicode completos; las teclas se
+insertan en el cursor y borrar elimina el carácter anterior. L1/R1 conservan
+el control del campo externo, mientras la cruceta y el stick seleccionan teclas.
+`OskTextTriggerUseCase` detecta flancos y cede prioridad a START + R2.
+Véase [Teclado en pantalla](15_busqueda_y_osk.md).
