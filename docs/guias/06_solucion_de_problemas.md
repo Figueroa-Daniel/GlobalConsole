@@ -10,18 +10,22 @@
 
 ## 6.2. Aparecen juegos duplicados en PS1
 
-DuckStation lista `.bin` y `.cue` por separado. Usa un único archivo por juego
-(`.chd`, `.iso` o `.img`).
+Comprueba que el CUE contiene las referencias `FILE` correctas a sus pistas.
+Los BIN/IMG referenciados se omiten; los independientes se mantienen. Tener el
+mismo juego en CHD y CUE sigue creando dos entradas: conserva solo el formato
+que quieras mostrar, sin eliminar las pistas necesarias para el CUE.
 
 ## 6.3. Todas las carátulas son la misma
 
-La carátula es la primera imagen de la carpeta del juego. Usa una subcarpeta por
-juego con su propia imagen. Véase la
+Usa imágenes con el nombre del juego (`Juego.iso` y `Juego.jpg`). Las genéricas
+solo se usan si hay un juego en la carpeta. Véase la
 [organización de carpetas](01_instalacion_y_preparacion.md).
 
 ## 6.4. El emulador no arranca
 
-- En Linux GlobalConsole usa Flatpak. Comprueba con
+- Si has configurado un ejecutable, comprueba que existe y tiene permiso de ejecución.
+  Puedes volver a **Automático** desde Ajustes.
+- En Linux, el modo Automático usa Flatpak. Comprueba con
   `flatpak info <identificador>` que está instalado (identificadores en la
   [guía de instalación](01_instalacion_y_preparacion.md)).
 - Abre el emulador por su cuenta y confirma que el juego funciona allí.
@@ -60,9 +64,7 @@ ventana real seguir abierta: ciérrala manualmente.
 
 | Tema | Detalle |
 | --- | --- |
-| Windows | La ruta del ejecutable no es configurable: Dolphin, melonDS, Azahar y DuckStation deben estar en el `PATH`; PCSX2 se busca como `pcsx2-qt.exe` dentro de la carpeta de juegos; RPCS3 no está implementado. La detección de juegos, aplicaciones y navegadores en Windows no se ha validado en un equipo real. |
-| DuckStation en Linux | Si existe el archivo `/home/figue/Descargas/DuckStation-x64.AppImage` se usa en lugar de Flatpak. Es una ruta fija del equipo de desarrollo, no configurable; en otro equipo se usa Flatpak. |
-| Carátulas de PS1 | DuckStation no toma imagen de la carpeta del juego. |
+| Windows | Las rutas y comandos están cubiertos por pruebas automáticas. La ejecución real de emuladores y la detección de aplicaciones requieren comprobación en Windows. |
 | Mandos | Solo el mando HJDX tiene corrección de gatillos intercambiados. |
 | Teclado flotante | Depende del sistema gráfico; Wayland no garantizado. |
 | Configuración | Se guarda en `config.json` del directorio de trabajo. Cambiar de carpeta de ejecución equivale a empezar con una configuración nueva. |

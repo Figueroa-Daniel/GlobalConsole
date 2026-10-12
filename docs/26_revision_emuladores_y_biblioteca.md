@@ -40,3 +40,16 @@ validación física de Windows, mandos o emuladores que no se haya realizado.
 
 [Guía de emuladores](guias/04_emuladores_y_juegos.md), [DuckStation](17_duckstation.md),
 [Carátulas](10_manejo_imagenes_y_caratulas.md), [Contexto](19_contexto_ia.md).
+
+## 1.5. Resultado y validación
+
+Implementadas las correcciones descritas. Nueve nuevas pruebas de casos de uso;
+144 pruebas completas, cero fallos. La fase roja reprodujo el duplicado PS1 y el
+éxito ficticio al borrar. Las pruebas de comandos cubren todos los emuladores,
+Linux/Windows, rutas con espacios, argumentos y restauración de valores por
+defecto. Un proceso Linux temporal verificó la ruta configurada y los códigos
+de salida sin abrir RPCS3. La ventana Xvfb verificó selección de archivo con
+mando simulado, ausencia de guardado anticipado y aislamiento entre tres modales.
+
+No se ha comprobado hardware físico ni ejecución real en Windows o emuladores.
+Se preservaron los cambios previos del usuario en configuración y GamepadManager.

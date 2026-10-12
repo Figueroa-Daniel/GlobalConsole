@@ -8,9 +8,9 @@ y dejar los juegos en carpetas que luego se indican en Ajustes.
 
 1. Un mando compatible con el estándar de gamepad de GLFW (la mayoría de mandos
    Xbox, PlayStation y genéricos con mapeo SDL). Ver [uso del mando](02_uso_del_mando.md).
-2. Linux o Windows de escritorio. **Linux es la plataforma con soporte completo**:
-   los emuladores se lanzan mediante Flatpak. En Windows el soporte es parcial
-   (véase el apartado 1.6).
+2. Linux o Windows de escritorio. Puedes seleccionar el ejecutable en Ajustes.
+   Sin ruta personalizada se usa Flatpak en Linux o el PATH en Windows
+   (véase el apartado 1.6 para los límites de validación).
 3. Los emuladores que quieras usar (apartado 1.2).
 4. Tus propios juegos, obtenidos legalmente (copias de tus discos o cartuchos).
 5. Para PS1 y PS2, la BIOS de tu propia consola, configurada dentro del emulador.
@@ -30,9 +30,10 @@ Instálalos con estos comandos (cada uno es independiente; instala solo los que 
 | PlayStation 3 | RPCS3 | `net.rpcs3.RPCS3` | `flatpak install flathub net.rpcs3.RPCS3` |
 | Juegos de tiendas | Heroic Games Launcher | `com.heroicgameslauncher.hgl` | `flatpak install flathub com.heroicgameslauncher.hgl` |
 
-Los identificadores son los que usa el código de GlobalConsole; si instalas un
-emulador por otro medio (paquete DEB, AppImage…), GlobalConsole no lo encontrará
-salvo en los casos descritos en [solución de problemas](06_solucion_de_problemas.md).
+Los identificadores son los que usa el código de GlobalConsole en modo Automático.
+Para PCSX2, melonDS, Dolphin, Azahar, DuckStation o RPCS3 instalados por otro medio,
+abre **Ajustes → Ejecutables de emuladores**, selecciona el archivo y guarda.
+Heroic conserva su integración Flatpak.
 
 ## 1.3. Configurar cada emulador antes de usarlo
 
@@ -79,10 +80,12 @@ PCSX2/
     └── caratula.jpg
 ```
 
-GlobalConsole toma como carátula **la primera imagen que encuentra en la misma
-carpeta** del juego. Si pones varios juegos en la misma carpeta, todos compartirán
-esa imagen. El nombre que aparece en la biblioteca es el nombre del archivo sin
-extensión.
+También puedes tener varios juegos en una carpeta: usa `Mi Juego.iso` junto a
+`Mi Juego.jpg` (o `.png`/`.jpeg`). El recorte individual `Mi Juego.cover.png`
+tiene prioridad. Las imágenes genéricas (`cover_cropped`, `cover`, `folder`) y
+una imagen única sin nombre coincidente solo se usan en carpetas con un juego.
+Si hay varias imágenes sin asociación clara, se muestra la carátula por defecto.
+DuckStation aplica el mismo criterio. El nombre del juego es el del archivo sin extensión.
 
 ## 1.5. Arrancar GlobalConsole
 
@@ -98,14 +101,14 @@ La configuración se guarda en un archivo `config.json` situado en el
 
 ## 1.6. Windows
 
-En Windows GlobalConsole llama al ejecutable por su nombre, y la ruta del
-ejecutable **no se puede configurar desde Ajustes** en esta versión. Para
-Dolphin (`Dolphin.exe`), melonDS (`melonds.exe`), Azahar (`azahar.exe`) y
-DuckStation (`DuckStation.exe`) el ejecutable debe poder encontrarse desde el
-`PATH` del sistema. En PCSX2 el código busca `pcsx2-qt.exe` dentro de la carpeta
-de juegos configurada. RPCS3 en Windows no está implementado. Los juegos locales,
-aplicaciones y navegadores sí detectan Windows, pero esa detección no se ha
-validado en un equipo Windows real. Detalles en
+En **Ajustes → Ejecutables de emuladores**, usa **Examinar** para elegir el `.exe`
+de PCSX2, melonDS, Dolphin, Azahar, DuckStation o RPCS3. Pulsa **Guardar**; no
+coloques el ejecutable en la carpeta de ROMs. **Automático** vuelve a buscar
+`pcsx2-qt.exe`, `melonds.exe`, `Dolphin.exe`, `azahar.exe`, `DuckStation.exe` o
+`rpcs3.exe` en el PATH. RPCS3 abre su interfaz, no escanea juegos de PS3.
+
+La construcción de comandos de Windows está cubierta por pruebas; no se ha
+validado esta corrección en un equipo Windows real. Detalles en
 [solución de problemas](06_solucion_de_problemas.md).
 
 ## 1.7. Siguiente paso

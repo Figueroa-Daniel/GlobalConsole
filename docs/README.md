@@ -32,3 +32,5 @@ Este directorio contiene la documentación técnica oficial del proyecto GlobalC
 23. **[24_aplicaciones_locales.md](24_aplicaciones_locales.md)**: Aplicaciones instaladas excluyendo juegos, emuladores y navegadores, con selección, biblioteca y control por mando.
 24. **[25_usabilidad_configuracion.md](25_usabilidad_configuracion.md)**: Y/triángulo para acceder a las acciones y configuración con columnas independientes y pie fijo.
 25. **[guias/README.md](guias/README.md)**: Guías de uso: instalación y carpetas de juegos, mando, biblioteca y ajustes, emuladores, teclado en pantalla y solución de problemas.
+
+26. **[26_revision_emuladores_y_biblioteca.md](26_revision_emuladores_y_biblioteca.md)**: Ejecutables configurables, pistas CUE, carátulas por juego y resultados de revisión.

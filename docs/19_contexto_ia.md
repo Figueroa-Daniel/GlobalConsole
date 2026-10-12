@@ -162,11 +162,31 @@ actual; los datos que deben mantenerse al cambiar el código son los
 identificadores Flatpak, las extensiones admitidas por emulador, los comandos de
 lanzamiento y los atajos del mando.
 
-Hallazgos de la revisión, solo documentados y sin cambio de código: las rutas de
-ejecutables (`ROUTE_*_EXECUTABLE`) no se pueden configurar desde Ajustes; en Windows
-PCSX2 se busca como `pcsx2-qt.exe` dentro de la carpeta de juegos; DuckStation
-comprueba una ruta fija de AppImage del equipo de desarrollo antes de usar
-Flatpak; DuckStation lista `.bin` y `.cue` por separado y no toma carátula de
-carpeta; `onGameDeleted` existe en `HomeViewModel` pero no está conectado al
-mando; el `README.md` raíz del repositorio está vacío. Véase
-[Solución de problemas](guias/06_solucion_de_problemas.md).
+Los hallazgos iniciales de esta revisión se comprobaron y corrigieron en el
+apartado 12. El README raíz no existía en la revisión de código (no era un
+archivo vacío). Las guías ya reflejan el comportamiento corregido.
+
+## 12. Rutas de emuladores y biblioteca (2026-10-12)
+
+Rama `bugfix/rutas-emuladores-y-biblioteca`, creada desde `dev`. Se conservan fuera
+de los commits los cambios previos de `config.json` y `GamepadManager.kt`.
+
+- Ejecutables persistidos mediante claves `executable.<id>` en `emulatorPaths`.
+  Ajustes ofrece selección de archivos con mando, Automático y Guardar explícito.
+  `BuildEmulatorCommandUseCase` resuelve las rutas al lanzar: binario configurado,
+  Flatpak en Linux o nombre en PATH en Windows. Sin ruta personal de DuckStation
+  ni dependencia de la carpeta de ROMs de PCSX2. RPCS3 admite lanzamiento Windows.
+- DuckStation omite únicamente pistas BIN/IMG referenciadas por un CUE y mantiene
+  juegos independientes. Todos los escáneres de ROMs asocian carátulas por nombre;
+  las genéricas solo se usan si hay un juego en la carpeta. Recortes individuales
+  `<juego>.cover.png` con prioridad.
+- Eliminada la acción de borrado sin consumidores en HomeViewModel. La operación
+  aún no implementada de DuckStation devuelve false, no un éxito ficticio.
+- README raíz creado y guías actualizadas.
+
+Validación: 144 pruebas de UseCases sin fallos (9 nuevas). Incluyen persistencia,
+comandos Linux/Windows, escaneo de archivos temporales, selección de carátulas y
+un proceso Linux ficticio con ruta que contiene espacios y salida 0/7. Ventana
+Xvfb revisada: selector de archivos, guardado explícito, recarga y aislamiento
+del modal padre. No se lanzaron emuladores reales ni se probó Windows/mando físico.
+Véase [revisión técnica](26_revision_emuladores_y_biblioteca.md).
