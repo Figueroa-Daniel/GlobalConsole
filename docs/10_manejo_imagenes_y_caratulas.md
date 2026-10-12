@@ -40,3 +40,12 @@ El componente principal encargado de mostrar la carátula es `GameTile`.
 
 - Entender el stack tecnológico utilizado en [02_tecnologias.md](02_tecnologias.md).
 - Revisar la arquitectura general en [01_arquitectura.md](01_arquitectura.md).
+
+## 6. Asociación individual de carátulas (2026-10-12)
+
+Los escáneres de PCSX2, melonDS, Dolphin, Azahar y DuckStation usan
+`SelectGameCoverUseCase`: primero `<juego>.cover.png`, luego una imagen cuyo
+nombre sin extensión coincide con el juego. En carpetas con un único juego se
+admiten `cover_cropped`, `cover`, `folder` o una única imagen. Ante ambigüedad no
+se elige una imagen arbitraria. Los listados de imágenes se reutilizan durante
+cada escaneo por carpeta. Véase [revisión](26_revision_emuladores_y_biblioteca.md).

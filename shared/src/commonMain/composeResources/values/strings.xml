@@ -136,4 +136,12 @@
     <string name="setup_shortcut_hint">Y / △ Acciones   ·   ← → Elegir   ·   A Confirmar   ·   B Cerrar</string>
     <string name="settings_close_hint">Y / △ Ir a Cerrar   ·   A Confirmar   ·   B Cerrar</string>
     <string name="home_shortcuts">Y / △ Controles superiores   ·   X / □ Ajustar carátula</string>
+    <string name="executable_settings_title">Ejecutables de emuladores</string>
+    <string name="executable_settings_description">Elige el archivo AppImage o .exe de cada emulador. Automático usa Flatpak en Linux o el PATH en Windows. Guarda para aplicar los cambios.</string>
+    <string name="executable_picker_title">ELEGIR EJECUTABLE</string>
+    <string name="executable_select_file">Elegir archivo</string>
+    <string name="executable_automatic">Automático</string>
+    <string name="executable_settings_error">No se pudo leer o guardar la configuración. Comprueba los permisos y vuelve a intentarlo.</string>
+    <string name="executable_settings_busy">Procesando…</string>
+    <string name="executable_settings_controls">A Elegir archivo · X Automático · Y / △ Guardar · B Cerrar</string>
 </resources>

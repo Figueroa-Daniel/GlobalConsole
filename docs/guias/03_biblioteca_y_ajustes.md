@@ -33,6 +33,7 @@ buscar de nuevo.
 
 Otras opciones de Ajustes:
 
+- **Ejecutables de emuladores**: selecciona AppImage/binario o `.exe`. A abre el selector, X restaura Automático, Y enfoca Guardar y A confirma. Cerrar descarta la edición pendiente.
 - **Control del gamepad**: sensibilidad del ratón cuando usas el stick derecho.
 - **Navegadores web**: elige qué navegadores instalados aparecen.
 - **Juegos locales de PC** y **Aplicaciones**: elige qué entradas del sistema se
@@ -53,14 +54,13 @@ Los cambios de Vista se guardan automáticamente. El fondo siempre es oscuro.
 
 ## 3.4. Carátulas
 
-Cada juego usa como carátula la primera imagen (`.png`, `.jpg`, `.jpeg`) de su
-carpeta; véase la [organización de carpetas](01_instalacion_y_preparacion.md).
-Con una carátula presente, **X** abre el recortador para encuadrarla: mueve la
-imagen con el stick izquierdo, haz zoom con los gatillos y confirma.
-
-> [!NOTE]
-> Los juegos de DuckStation (PS1) no cargan carátula de su carpeta en esta
-> versión.
+Los juegos emulados, incluido DuckStation, buscan una imagen con el nombre del
+juego (`Juego.iso` → `Juego.jpg`, `.png` o `.jpeg`). Una imagen genérica solo se
+usa si hay un juego en esa carpeta; véase la
+[organización de carpetas](01_instalacion_y_preparacion.md).
+Con una carátula presente, **X** abre el recortador: mueve la imagen con el stick
+izquierdo, haz zoom con los gatillos y confirma. El recorte de un juego emulado
+se guarda como `Juego.cover.png` y tiene prioridad sin afectar a otros juegos.
 
 ## 3.5. Qué pasa al abrir un elemento
 

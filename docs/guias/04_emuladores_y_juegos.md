@@ -11,32 +11,31 @@ qué comando lanza. Prepara las carpetas según la
 | Consola | Emulador | Carpeta en Ajustes | Formatos que se listan | Carátula automática |
 | --- | --- | --- | --- | --- |
 | PS2 | PCSX2 | Ruta de juegos (PCSX2) | `.iso` | Sí |
-| PS1 | DuckStation | Ruta de juegos (DuckStation PS1) | `.bin` `.cue` `.iso` `.img` `.chd` | No |
+| PS1 | DuckStation | Ruta de juegos (DuckStation PS1) | `.bin` `.cue` `.iso` `.img` `.chd` | Sí |
 | GameCube / Wii | Dolphin | Ruta de juegos (Dolphin) | `.iso` `.rvz` `.wbfs` `.gcm` `.ciso` | Sí |
 | Nintendo DS | melonDS | Ruta de juegos (Melon DS) | `.nds` | Sí |
 | Nintendo 3DS | Azahar | Ruta de juegos (Azahar 3DS) | `.3ds` | Sí |
 | PS3 | RPCS3 | No usa carpeta | — (solo launcher) | — |
 
 El escaneo es recursivo y no distingue mayúsculas en las extensiones.
+Los comandos Flatpak descritos corresponden al modo Automático en Linux; si
+seleccionas un ejecutable se usa esa ruta con los mismos argumentos del juego.
 
 ## 4.2. PlayStation 2 — PCSX2
 
 1. Instala `net.pcsx2.PCSX2` y configura la BIOS y el mando dentro de PCSX2.
 2. Deja las imágenes `.iso` en la carpeta de PCSX2 (mejor una subcarpeta por
    juego con su carátula).
-3. En Ajustes activa el launcher si quieres abrir PCSX2 y escribe la ruta de la
-   carpeta; **Guardar**.
+3. En Ajustes escribe la ruta de la carpeta de juegos de PCSX2 y pulsa **Guardar**.
+   Puedes elegir su binario en **Ejecutables de emuladores**.
 4. Al abrir un juego se ejecuta `flatpak run net.pcsx2.PCSX2 -fullscreen -nogui <iso>`.
 
 ## 4.3. PlayStation 1 — DuckStation
 
 1. Instala `org.duckstation.DuckStation` y configura la BIOS.
-2. Prefiere **un solo archivo por juego** (`.chd`, `.iso` o `.img`).
-
-> [!WARNING]
-> Con un juego en `.cue` + `.bin`, GlobalConsole lista **ambos archivos** como si
-> fueran dos juegos. Convierte a `.chd` o usa un archivo único para evitar
-> entradas duplicadas.
+2. Usa `.chd`, `.iso`, `.img` o un CUE con sus pistas. El `.cue` se muestra
+   como juego y las pistas `.bin`/`.img` referenciadas se omiten de la biblioteca.
+   Un BIN independiente sigue apareciendo. No hace falta convertir ni borrar pistas.
 
 3. Se lanza con `-fullscreen`. En Linux se usa Flatpak
    (`org.duckstation.DuckStation`); también admite un AppImage, véase
@@ -70,8 +69,8 @@ El escaneo es recursivo y no distingue mayúsculas en las extensiones.
 GlobalConsole **no escanea juegos de PS3**: solo abre la interfaz de RPCS3
 (`flatpak run net.rpcs3.RPCS3`). Activa «PS3 Launcher (RPCS3)» en Ajustes. Elige
 y lanza los juegos desde la propia ventana de RPCS3 con el stick derecho como
-ratón; cuando ya no lo necesites, **X + BACK** oculta el cursor. RPCS3 no está
-implementado en Windows.
+ratón; cuando ya no lo necesites, **X + BACK** oculta el cursor. En Windows
+selecciona `rpcs3.exe` en **Ajustes → Ejecutables de emuladores**.
 
 ## 4.8. Heroic Games Launcher
 

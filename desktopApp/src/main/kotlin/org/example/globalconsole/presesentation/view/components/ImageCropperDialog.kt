@@ -48,6 +48,7 @@ import kotlin.math.abs
  * que genera un archivo `cover_cropped.png` en el directorio del juego.
  *
  * @param imagePath Ruta absoluta a la imagen fuente a recortar.
+ * @param outputName Nombre del recorte asociado al juego.
  * @param outputDir Directorio donde se guardará el archivo recortado resultante.
  * @param gamepadManager Gestor del gamepad para leer eventos de botones y ejes en tiempo real.
  * @param onDismiss Acción ejecutada al cancelar el diálogo (botón B).
@@ -62,7 +63,8 @@ fun ImageCropperDialog(
     outputDir: String,
     gamepadManager: GamepadManager?,
     onDismiss: () -> Unit,
-    onCropSaved: (String) -> Unit
+    onCropSaved: (String) -> Unit,
+    outputName: String = "cover_cropped.png"
 ) {
     val scope = rememberCoroutineScope()
 
@@ -87,9 +89,9 @@ fun ImageCropperDialog(
             scope.launch {
                 try {
                     val success = withContext(Dispatchers.IO) {
-                        ImageCropperUtils.cropAndSaveImage(imagePath, capturedX, capturedY, capturedScale, capturedSize, outputDir)
+                        ImageCropperUtils.cropAndSaveImage(imagePath, capturedX, capturedY, capturedScale, capturedSize, outputDir, outputName)
                     }
-                    if (success) onCropSaved(File(outputDir, "cover_cropped.png").absolutePath)
+                    if (success) onCropSaved(File(outputDir, File(outputName).name).absolutePath)
                     else saveError = true
                 } catch (e: kotlinx.coroutines.CancellationException) {
                     throw e

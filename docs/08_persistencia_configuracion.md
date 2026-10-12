@@ -146,3 +146,13 @@ Se usa `FakeSettingsRepository` (implementación en memoria) para aislar los tes
 
 @author Daniel Figueroa Vidal
 @since 2026-08-10
+
+## 7. Rutas de ejecutables (2026-10-12)
+
+`emulatorPaths` conserva sus claves de carpetas y añade `executable.pcsx2`,
+`executable.melonds`, `executable.dolphin`, `executable.azahar`,
+`executable.duckstation` y `executable.rpcs3`. Una cadena vacía conserva el
+lanzamiento automático. Los casos de uso de ejecutables guardan y leen estas
+claves; el comando se resuelve al lanzar, sin variables globales. Guardar desde
+el diálogo espera la persistencia antes de cerrarlo. Véase
+[revisión de emuladores](26_revision_emuladores_y_biblioteca.md).

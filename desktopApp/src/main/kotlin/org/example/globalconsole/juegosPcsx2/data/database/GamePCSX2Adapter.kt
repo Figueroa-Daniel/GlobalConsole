@@ -1,41 +1,46 @@
 package org.example.globalconsole.juegosPcsx2.data.database
 
-import org.example.globalconsole.settings.ROUTE_PCSX2_GAMES
+import kotlinx.coroutines.CancellationException
+import org.example.globalconsole.settings.data.SettingsRepositoryImpl
+import org.example.globalconsole.settings.domain.EmulatorTarget
+import org.example.globalconsole.settings.domain.usecase.BuildEmulatorCommandUseCase
+import java.io.File
 
 /**
- * Adaptador de sistema de emulación encargado de la ejecución nativa del emulador PCSX2.
- * Controla el ciclo de vida del proceso de emulación y detecta el sistema operativo subyacente.
- *
+ * Ejecuta PCSX2 con la ruta persistida y conserva el ciclo de vida del proceso.
+ * @property commandUseCase Resuelve ejecutable y argumentos para el sistema actual.
  * @author Daniel Figueroa Vidal
- * @since 2026-08-02
+ * @since 2026-10-12
  */
-class GamePCSX2Adapter {
+class GamePCSX2Adapter(
+    private val commandUseCase: BuildEmulatorCommandUseCase = BuildEmulatorCommandUseCase(SettingsRepositoryImpl())
+) {
     private var activeProcess: Process? = null
 
     /**
-     * Inicia la ejecución de una ISO de PS2 determinando el sistema operativo actual (Linux o Windows).
-     *
-     * @param executeUrl Ruta absoluta del archivo ISO a ejecutar.
-     * @return True si el proceso del emulador se inició correctamente, false en caso contrario.
-     *
+     * Inicia el juego y espera su finalización sin usar un shell.
+     * @param executeUrl Ruta del juego.
+     * @return True si el proceso termina correctamente; false si no puede ejecutarse.
+     * @throws CancellationException Si se cancela la operación.
      * @author Daniel Figueroa Vidal
-     * @since 2026-08-02
+     * @since 2026-10-12
      */
-    fun executeGame(executeUrl: String?): Boolean {
-        if (executeUrl.isNullOrBlank()) {
-            println("Game execution URL is null or blank.")
-            return false
-        }
-
-        val os = System.getProperty("os.name").lowercase()
-
-        return if (os.contains("linux")) {
-            executeGameForLinuxFlatpak(executeUrl)
-        } else if (os.contains("windows")) {
-            executeGameForWindows(executeUrl)
-        } else {
-            println("Unsupported operating system: $os")
+    suspend fun executeGame(executeUrl: String?): Boolean {
+        if (executeUrl.isNullOrBlank()) return false
+        return try {
+            val command = commandUseCase(EmulatorTarget.PCSX2, System.getProperty("os.name"), executeUrl)
+            val builder = ProcessBuilder(command).inheritIO()
+            File(command.first()).takeIf { it.isAbsolute }?.parentFile?.let { builder.directory(it) }
+            val process = builder.start()
+            activeProcess = process
+            process.waitFor() == 0
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            System.err.println("No se pudo ejecutar PCSX2: ${e.message}")
             false
+        } finally {
+            activeProcess = null
         }
     }
 
@@ -54,87 +59,6 @@ class GamePCSX2Adapter {
             activeProcess = null
             true
         } catch (e: Exception) {
-            e.printStackTrace()
-            false
-        }
-    }
-
-    /**
-     * Ejecuta el emulador PCSX2 en Windows utilizando el binario local y argumentos de pantalla completa.
-     *
-     * @param executeUrl Ruta absoluta del archivo ISO a ejecutar.
-     * @return True si el proceso se inició correctamente, false en caso de error.
-     *
-     * @author Daniel Figueroa Vidal
-     * @since 2026-08-02
-     */
-    private fun executeGameForWindows(executeUrl: String?): Boolean {
-        if (executeUrl.isNullOrBlank()) {
-            println("Windows game execution URL is null or blank.")
-            return false
-        }
-        // Assuming PCSX2 is installed at "C:\Program Files\PCSX2\pcsx2-qt.exe"
-        val command = listOf(
-            "$ROUTE_PCSX2_GAMES/pcsx2-qt.exe",
-            "-fullscreen",
-            "-nogui",
-            executeUrl
-        )
-
-        return try {
-            val processBuilder = ProcessBuilder(command)
-            processBuilder.inheritIO() // This will make the launched process use the same stdin/stdout/stderr as the current process
-            val process = processBuilder.start()
-            activeProcess = process
-            println("Launched PCSX2 with command: ${command.joinToString(" ")}")
-            
-            // Bloquea el hilo actual hasta que el emulador se cierre
-            process.waitFor()
-            activeProcess = null
-            true
-        } catch (e: Exception) {
-            System.err.println("Error launching PCSX2 on Windows: ${e.message}")
-            e.printStackTrace()
-            false
-        }
-    }
-
-    /**
-     * Ejecuta el emulador PCSX2 en Linux utilizando Flatpak y argumentos de pantalla completa.
-     *
-     * @param executeUrl Ruta absoluta del archivo ISO a ejecutar.
-     * @return True si el proceso se inició correctamente, false en caso de error.
-     *
-     * @author Daniel Figueroa Vidal
-     * @since 2026-08-02
-     */
-    private fun executeGameForLinuxFlatpak(executeUrl: String?): Boolean {
-        if (executeUrl.isNullOrBlank()) {
-            println("Linux Flatpak game execution URL is null or blank.")
-            return false
-        }
-        val command = listOf(
-            "flatpak",
-            "run",
-            "net.pcsx2.PCSX2",
-            "-fullscreen",
-            "-nogui",
-            executeUrl
-        )
-
-        return try {
-            val processBuilder = ProcessBuilder(command)
-            processBuilder.inheritIO() // This will make the launched process use the same stdin/stdout/stderr as the current process
-            val process = processBuilder.start()
-            activeProcess = process
-            println("Launched PCSX2 with command: ${command.joinToString(" ")}")
-            
-            // Bloquea el hilo actual hasta que el emulador se cierre
-            process.waitFor()
-            activeProcess = null
-            true
-        } catch (e: Exception) {
-            System.err.println("Error launching PCSX2: ${e.message}")
             e.printStackTrace()
             false
         }

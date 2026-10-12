@@ -20,7 +20,6 @@ val presentationModule = module {
             saveAppearanceSettingsUseCase = get(),
             getGamesP2UseCase = get(),
             executeGameP2UseCase = get(),
-            deleteGameP2UseCase = get(),
             executeHGLauncherUseCase = get(),
             findHGLauncherUseCase = get(),
             showHGLauncherUseCase = get(),
@@ -58,7 +57,6 @@ val presentationModule = module {
             closeLauncherDuckStationUseCase = get(),
             findDuckStationLauncherUseCase = get(),
             showDuckStationLauncherUseCase = get(),
-            deleteGameDuckStationUseCase = get(),
             getNavigatorsWebUseCase = get(),
             executeNavUseCase = get(),
             closeNavUseCase = get(),
@@ -105,7 +103,9 @@ val presentationModule = module {
             getInstalledLocalAppsUseCase = get(),
             isEnabledLocalAppUseCase = get(),
             addLocalAppUseCase = get(),
-            removeLocalAppUseCase = get()
+            removeLocalAppUseCase = get(),
+            getEmulatorExecutableUseCase = get(),
+            saveEmulatorExecutableUseCase = get()
         )
     }
 }

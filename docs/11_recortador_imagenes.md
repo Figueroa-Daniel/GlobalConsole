@@ -32,7 +32,7 @@ Contiene la función pura `cropAndSaveImage(...)`:
 - Recibe la ruta de la imagen fuente, el offset (desplazamiento) y la escala visual aplicada por el usuario.
 - Carga el `BufferedImage` del archivo.
 - Calcula las coordenadas de recorte reales en píxeles de la imagen original.
-- Guarda el resultado como `cover_cropped.png` en la misma carpeta de la ISO/ROM.
+- Guarda el resultado como `Nombre del juego.cover.png` en la misma carpeta de la ISO/ROM.
 
 ### 3.2 `ImageCropperDialog.kt` (UI Composable)
 Componente `@Composable` en forma de diálogo de pantalla completa:
@@ -58,7 +58,7 @@ Usuario (click derecho en GameTile)
               └─> El usuario ajusta zoom y posición
                     └─> Pulsa Confirmar
                           └─> ImageCropperUtils.cropAndSaveImage(...)
-                                └─> Guarda cover_cropped.png en la carpeta de la ISO
+                                └─> Guarda <nombre>.cover.png en la carpeta de la ISO
                                       └─> HomeViewModel.refresh() recarga la lista
                                             └─> GameTile muestra la nueva carátula
 ```

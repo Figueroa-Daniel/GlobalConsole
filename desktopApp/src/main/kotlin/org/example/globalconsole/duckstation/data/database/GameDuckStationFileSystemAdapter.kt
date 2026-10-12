@@ -34,19 +34,32 @@ class GameDuckStationFileSystemAdapter(
 
         val supportedExtensions = listOf("bin", "cue", "iso", "img", "chd")
 
-        return directory.walkTopDown()
-            .filter { file ->
-                file.isFile && supportedExtensions.any { ext -> file.name.lowercase().endsWith(".$ext") }
-            }
+        val candidates = directory.walkTopDown()
+            .filter { it.isFile && it.extension.lowercase() in supportedExtensions }.toList()
+        val referenced = candidates.filter { it.extension.equals("cue", true) }.flatMap { cue ->
+            val contents = try { cue.readText() } catch (_: java.io.IOException) { "" }
+            CUE_FILE.findAll(contents).map { match ->
+                val name = match.groups[1]?.value ?: match.groups[2]!!.value
+                File(cue.parentFile, name.replace('\\', '/')).toPath().normalize().toAbsolutePath()
+            }.toList()
+        }.toSet()
+        val games = candidates.filterNot {
+            it.extension.lowercase() in listOf("bin", "img") && it.toPath().normalize().toAbsolutePath() in referenced
+        }
+        val covers = org.example.globalconsole.generalData.GameCoverFiles(games)
+        return games
             .map { file ->
                 GameDuckStation(
                     id = "duckstation_${file.absolutePath.hashCode()}",
                     name = file.nameWithoutExtension,
                     urlGameExecute = file.absolutePath,
-                    image = null,
+                    image = covers.find(file),
                     platform = Platforms.DUCKSTATION
                 )
             }
             .toList()
+    }
+    private companion object {
+        val CUE_FILE = Regex("""^\s*FILE\s+(?:"([^"]+)"|(\S+))\s+\S+""", setOf(RegexOption.IGNORE_CASE, RegexOption.MULTILINE))
     }
 }

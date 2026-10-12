@@ -1,71 +1,44 @@
 package org.example.globalconsole.duckstation.data.database
 
-import org.example.globalconsole.settings.ROUTE_DUCKSTATION_EXECUTABLE
+import kotlinx.coroutines.CancellationException
+import org.example.globalconsole.settings.data.SettingsRepositoryImpl
+import org.example.globalconsole.settings.domain.EmulatorTarget
+import org.example.globalconsole.settings.domain.usecase.BuildEmulatorCommandUseCase
+import java.io.File
 
 /**
- * Adaptador encargado de controlar la ejecución nativa y ciclo de vida del Launcher de DuckStation.
- * Soporta AppImage (Linux), Flatpak (Linux fallback) y Windows.
- *
+ * Ejecuta DUCKSTATION con la ruta persistida y conserva el ciclo de vida del proceso.
+ * @property commandUseCase Resuelve ejecutable y argumentos para el sistema actual.
  * @author Daniel Figueroa Vidal
- * @since 2026-08-29
+ * @since 2026-10-12
  */
-class LauncherDuckStationAdapter {
-
-    private var currentProcess: Process? = null
+class LauncherDuckStationAdapter(
+    private val commandUseCase: BuildEmulatorCommandUseCase = BuildEmulatorCommandUseCase(SettingsRepositoryImpl())
+) {
+    private var activeProcess: Process? = null
 
     /**
-     * Ejecuta el launcher de DuckStation sin cargar ningún juego, dependiendo del SO.
-     *
-     * @return True si se inició el proceso correctamente, false en caso contrario.
+     * Inicia el launcher y espera su finalización sin usar un shell.
+     * @return True si el proceso termina correctamente; false si no puede ejecutarse.
+     * @throws CancellationException Si se cancela la operación.
      * @author Daniel Figueroa Vidal
-     * @since 2026-08-29
+     * @since 2026-10-12
      */
     suspend fun executeLauncher(): Boolean {
-        val os = System.getProperty("os.name").lowercase()
-
-        return if (os.contains("linux")) {
-            executeLauncherForLinux()
-        } else if (os.contains("windows")) {
-            executeLauncherForWindows()
-        } else {
-            println("Unsupported operating system: $os")
-            false
-        }
-    }
-
-    private fun executeLauncherForWindows(): Boolean {
-        val command = listOf(ROUTE_DUCKSTATION_EXECUTABLE ?: "DuckStation.exe")
-        return launchProcess(command)
-    }
-
-    private fun executeLauncherForLinux(): Boolean {
-        val command = if (!ROUTE_DUCKSTATION_EXECUTABLE.isNullOrBlank()) {
-            listOf(ROUTE_DUCKSTATION_EXECUTABLE!!)
-        } else {
-            val appImage = java.io.File("/home/figue/Descargas/DuckStation-x64.AppImage")
-            if (appImage.exists()) {
-                listOf(appImage.absolutePath)
-            } else {
-                listOf("flatpak", "run", "org.duckstation.DuckStation")
-            }
-        }
-        return launchProcess(command)
-    }
-
-    private fun launchProcess(command: List<String>): Boolean {
         return try {
-            val processBuilder = ProcessBuilder(command)
-            processBuilder.inheritIO()
-            currentProcess = processBuilder.start()
-            println("Launched DuckStation Launcher with command: ${command.joinToString(" ")}")
-            // Bloquea el hilo actual hasta que el emulador se cierre
-            currentProcess?.waitFor()
-            currentProcess = null
-            true
+            val command = commandUseCase(EmulatorTarget.DUCKSTATION, System.getProperty("os.name"))
+            val builder = ProcessBuilder(command).inheritIO()
+            File(command.first()).takeIf { it.isAbsolute }?.parentFile?.let { builder.directory(it) }
+            val process = builder.start()
+            activeProcess = process
+            process.waitFor() == 0
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
-            System.err.println("Error launching DuckStation Launcher: ${e.message}")
-            e.printStackTrace()
+            System.err.println("No se pudo ejecutar DUCKSTATION: ${e.message}")
             false
+        } finally {
+            activeProcess = null
         }
     }
 
@@ -78,11 +51,11 @@ class LauncherDuckStationAdapter {
      */
     suspend fun closeLauncher(): Boolean {
         return try {
-            currentProcess?.let { process ->
+            activeProcess?.let { process ->
                 process.descendants().forEach { it.destroyForcibly() }
                 process.destroyForcibly()
             }
-            currentProcess = null
+            activeProcess = null
 
             val os = System.getProperty("os.name").lowercase()
             if (os.contains("linux")) {

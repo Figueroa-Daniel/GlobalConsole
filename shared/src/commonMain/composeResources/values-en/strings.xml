@@ -122,4 +122,12 @@
     <string name="setup_shortcut_hint">Y / △ Actions   ·   ← → Choose   ·   A Confirm   ·   B Close</string>
     <string name="settings_close_hint">Y / △ Go to Close   ·   A Confirm   ·   B Close</string>
     <string name="home_shortcuts">Y / △ Top controls   ·   X / □ Adjust cover</string>
+    <string name="executable_settings_title">Emulator executables</string>
+    <string name="executable_settings_description">Choose each emulator’s AppImage or .exe file. Automatic uses Flatpak on Linux or PATH on Windows. Save to apply changes.</string>
+    <string name="executable_picker_title">CHOOSE EXECUTABLE</string>
+    <string name="executable_select_file">Select file</string>
+    <string name="executable_automatic">Automatic</string>
+    <string name="executable_settings_error">Could not read or save settings. Check permissions and try again.</string>
+    <string name="executable_settings_busy">Working…</string>
+    <string name="executable_settings_controls">A Choose file · X Automatic · Y / △ Save · B Close</string>
 </resources>
