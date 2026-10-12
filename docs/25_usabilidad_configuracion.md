@@ -15,3 +15,13 @@ Se mantiene Compose y la paleta [Metro](21_metro_personalizable.md). La configur
 ## 1.4. Validación prevista
 
 Al ser navegación y composición visual, verificar con una ventana de prueba y eventos de mando: salto desde listas largas, confirmación explícita, cambio de foco y modales. Ejecutar la suite de UseCases existente; no introducir pruebas unitarias de UI ni lógica artificial en dominio. Revisar configuración a resolución de escritorio y reducida. Registrar resultados en [contexto](19_contexto_ia.md).
+
+## 1.5. Resultado verificado
+
+Compilación y 135 pruebas de UseCases correctas. Una ventana temporal Xvfb,
+fuera del repositorio y con configuración aislada, comprobó Y sin ejecución,
+Y–izquierda–A para cerrar ajustes, Y–A en Vista/Navegadores/Juegos/Aplicaciones
+y selección de acciones en carpetas. Un modal de Navegadores abierto desde
+ajustes se cerró sin activar el padre. Capturas revisadas a 1280×900 y 1000×700.
+Con una biblioteca de 40 elementos, Y desde una fila inferior enfocó Buscar y
+A abrió el teclado de búsqueda. La prueba no utiliza un mando físico.
