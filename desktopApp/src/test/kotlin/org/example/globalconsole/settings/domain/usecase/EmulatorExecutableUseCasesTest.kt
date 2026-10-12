@@ -52,4 +52,19 @@ class EmulatorExecutableUseCasesTest {
             EmulatorTarget.DOLPHIN to listOf("-b", "-e"), EmulatorTarget.MELONDS to listOf("-f"), EmulatorTarget.AZAHAR to listOf("-f"))
         for ((target, args) in flags) assertEquals(listOf("flatpak", "run", target.flatpakId) + args + game, build(target, "Linux", game))
     }
+    /** @return Unit. @throws Exception Si falla el ejecutable temporal. @author Daniel Figueroa Vidal @since 2026-10-12 */
+    @Test fun rpcs3LauncherRunsConfiguredProcessAndReportsFailedExit() = runBlocking {
+        org.junit.Assume.assumeTrue(System.getProperty("os.name").lowercase().contains("linux"))
+        val executable = temporary.newFile("fake emulator")
+        executable.writeText("#!/bin/sh\nexit 0\n")
+        assertTrue(executable.setExecutable(true))
+        val settings = SettingsRepositoryImpl(temporary.newFile())
+        SaveEmulatorExecutableUseCase(settings)(EmulatorTarget.RPCS3, executable.absolutePath)
+        val adapter = org.example.globalconsole.PS3Launcher.data.database.LauncherPS3Adapter(BuildEmulatorCommandUseCase(settings))
+        val execute = org.example.globalconsole.PS3Launcher.domain.usecase.ExecutePS3LauncherUseCase(
+            adapter)
+        assertTrue(execute())
+        executable.writeText("#!/bin/sh\nexit 7\n")
+        assertFalse(execute())
+    }
 }
