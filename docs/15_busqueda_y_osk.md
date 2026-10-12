@@ -189,3 +189,8 @@ que mantener pulsado no repite y que L1/R1 no alteran los atajos existentes.
 La interacción real con el cursor de un navegador depende del foco de la ventana
 externa y requiere comprobación en el entorno gráfico del usuario. Véase
 [Mando y foco](12_manejo_gamepad_y_foco.md) y [Contexto](19_contexto_ia.md).
+
+Validación del apartado 11: 131 pruebas correctas, incluidos flancos de L1/R1,
+pulsaciones mantenidas y rechazo fuera del teclado externo. La ayuda del OSK
+muestra «L1/R1 Cursor». Falta confirmar el foco y la inyección de flechas en un
+navegador real con mando físico.

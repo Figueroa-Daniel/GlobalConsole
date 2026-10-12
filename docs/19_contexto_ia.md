@@ -106,3 +106,11 @@ restaurada con `OpenOskOnTextClickUseCase`; el doble A fuera de texto no abre.
 5 para mandos estándar: L2 deja de aceptarse como equivalente de R2. Se mantiene
 la histéresis, confirmación con START y cierre con B. Pruebas de casos de uso
 verificadas; pendiente comprobación física. Ver [Teclado](15_busqueda_y_osk.md).
+
+## 7. Cursor externo desde el teclado flotante (2026-10-12)
+
+Con el OSK abierto sobre una aplicación externa, L1/R1 envían flechas
+izquierda/derecha al campo que conserva el foco. La selección de teclas sigue
+en la cruceta y el stick izquierdo. `OskExternalCursorUseCase` detecta flancos y
+`GamepadManager` inyecta las flechas; el control se desactiva fuera de ese
+contexto. Véase [Teclado en pantalla](15_busqueda_y_osk.md).
