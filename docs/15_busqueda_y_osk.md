@@ -104,3 +104,31 @@ el cierre natural termina la espera, el cierre explícito no afecta a otro
 navegador y un lanzamiento fallido devuelve error. Falta la prueba interactiva
 con Brave real tras reiniciar GlobalConsole. Si Brave mantiene procesos en segundo
 plano al cerrar su última ventana, START + BACK termina la sesión seguida.
+
+## 8. Atajo en primer plano y borrado en campos externos
+
+**Problema.** START + R2 no abría el teclado y no se podía borrar el texto ya
+existente de un campo.
+
+**Causas y decisiones.**
+
+1. El atajo solo se evaluaba con una aplicación externa abierta. Ahora
+   `GamepadManager` lo evalúa también con GlobalConsole en primer plano. Mientras
+   el teclado está abierto, sus eventos se emiten por un flujo propio
+   (`oskEvents`) para no filtrarse a la pantalla base, según la regla 1 de
+   [Mando y foco](12_manejo_gamepad_y_foco.md).
+2. R2 es un eje analítico (reposo −1 o 0 según el controlador). El umbral único
+   0,1 provocaba lecturas inestables. `TriggerPressUseCase` aplica histéresis:
+   pulsado por encima de 0,5 y liberado por debajo de 0,2.
+3. El `⌫` solo borraba el búfer del teclado. Con el búfer vacío,
+   `KeyboardInputUseCase` incrementa `externalDeletes` y la capa de presentación
+   envía Retroceso al campo externo con AWT Robot. Así se puede borrar lo escrito
+   antes de abrir el teclado, también en los campos internos de GlobalConsole.
+
+**Impacto.** La lógica nueva reside en casos de uso puros con pruebas
+(`TriggerPressUseCaseTest`, `KeyboardInputUseCaseTest`); la inyección de teclas
+sigue en la capa de presentación. Véase [Arquitectura](01_arquitectura.md) y
+[Contexto](19_contexto_ia.md).
+
+@author Daniel Figueroa Vidal
+@since 2026-10-12
