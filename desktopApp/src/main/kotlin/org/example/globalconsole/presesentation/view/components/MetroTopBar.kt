@@ -106,5 +106,7 @@ fun MetroTopBar(
                 MetroBarAction(stringResource(Res.string.action_settings), onSettingsClick, focusedButton == TopBarFocus.SETTINGS, inputMode)
             }
         }
+        Text(stringResource(Res.string.home_shortcuts), color = palette.muted, fontSize = 12.sp,
+            modifier = Modifier.padding(top = 10.dp))
     }
 }

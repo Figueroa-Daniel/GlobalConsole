@@ -74,6 +74,7 @@ fun NavigatorsSettingsDialog(
                         if (item == null) onDismiss()
                         else settingsViewModel.setNavigatorEnabled(item.navigator, !item.enabled)
                     }
+                    GamepadEvent.Button.OPTIONS -> focusedRow = currentNavigators.size
                     GamepadEvent.Button.BACK -> onDismiss()
                     else -> {}
                 }
@@ -142,7 +143,8 @@ fun NavigatorsSettingsDialog(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Text(stringResource(Res.string.settings_close_hint), color = palette.muted, fontSize = 13.sp,
+                    modifier = Modifier.padding(vertical = 12.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[closeRow]),
                     horizontalArrangement = Arrangement.End

@@ -52,6 +52,7 @@ fun GamepadFolderPickerDialog(
     var currentDir by remember { mutableStateOf(File(initialPath).takeIf { it.exists() } ?: File("/")) }
     var folders by remember { mutableStateOf(emptyList<File>()) }
     var focusedIndex by remember { mutableStateOf(0) }
+    var focusedAction by remember { mutableStateOf<Int?>(null) }
     val inputMode by gamepadManager.inputMode.collectAsState()
     val listState = rememberLazyListState()
 
@@ -79,6 +80,15 @@ fun GamepadFolderPickerDialog(
         gamepadManager.events.collect { event ->
             when (event) {
                 is GamepadEvent.DirectionPressed -> {
+                    if (focusedAction != null) {
+                        when (event.direction) {
+                            GamepadEvent.Direction.LEFT -> focusedAction = 0
+                            GamepadEvent.Direction.RIGHT -> focusedAction = 1
+                            GamepadEvent.Direction.UP -> focusedAction = null
+                            GamepadEvent.Direction.DOWN -> Unit
+                        }
+                        return@collect
+                    }
                     when (event.direction) {
                         GamepadEvent.Direction.UP -> {
                             if (focusedIndex > 0) focusedIndex--
@@ -103,7 +113,12 @@ fun GamepadFolderPickerDialog(
                 }
                 is GamepadEvent.ButtonPressed -> {
                     when (event.button) {
-                        GamepadEvent.Button.CONFIRM -> { // Entrar en la carpeta
+                        GamepadEvent.Button.OPTIONS -> focusedAction = 1
+                        GamepadEvent.Button.CONFIRM -> {
+                            if (focusedAction != null) {
+                                if (focusedAction == 0) onDismiss() else onDirectorySelected(currentDir.absolutePath)
+                                return@collect
+                            }
                             if (folders.isNotEmpty()) {
                                 val selected = folders.getOrNull(focusedIndex) ?: return@collect
                                 if (selected.name == "..") {
@@ -185,9 +200,9 @@ fun GamepadFolderPickerDialog(
                                     else currentDir = folder
                                 },
                                 modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp),
-                                isFocused = index == focusedIndex,
+                                isFocused = focusedAction == null && index == focusedIndex,
                                 inputMode = inputMode,
-                                onHover = { focusedIndex = index }
+                                onHover = { focusedAction = null; focusedIndex = index }
                             )
                         }
                     }
@@ -210,7 +225,8 @@ fun GamepadFolderPickerDialog(
                         MetroButton(
                             text = stringResource(Res.string.action_cancel),
                             inputMode = inputMode,
-                            isFocused = false,
+                            isFocused = focusedAction == 0,
+                            onHover = { focusedAction = 0 },
                             onClick = onDismiss
                         )
                         Spacer(modifier = Modifier.width(12.dp))
@@ -218,7 +234,8 @@ fun GamepadFolderPickerDialog(
                             text = stringResource(Res.string.folder_select_current),
                             inputMode = inputMode,
                             isPrimary = true,
-                            isFocused = false,
+                            isFocused = focusedAction == 1,
+                            onHover = { focusedAction = 1 },
                             onClick = { onDirectorySelected(currentDir.absolutePath) }
                         )
                     }

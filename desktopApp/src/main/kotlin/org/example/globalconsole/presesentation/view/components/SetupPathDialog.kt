@@ -218,6 +218,7 @@ fun SetupPathDialog(
                             }
                         }
                     }
+                    if (event.button == GamepadEvent.Button.OPTIONS) focusedButton = DialogButton.CONFIRM
                     if (event.button == GamepadEvent.Button.BACK) {
                         onDismiss()
                     }

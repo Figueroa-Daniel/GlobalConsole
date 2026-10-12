@@ -60,9 +60,11 @@ fun LocalGamesSettingsDialog(
                 is GamepadEvent.DirectionPressed -> when (event.direction) {
                     GamepadEvent.Direction.UP -> focusedRow = (focusedRow - 1).coerceAtLeast(0)
                     GamepadEvent.Direction.DOWN -> focusedRow = (focusedRow + 1).coerceAtMost(current.items.size + 1)
-                    else -> Unit
+                    GamepadEvent.Direction.LEFT -> if (focusedRow >= current.items.size) focusedRow = current.items.size
+                    GamepadEvent.Direction.RIGHT -> if (focusedRow >= current.items.size) focusedRow = current.items.size + 1
                 }
                 is GamepadEvent.ButtonPressed -> when (event.button) {
+                    GamepadEvent.Button.OPTIONS -> focusedRow = current.items.size + 1
                     GamepadEvent.Button.BACK -> if (!current.busy) dismiss()
                     GamepadEvent.Button.CONFIRM -> if (!current.busy) {
                         val item = current.items.getOrNull(focusedRow)
