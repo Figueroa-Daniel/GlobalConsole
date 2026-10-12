@@ -192,5 +192,6 @@ externa y requiere comprobación en el entorno gráfico del usuario. Véase
 
 Validación del apartado 11: 131 pruebas correctas, incluidos flancos de L1/R1,
 pulsaciones mantenidas y rechazo fuera del teclado externo. La ayuda del OSK
-muestra «L1/R1 Cursor». Falta confirmar el foco y la inyección de flechas en un
+muestra «L1/R1 Cursor». Al cerrar el OSK, el estado de ambos botones queda
+sincronizado para no emitir pulsaciones a la vista del fondo. Falta confirmar el foco y la inyección de flechas en un
 navegador real con mando físico.
