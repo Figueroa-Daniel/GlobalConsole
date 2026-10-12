@@ -30,6 +30,7 @@ import java.io.File
 
 private enum class DialogButton {
     SENSITIVITY_SLIDER,
+    EXECUTABLES_OPEN,
     HEROIC_TOGGLE,
     MELONDS_TOGGLE,
     DOLPHIN_TOGGLE,
@@ -91,6 +92,7 @@ fun SetupPathDialog(
     var errorMessage by remember { mutableStateOf("") }
     var focusedButton by remember { mutableStateOf(DialogButton.SENSITIVITY_SLIDER) }
     var showFolderPickerFor by remember { mutableStateOf<DialogButton?>(null) }
+    var showExecutables by remember { mutableStateOf(false) }
     var showNavigators by remember { mutableStateOf(false) }
     var showLocalGames by remember { mutableStateOf(false) }
     var showLocalApps by remember { mutableStateOf(false) }
@@ -113,15 +115,16 @@ fun SetupPathDialog(
         settingsViewModel.loadMouseSensitivity()
     }
 
-    LaunchedEffect(gamepadManager, showFolderPickerFor, showNavigators, showLocalGames, showLocalApps) {
-        if (showFolderPickerFor != null || showNavigators || showLocalGames || showLocalApps) return@LaunchedEffect
+    LaunchedEffect(gamepadManager, showFolderPickerFor, showNavigators, showLocalGames, showLocalApps, showExecutables) {
+        if (showFolderPickerFor != null || showNavigators || showLocalGames || showLocalApps || showExecutables) return@LaunchedEffect
 
         gamepadManager.events.collect { event ->
             when (event) {
                 is GamepadEvent.DirectionPressed -> {
                     focusedButton = when (event.direction) {
                         GamepadEvent.Direction.UP -> when (focusedButton) {
-                            DialogButton.HEROIC_TOGGLE -> DialogButton.SENSITIVITY_SLIDER
+                            DialogButton.HEROIC_TOGGLE -> DialogButton.EXECUTABLES_OPEN
+                            DialogButton.EXECUTABLES_OPEN -> DialogButton.SENSITIVITY_SLIDER
                             DialogButton.MELONDS_TOGGLE -> DialogButton.HEROIC_TOGGLE
                             DialogButton.DOLPHIN_TOGGLE -> DialogButton.MELONDS_TOGGLE
                             DialogButton.PS3_TOGGLE -> DialogButton.DOLPHIN_TOGGLE
@@ -141,7 +144,8 @@ fun SetupPathDialog(
                             else -> focusedButton
                         }
                         GamepadEvent.Direction.DOWN -> when (focusedButton) {
-                            DialogButton.SENSITIVITY_SLIDER -> DialogButton.HEROIC_TOGGLE
+                            DialogButton.SENSITIVITY_SLIDER -> DialogButton.EXECUTABLES_OPEN
+                            DialogButton.EXECUTABLES_OPEN -> DialogButton.HEROIC_TOGGLE
                             DialogButton.HEROIC_TOGGLE -> DialogButton.MELONDS_TOGGLE
                             DialogButton.MELONDS_TOGGLE -> DialogButton.DOLPHIN_TOGGLE
                             DialogButton.DOLPHIN_TOGGLE -> DialogButton.PS3_TOGGLE
@@ -193,6 +197,7 @@ fun SetupPathDialog(
                 is GamepadEvent.ButtonPressed -> {
                     if (event.button == GamepadEvent.Button.CONFIRM) {
                         when (focusedButton) {
+                            DialogButton.EXECUTABLES_OPEN -> showExecutables = true
                             DialogButton.HEROIC_TOGGLE -> settingsViewModel.setHeroicEnabled(!heroicEnabled)
                             DialogButton.MELONDS_TOGGLE -> settingsViewModel.setMelonDSEnabled(!melonDSEnabled)
                             DialogButton.DOLPHIN_TOGGLE -> settingsViewModel.setDolphinEnabled(!dolphinEnabled)
@@ -290,6 +295,15 @@ fun SetupPathDialog(
                             }
                         }
                         Spacer(modifier = Modifier.height(12.dp))
+
+                        MetroButton(
+                            text = stringResource(Res.string.executable_settings_title), inputMode = inputMode,
+                            modifier = Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.EXECUTABLES_OPEN]!!),
+                            isFocused = focusedButton == DialogButton.EXECUTABLES_OPEN,
+                            onHover = { focusedButton = DialogButton.EXECUTABLES_OPEN },
+                            onClick = { showExecutables = true }
+                        )
+                        Spacer(Modifier.height(12.dp))
 
                         Row(
                             Modifier.fillMaxWidth().bringIntoViewRequester(requesters[DialogButton.HEROIC_TOGGLE]!!)
@@ -556,6 +570,10 @@ fun SetupPathDialog(
                 }
             }
         }
+    }
+
+    if (showExecutables) {
+        EmulatorExecutablesDialog(settingsViewModel, gamepadManager, onDismiss = { showExecutables = false })
     }
 
     if (showLocalGames) {

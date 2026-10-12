@@ -100,8 +100,36 @@ class SettingsViewModel(
     private val getInstalledLocalAppsUseCase: GetInstalledLocalAppsUseCase? = null,
     private val isEnabledLocalAppUseCase: IsEnabledLocalAppUseCase? = null,
     private val addLocalAppUseCase: AddLocalAppUseCase? = null,
-    private val removeLocalAppUseCase: RemoveLocalAppUseCase? = null
+    private val removeLocalAppUseCase: RemoveLocalAppUseCase? = null,
+    private val getEmulatorExecutableUseCase: org.example.globalconsole.settings.domain.usecase.GetEmulatorExecutableUseCase,
+    private val saveEmulatorExecutableUseCase: org.example.globalconsole.settings.domain.usecase.SaveEmulatorExecutableUseCase
 ) : ViewModel() {
+
+    /**
+     * Carga las rutas de ejecutables fuera del hilo de interfaz.
+     * @return Rutas por emulador; vacío indica selección automática.
+     * @throws Exception Si no se puede leer la configuración.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-12
+     */
+    suspend fun loadExecutables(): Map<org.example.globalconsole.settings.domain.EmulatorTarget, String> =
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            org.example.globalconsole.settings.domain.EmulatorTarget.entries.associateWith { getEmulatorExecutableUseCase(it) }
+        }
+
+    /**
+     * Guarda las rutas editadas antes de cerrar el diálogo.
+     * @param paths Rutas seleccionadas por emulador.
+     * @return Unit.
+     * @throws Exception Si alguna ruta o escritura falla.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-12
+     */
+    suspend fun saveExecutables(paths: Map<org.example.globalconsole.settings.domain.EmulatorTarget, String>) {
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            paths.forEach { (target, path) -> saveEmulatorExecutableUseCase(target, path) }
+        }
+    }
 
     private val _localGames = MutableStateFlow(LocalGamesSettingsState())
     val localGames: StateFlow<LocalGamesSettingsState> = _localGames.asStateFlow()

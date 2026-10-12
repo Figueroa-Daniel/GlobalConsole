@@ -38,6 +38,7 @@ import java.io.File
  * @param initialPath Ruta inicial (por defecto el Home del usuario).
  * @param onDirectorySelected Callback cuando el usuario confirma la carpeta actual.
  * @param onDismiss Callback para cancelar la operación.
+ * @param selectFile Si es true, permite seleccionar archivos en lugar de carpetas.
  *
  * @author Daniel Figueroa Vidal
  * @since 2026-08-13
@@ -47,7 +48,8 @@ fun GamepadFolderPickerDialog(
     gamepadManager: GamepadManager,
     initialPath: String = System.getProperty("user.home"),
     onDirectorySelected: (String) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    selectFile: Boolean = false
 ) {
     var currentDir by remember { mutableStateOf(File(initialPath).takeIf { it.exists() } ?: File("/")) }
     var folders by remember { mutableStateOf(emptyList<File>()) }
@@ -56,9 +58,14 @@ fun GamepadFolderPickerDialog(
     val inputMode by gamepadManager.inputMode.collectAsState()
     val listState = rememberLazyListState()
 
+    val selectCurrent by rememberUpdatedState<() -> Unit> {
+        if (selectFile) folders.getOrNull(focusedIndex)?.takeIf { it.isFile }?.let { onDirectorySelected(it.absolutePath) }
+        else onDirectorySelected(currentDir.absolutePath)
+    }
+
     // Cargar carpetas cuando cambia el directorio actual
-    LaunchedEffect(currentDir) {
-        val listedFiles = currentDir.listFiles()?.filter { it.isDirectory && !it.isHidden }?.sortedBy { it.name.lowercase() } ?: emptyList()
+    LaunchedEffect(currentDir, selectFile) {
+        val listedFiles = currentDir.listFiles()?.filter { (it.isDirectory || selectFile && it.isFile) && (!it.isHidden || selectFile) }?.sortedWith(compareBy<File> { !it.isDirectory }.thenBy { it.name.lowercase() }) ?: emptyList()
         folders = if (currentDir.parentFile != null) {
             listOf(File("..")) + listedFiles
         } else {
@@ -105,7 +112,8 @@ fun GamepadFolderPickerDialog(
                                 if (selected.name == "..") {
                                     currentDir.parentFile?.let { currentDir = it }
                                 } else {
-                                    currentDir = selected
+                                    if (selectFile && selected.isFile) onDirectorySelected(selected.absolutePath)
+                                    else currentDir = selected
                                 }
                             }
                         }
@@ -116,7 +124,7 @@ fun GamepadFolderPickerDialog(
                         GamepadEvent.Button.OPTIONS -> focusedAction = 1
                         GamepadEvent.Button.CONFIRM -> {
                             if (focusedAction != null) {
-                                if (focusedAction == 0) onDismiss() else onDirectorySelected(currentDir.absolutePath)
+                                if (focusedAction == 0) onDismiss() else selectCurrent()
                                 return@collect
                             }
                             if (folders.isNotEmpty()) {
@@ -124,7 +132,8 @@ fun GamepadFolderPickerDialog(
                                 if (selected.name == "..") {
                                     currentDir.parentFile?.let { currentDir = it }
                                 } else {
-                                    currentDir = selected
+                                    if (selectFile && selected.isFile) onDirectorySelected(selected.absolutePath)
+                                    else currentDir = selected
                                 }
                             }
                         }
@@ -137,7 +146,7 @@ fun GamepadFolderPickerDialog(
                         }
                         GamepadEvent.Button.DELETE -> onDismiss()
                         GamepadEvent.Button.MENU -> { // Seleccionar la carpeta ACTUAL
-                            onDirectorySelected(currentDir.absolutePath)
+                            selectCurrent()
                         }
                         else -> {}
                     }
@@ -164,7 +173,7 @@ fun GamepadFolderPickerDialog(
                     .padding(24.dp)
             ) {
                 Text(
-                    text = stringResource(Res.string.folder_picker_title),
+                    text = stringResource(if (selectFile) Res.string.executable_picker_title else Res.string.folder_picker_title),
                     color = Color.White,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
@@ -193,10 +202,11 @@ fun GamepadFolderPickerDialog(
                     ) {
                         itemsIndexed(folders) { index, folder ->
                             MetroButton(
-                                text = if (folder.name == "..") stringResource(Res.string.folder_parent) else "▸  ${folder.name}",
+                                text = if (folder.name == "..") stringResource(Res.string.folder_parent) else if (folder.isDirectory) "▸  ${folder.name}" else folder.name,
                                 onClick = {
                                     focusedIndex = index
                                     if (folder.name == "..") currentDir.parentFile?.let { currentDir = it }
+                                    else if (selectFile && folder.isFile) onDirectorySelected(folder.absolutePath)
                                     else currentDir = folder
                                 },
                                 modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp),
@@ -231,12 +241,12 @@ fun GamepadFolderPickerDialog(
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         MetroButton(
-                            text = stringResource(Res.string.folder_select_current),
+                            text = stringResource(if (selectFile) Res.string.executable_select_file else Res.string.folder_select_current),
                             inputMode = inputMode,
                             isPrimary = true,
                             isFocused = focusedAction == 1,
                             onHover = { focusedAction = 1 },
-                            onClick = { onDirectorySelected(currentDir.absolutePath) }
+                            onClick = { selectCurrent() }
                         )
                     }
                 }
