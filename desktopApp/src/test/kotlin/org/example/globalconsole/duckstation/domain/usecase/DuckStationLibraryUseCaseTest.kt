@@ -50,4 +50,15 @@ class DuckStationLibraryUseCaseTest {
         assertEquals(setOf("Disc", "Other"), games.map { it.name }.toSet())
         assertEquals(File(dir, "cover.png").absolutePath, games.single { it.name == "Disc" }.image)
     }
+    /** @return Unit. @throws Exception Si falla la carpeta temporal. @author Daniel Figueroa Vidal @since 2026-10-12 */
+    @Test fun unsupportedDeletionReportsFailureWithoutRemovingFiles() = runBlocking {
+        val dir = temporary.newFolder()
+        val game = File(dir, "Keep.chd").apply { writeText("keep") }
+        val settings = SettingsRepositoryImpl(temporary.newFile())
+        SaveEmulatorPathUseCase(settings)("duckstation", dir.absolutePath)
+        val repo = GameDuckStationRepositoryImpl(GameDuckStationFileSystemAdapter(GetEmulatorPathUseCase(settings)), GameDuckStationAdapter())
+        val id = GetGamesDuckStationUseCase(repo)().single().id
+        assertFalse(DeleteGameDuckStationUseCase(repo)(id))
+        assertTrue(game.exists())
+    }
 }

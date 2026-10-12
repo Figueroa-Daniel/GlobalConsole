@@ -21,8 +21,8 @@ class GameDuckStationRepositoryImpl(
 ) : GameDuckStationRepository {
 
     override suspend fun deleteGameDuckStation(id: String): Boolean = withContext(Dispatchers.IO) {
-        // En esta iteración no borramos archivos físicos.
-        true
+        // Esta operación aún no está implementada; nunca comunicar un borrado inexistente.
+        false
     }
 
     override suspend fun executeGameDuckStation(id: String): Boolean = withContext(Dispatchers.IO) {
