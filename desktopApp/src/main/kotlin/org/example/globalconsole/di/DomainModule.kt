@@ -17,6 +17,9 @@ import org.example.globalconsole.settings.domain.usecase.SaveViewSettingsUseCase
 import org.koin.dsl.module
 
 val domainModule = module {
+    single { org.example.globalconsole.settings.domain.usecase.BuildEmulatorCommandUseCase(get()) }
+    single { org.example.globalconsole.settings.domain.usecase.GetEmulatorExecutableUseCase(get()) }
+    single { org.example.globalconsole.settings.domain.usecase.SaveEmulatorExecutableUseCase(get()) }
     factory { org.example.globalconsole.settings.domain.usecase.GetAppearanceSettingsUseCase(get()) }
     factory { org.example.globalconsole.settings.domain.usecase.SaveAppearanceSettingsUseCase(get()) }
     // UseCases de configuración (rutas de emuladores)

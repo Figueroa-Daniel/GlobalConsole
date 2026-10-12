@@ -1,42 +1,46 @@
 package org.example.globalconsole.duckstation.data.database
 
-import org.example.globalconsole.settings.ROUTE_DUCKSTATION_EXECUTABLE
+import kotlinx.coroutines.CancellationException
+import org.example.globalconsole.settings.data.SettingsRepositoryImpl
+import org.example.globalconsole.settings.domain.EmulatorTarget
+import org.example.globalconsole.settings.domain.usecase.BuildEmulatorCommandUseCase
+import java.io.File
 
 /**
- * Adaptador encargado de la ejecución nativa de los juegos para el emulador DuckStation.
- * Soporta AppImage (Linux), Flatpak (Linux fallback) y Windows de forma modular.
- * Si [ROUTE_DUCKSTATION_EXECUTABLE] está definida se usa como ruta directa (AppImage/custom);
- * en caso contrario, en Linux se usa Flatpak como fallback automático.
- *
+ * Ejecuta DUCKSTATION con la ruta persistida y conserva el ciclo de vida del proceso.
+ * @property commandUseCase Resuelve ejecutable y argumentos para el sistema actual.
  * @author Daniel Figueroa Vidal
- * @since 2026-08-29
+ * @since 2026-10-12
  */
-class GameDuckStationAdapter {
+class GameDuckStationAdapter(
+    private val commandUseCase: BuildEmulatorCommandUseCase = BuildEmulatorCommandUseCase(SettingsRepositoryImpl())
+) {
     private var activeProcess: Process? = null
 
     /**
-     * Inicia la ejecución de una ROM de PlayStation 1.
-     *
-     * @param executeUrl Ruta absoluta del archivo a ejecutar.
-     * @return True si el proceso del emulador se inició y terminó correctamente.
+     * Inicia el juego y espera su finalización sin usar un shell.
+     * @param executeUrl Ruta del juego.
+     * @return True si el proceso termina correctamente; false si no puede ejecutarse.
+     * @throws CancellationException Si se cancela la operación.
      * @author Daniel Figueroa Vidal
-     * @since 2026-08-29
+     * @since 2026-10-12
      */
-    fun executeGame(executeUrl: String?): Boolean {
-        if (executeUrl.isNullOrBlank()) {
-            println("Game execution URL is null or blank.")
-            return false
-        }
-
-        val os = System.getProperty("os.name").lowercase()
-
-        return if (os.contains("linux")) {
-            executeGameForLinux(executeUrl)
-        } else if (os.contains("windows")) {
-            executeGameForWindows(executeUrl)
-        } else {
-            println("Unsupported operating system: $os")
+    suspend fun executeGame(executeUrl: String?): Boolean {
+        if (executeUrl.isNullOrBlank()) return false
+        return try {
+            val command = commandUseCase(EmulatorTarget.DUCKSTATION, System.getProperty("os.name"), executeUrl)
+            val builder = ProcessBuilder(command).inheritIO()
+            File(command.first()).takeIf { it.isAbsolute }?.parentFile?.let { builder.directory(it) }
+            val process = builder.start()
+            activeProcess = process
+            process.waitFor() == 0
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            System.err.println("No se pudo ejecutar DUCKSTATION: ${e.message}")
             false
+        } finally {
+            activeProcess = null
         }
     }
 
@@ -67,46 +71,6 @@ class GameDuckStationAdapter {
 
             true
         } catch (e: Exception) {
-            e.printStackTrace()
-            false
-        }
-    }
-
-    private fun executeGameForWindows(executeUrl: String): Boolean {
-        val command = listOf(
-            ROUTE_DUCKSTATION_EXECUTABLE ?: "DuckStation.exe",
-            "-fullscreen",
-            executeUrl
-        )
-        return executeCommand(command)
-    }
-
-    private fun executeGameForLinux(executeUrl: String): Boolean {
-        val command = if (!ROUTE_DUCKSTATION_EXECUTABLE.isNullOrBlank()) {
-            listOf(ROUTE_DUCKSTATION_EXECUTABLE!!, "-fullscreen", executeUrl)
-        } else {
-            val appImage = java.io.File("/home/figue/Descargas/DuckStation-x64.AppImage")
-            if (appImage.exists()) {
-                listOf(appImage.absolutePath, "-fullscreen", executeUrl)
-            } else {
-                listOf("flatpak", "run", "org.duckstation.DuckStation", "-fullscreen", executeUrl)
-            }
-        }
-        return executeCommand(command)
-    }
-
-    private fun executeCommand(command: List<String>): Boolean {
-        return try {
-            val processBuilder = ProcessBuilder(command)
-            processBuilder.inheritIO()
-            val process = processBuilder.start()
-            activeProcess = process
-            println("Launched DuckStation with command: ${command.joinToString(" ")}")
-            process.waitFor()
-            activeProcess = null
-            true
-        } catch (e: Exception) {
-            System.err.println("Error launching DuckStation: ${e.message}")
             e.printStackTrace()
             false
         }

@@ -26,13 +26,6 @@ var ROUTE_PCSSX2: String? = null
  */
 var ROUTE_MELONDS_GAMES: String? = null
 
-/**
- * Ruta de instalación o binario ejecutable de Melon DS (si aplica para Windows).
- *
- * @author Daniel Figueroa Vidal
- * @since 2026-08-15
- */
-var ROUTE_MELONDS_EXECUTABLE: String? = null
 
 /**
  * Ruta del directorio local donde se encuentran almacenados los juegos de Wii/GameCube (Dolphin).
@@ -43,13 +36,6 @@ var ROUTE_MELONDS_EXECUTABLE: String? = null
  */
 var ROUTE_DOLPHIN_GAMES: String? = null
 
-/**
- * Ruta de instalación o binario ejecutable de Dolphin (si aplica para Windows).
- *
- * @author Daniel Figueroa Vidal
- * @since 2026-08-16
- */
-var ROUTE_DOLPHIN_EXECUTABLE: String? = null
 
 /**
  * Ruta del directorio local donde se encuentran almacenados los juegos de Nintendo 3DS (Azahar).
@@ -60,13 +46,6 @@ var ROUTE_DOLPHIN_EXECUTABLE: String? = null
  */
 var ROUTE_AZAHAR_GAMES: String? = null
 
-/**
- * Ruta de instalación o binario ejecutable de Azahar (si aplica para Windows).
- *
- * @author Daniel Figueroa Vidal
- * @since 2026-08-26
- */
-var ROUTE_AZAHAR_EXECUTABLE: String? = null
 
 /**
  * Ruta del directorio local donde se encuentran almacenados los juegos de PlayStation 1 (DuckStation).
@@ -78,12 +57,3 @@ var ROUTE_AZAHAR_EXECUTABLE: String? = null
  */
 var ROUTE_DUCKSTATION_GAMES: String? = null
 
-/**
- * Ruta del AppImage, binario ejecutable o instalación personalizada de DuckStation.
- * En Linux: si está definida se usa como AppImage; en caso contrario se usa Flatpak como fallback.
- * En Windows: ruta al ejecutable DuckStation.exe.
- *
- * @author Daniel Figueroa Vidal
- * @since 2026-08-29
- */
-var ROUTE_DUCKSTATION_EXECUTABLE: String? = null

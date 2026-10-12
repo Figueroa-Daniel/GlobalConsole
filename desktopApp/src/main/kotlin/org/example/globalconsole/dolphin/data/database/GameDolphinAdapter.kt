@@ -1,40 +1,46 @@
 package org.example.globalconsole.dolphin.data.database
 
-import org.example.globalconsole.settings.ROUTE_DOLPHIN_EXECUTABLE
+import kotlinx.coroutines.CancellationException
+import org.example.globalconsole.settings.data.SettingsRepositoryImpl
+import org.example.globalconsole.settings.domain.EmulatorTarget
+import org.example.globalconsole.settings.domain.usecase.BuildEmulatorCommandUseCase
+import java.io.File
 
 /**
- * Adaptador encargado de la ejecución nativa de los juegos para el emulador Dolphin.
- *
+ * Ejecuta DOLPHIN con la ruta persistida y conserva el ciclo de vida del proceso.
+ * @property commandUseCase Resuelve ejecutable y argumentos para el sistema actual.
  * @author Daniel Figueroa Vidal
- * @since 2026-08-16
+ * @since 2026-10-12
  */
-class GameDolphinAdapter {
+class GameDolphinAdapter(
+    private val commandUseCase: BuildEmulatorCommandUseCase = BuildEmulatorCommandUseCase(SettingsRepositoryImpl())
+) {
     private var activeProcess: Process? = null
 
     /**
-     * Inicia la ejecución de una ROM de Wii/GameCube.
-     *
-     * @param executeUrl Ruta absoluta del archivo a ejecutar.
-     * @return True si el proceso del emulador se inició y terminó correctamente.
-     *
+     * Inicia el juego y espera su finalización sin usar un shell.
+     * @param executeUrl Ruta del juego.
+     * @return True si el proceso termina correctamente; false si no puede ejecutarse.
+     * @throws CancellationException Si se cancela la operación.
      * @author Daniel Figueroa Vidal
-     * @since 2026-08-16
+     * @since 2026-10-12
      */
-    fun executeGame(executeUrl: String?): Boolean {
-        if (executeUrl.isNullOrBlank()) {
-            println("Game execution URL is null or blank.")
-            return false
-        }
-
-        val os = System.getProperty("os.name").lowercase()
-
-        return if (os.contains("linux")) {
-            executeGameForLinuxFlatpak(executeUrl)
-        } else if (os.contains("windows")) {
-            executeGameForWindows(executeUrl)
-        } else {
-            println("Unsupported operating system: $os")
+    suspend fun executeGame(executeUrl: String?): Boolean {
+        if (executeUrl.isNullOrBlank()) return false
+        return try {
+            val command = commandUseCase(EmulatorTarget.DOLPHIN, System.getProperty("os.name"), executeUrl)
+            val builder = ProcessBuilder(command).inheritIO()
+            File(command.first()).takeIf { it.isAbsolute }?.parentFile?.let { builder.directory(it) }
+            val process = builder.start()
+            activeProcess = process
+            process.waitFor() == 0
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            System.err.println("No se pudo ejecutar DOLPHIN: ${e.message}")
             false
+        } finally {
+            activeProcess = null
         }
     }
 
@@ -64,58 +70,6 @@ class GameDolphinAdapter {
 
             true
         } catch (e: Exception) {
-            e.printStackTrace()
-            false
-        }
-    }
-
-    private fun executeGameForWindows(executeUrl: String?): Boolean {
-        val command = listOf(
-            ROUTE_DOLPHIN_EXECUTABLE ?: "Dolphin.exe",
-            "-b",
-            "-e",
-            executeUrl!!
-        )
-
-        return try {
-            val processBuilder = ProcessBuilder(command)
-            processBuilder.inheritIO()
-            val process = processBuilder.start()
-            activeProcess = process
-            println("Launched Dolphin with command: ${command.joinToString(" ")}")
-
-            process.waitFor()
-            activeProcess = null
-            true
-        } catch (e: Exception) {
-            System.err.println("Error launching Dolphin on Windows: ${e.message}")
-            e.printStackTrace()
-            false
-        }
-    }
-
-    private fun executeGameForLinuxFlatpak(executeUrl: String?): Boolean {
-        val command = listOf(
-            "flatpak",
-            "run",
-            "org.DolphinEmu.dolphin-emu",
-            "-b",
-            "-e",
-            executeUrl!!
-        )
-
-        return try {
-            val processBuilder = ProcessBuilder(command)
-            processBuilder.inheritIO()
-            val process = processBuilder.start()
-            activeProcess = process
-            println("Launched Dolphin with command: ${command.joinToString(" ")}")
-
-            process.waitFor()
-            activeProcess = null
-            true
-        } catch (e: Exception) {
-            System.err.println("Error launching Dolphin Flatpak: ${e.message}")
             e.printStackTrace()
             false
         }
