@@ -132,3 +132,21 @@ sigue en la capa de presentación. Véase [Arquitectura](01_arquitectura.md) y
 
 @author Daniel Figueroa Vidal
 @since 2026-10-12
+
+### 8.1 Gatillos intercambiados en algunos mandos
+
+El diagnóstico con el mando HJDX (GUID `03000000632500002605000010010000`) mostró
+que su R2 físico llega por el eje 4 (`LEFT_TRIGGER` del estándar GLFW) y su L2
+por el eje 5. Con un único eje fijo, START + R2 no abría el teclado. Decisión: el
+atajo acepta cualquiera de los dos gatillos, de modo que funciona en mandos con
+el mapeo estándar y en los intercambiados sin necesidad de configuración. El
+coste es que START + L2 también abre el teclado, aceptable porque L2 no tiene
+otra función con el mando en este contexto. `TriggerPressUseCase.anyPressed`
+resuelve la lectura de ambos ejes con histéresis independiente.
+
+Este mando también puede registrar R3 (botón 10) al apretar R2 a fondo; el
+atajo evita reabrir o cerrar el teclado dos veces en esa pulsación (véase el
+caso de uso `OskShortcutUseCase`).
+
+@author Daniel Figueroa Vidal
+@since 2026-10-12
