@@ -114,3 +114,12 @@ izquierda/derecha al campo que conserva el foco. La selección de teclas sigue
 en la cruceta y el stick izquierdo. `OskExternalCursorUseCase` detecta flancos y
 `GamepadManager` inyecta las flechas; el control se desactiva fuera de ese
 contexto. Véase [Teclado en pantalla](15_busqueda_y_osk.md).
+
+## 8. Texto pendiente del OSK con L2/R2 (2026-10-12)
+
+El teclado flotante mantiene un cursor propio en el texto que aún no se ha
+enviado. L2/R2 lo desplazan por caracteres Unicode completos; las teclas se
+insertan en el cursor y borrar elimina el carácter anterior. L1/R1 conservan
+el control del campo externo, mientras la cruceta y el stick seleccionan teclas.
+`OskTextTriggerUseCase` detecta flancos y cede prioridad a START + R2.
+Véase [Teclado en pantalla](15_busqueda_y_osk.md).

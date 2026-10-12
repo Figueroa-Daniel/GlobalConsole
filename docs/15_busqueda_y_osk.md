@@ -212,3 +212,9 @@ combo no desplaza el cursor de edición ni al soltar START si R2 continúa pulsa
 Las pruebas se limitan a casos de uso: inserción/borrado en el cursor, límites,
 Unicode, flancos y prioridad del combo. Véase [Mando](12_manejo_gamepad_y_foco.md)
 y [Contexto](19_contexto_ia.md).
+
+Validación del apartado 12: 135 pruebas correctas. Se cubrieron inserción y
+borrado en el cursor, límites, Unicode, los dos mapeos físicos de gatillos y el
+bloqueo de movimiento durante START + R2. En una vista X11 temporal se observó
+`w│q` tras escribir `q`, mover el cursor y añadir `w`, sin desplazar la tecla
+virtual resaltada. Queda pendiente la comprobación con mando físico.
