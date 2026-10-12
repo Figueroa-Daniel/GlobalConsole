@@ -406,8 +406,9 @@ class GamepadManager {
      * @author Daniel Figueroa Vidal
      * @since 2026-10-12
      */
-    private fun evaluateOskShortcut(buttons: ByteBuffer, axes: java.nio.FloatBuffer): OskShortcutAction =
-        oskShortcuts(
+    private fun evaluateOskShortcut(buttons: ByteBuffer, axes: java.nio.FloatBuffer): OskShortcutAction {
+        logOskDiagnostics(buttons, axes)
+        return oskShortcuts(
             OskShortcutState(
                 start = buttons.get(GLFW_GAMEPAD_BUTTON_START).toInt() == GLFW_PRESS,
                 rightTrigger = rightTriggerPress(axes.get(GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER)),
@@ -416,6 +417,36 @@ class GamepadManager {
             ),
             _isOskOverlayVisible.value
         )
+    }
+
+    private var lastDiagnostic = ""
+
+    /**
+     * Diagnóstico temporal: imprime el mando y los controles activos cuando cambian, para
+     * confirmar qué índices de eje y botón envía realmente el hardware.
+     *
+     * @param buttons Buffer de botones GLFW.
+     * @param axes Buffer de ejes GLFW.
+     * @return Unit.
+     * @throws Nothing No lanza excepciones.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-12
+     */
+    private fun logOskDiagnostics(buttons: ByteBuffer, axes: java.nio.FloatBuffer) {
+        val pressed = (0..GLFW_GAMEPAD_BUTTON_LAST).filter { buttons.get(it).toInt() == GLFW_PRESS }
+        val axesActive = (4..5).map { "eje$it=%.2f".format(axes.get(it)) }
+        val signature = "$pressed $axesActive"
+        if (pressed.isEmpty() && axes.get(4) < 0.2f && axes.get(5) < 0.2f) {
+            lastDiagnostic = ""
+            return
+        }
+        if (signature == lastDiagnostic) return
+        lastDiagnostic = signature
+        System.err.println(
+            "[OSK-DIAG] mando='${glfwGetGamepadName(selectedGamepadId)}' guid=${glfwGetJoystickGUID(selectedGamepadId)} " +
+                "botones=$pressed $axesActive (L2=eje4, R2=eje5, START=6, R3=9, R1=5)"
+        )
+    }
 
     /**
      * Alterna el teclado y sincroniza los flancos para que ningún botón se filtre a la pantalla.
