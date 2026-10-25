@@ -1,24 +1,5 @@
 package org.example.globalconsole.presesentation.input
 
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
-import org.example.globalconsole.input.domain.usecase.KeyboardAction
-import org.example.globalconsole.input.domain.usecase.OskTextTriggerUseCase
-import org.example.globalconsole.input.domain.usecase.OpenOskOnTextClickUseCase
-import org.example.globalconsole.input.domain.usecase.OskExternalCursorAction
-import org.example.globalconsole.input.domain.usecase.OskExternalCursorUseCase
-import org.example.globalconsole.input.domain.usecase.OskShortcutAction
-import org.example.globalconsole.input.domain.usecase.OskShortcutState
-import org.example.globalconsole.input.domain.usecase.OskRightTriggerUseCase
-import org.example.globalconsole.input.domain.usecase.OskShortcutUseCase
-import org.example.globalconsole.input.domain.usecase.TriggerPressUseCase
-import org.lwjgl.glfw.GLFW.*
-import org.lwjgl.glfw.GLFWGamepadState
 import java.awt.GraphicsEnvironment
 import java.awt.MouseInfo
 import java.awt.Robot
@@ -28,22 +9,40 @@ import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import java.nio.ByteBuffer
 import kotlin.math.abs
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import org.example.globalconsole.input.domain.usecase.KeyboardAction
+import org.example.globalconsole.input.domain.usecase.OpenOskOnTextClickUseCase
+import org.example.globalconsole.input.domain.usecase.OskExternalCursorAction
+import org.example.globalconsole.input.domain.usecase.OskExternalCursorUseCase
+import org.example.globalconsole.input.domain.usecase.OskRightTriggerUseCase
+import org.example.globalconsole.input.domain.usecase.OskShortcutAction
+import org.example.globalconsole.input.domain.usecase.OskShortcutState
+import org.example.globalconsole.input.domain.usecase.OskShortcutUseCase
+import org.example.globalconsole.input.domain.usecase.OskTextTriggerUseCase
+import org.example.globalconsole.input.domain.usecase.TriggerPressUseCase
+import org.lwjgl.glfw.GLFW.*
+import org.lwjgl.glfw.GLFWGamepadState
 
-/**
- * Modos de entrada disponibles en la interfaz.
- */
+/** Modos de entrada disponibles en la interfaz. */
 enum class InputMode {
-    MOUSE, GAMEPAD
+    MOUSE,
+    GAMEPAD
 }
 
 /**
- * Gestor del ciclo de vida de GLFW y de la lectura de eventos de gamepad físicos.
- * Ejecuta un ciclo de consulta activa (polling) en una Coroutine asíncrona dedicada,
- * detectando cambios de estado en botones y direcciones del stick izquierdo / D-Pad.
+ * Gestor del ciclo de vida de GLFW y de la lectura de eventos de gamepad físicos. Ejecuta un ciclo
+ * de consulta activa (polling) en una Coroutine asíncrona dedicada, detectando cambios de estado en
+ * botones y direcciones del stick izquierdo / D-Pad.
  *
- * El **stick derecho** actúa como puntero de ratón al estilo PS4 Remote Play,
- * controlado directamente a través de [java.awt.Robot] sin pasar por Compose.
- * El botón Cuadrado (X en GLFW) realiza click izquierdo del ratón.
+ * El **stick derecho** actúa como puntero de ratón al estilo PS4 Remote Play, controlado
+ * directamente a través de [java.awt.Robot] sin pasar por Compose. El botón Cuadrado (X en GLFW)
+ * realiza click izquierdo del ratón.
  *
  * @author Daniel Figueroa Vidal
  * @since 2026-08-09
@@ -54,15 +53,16 @@ class GamepadManager {
 
     /**
      * Flujo de eventos asíncronos generados por el gamepad (botones y direcciones de navegación).
-     * El movimiento del ratón por stick derecho NO se emite aquí; se aplica directamente al sistema.
+     * El movimiento del ratón por stick derecho NO se emite aquí; se aplica directamente al
+     * sistema.
      */
     val events: SharedFlow<GamepadEvent> = _events.asSharedFlow()
 
     private val _oskEvents = MutableSharedFlow<GamepadEvent>(extraBufferCapacity = 64)
 
     /**
-     * Eventos del mando dirigidos exclusivamente al teclado flotante mientras está visible,
-     * para que la pantalla base no los procese (regla de fuga de eventos).
+     * Eventos del mando dirigidos exclusivamente al teclado flotante mientras está visible, para
+     * que la pantalla base no los procese (regla de fuga de eventos).
      */
     val oskEvents: SharedFlow<GamepadEvent> = _oskEvents.asSharedFlow()
 
@@ -94,11 +94,14 @@ class GamepadManager {
     private var lastPressedDirection: GamepadEvent.Direction? = null
 
     // Robot de AWT para control nativo del ratón (stick derecho)
-    private val awtRobot: Robot? = try { Robot() } catch (e: Exception) { null }
+    private val awtRobot: Robot? =
+            try {
+                Robot()
+            } catch (e: Exception) {
+                null
+            }
 
-    /**
-     * Indica si la lectura del mando está suspendida (ej. durante la ejecución de un juego).
-     */
+    /** Indica si la lectura del mando está suspendida (ej. durante la ejecución de un juego). */
     @Volatile
     var isSuspended: Boolean = false
         set(value) {
@@ -110,21 +113,22 @@ class GamepadManager {
         }
 
     /**
-     * Indica si se permite usar el ratón (stick derecho) cuando la lectura del mando está suspendida (ej. en Melon DS).
+     * Indica si se permite usar el ratón (stick derecho) cuando la lectura del mando está
+     * suspendida (ej. en Melon DS).
      */
-    @Volatile
-    var isMouseAllowedWhenSuspended: Boolean = false
+    @Volatile var isMouseAllowedWhenSuspended: Boolean = false
 
     /**
-     * Velocidad / sensibilidad del movimiento del ratón con el stick derecho.
-     * Puede ser ajustada en tiempo real.
+     * Velocidad / sensibilidad del movimiento del ratón con el stick derecho. Puede ser ajustada en
+     * tiempo real.
      */
     var mouseSensitivity: Float = 14f
 
     private val _isOskOverlayVisible = MutableStateFlow(false)
 
     /**
-     * Indica si el teclado flotante en pantalla (OSK Overlay) está visible sobre aplicaciones suspendidas.
+     * Indica si el teclado flotante en pantalla (OSK Overlay) está visible sobre aplicaciones
+     * suspendidas.
      */
     val isOskOverlayVisible: StateFlow<Boolean> = _isOskOverlayVisible.asStateFlow()
 
@@ -248,39 +252,41 @@ class GamepadManager {
         cursorDetector = SystemCursorDetector()
         detectActiveGamepad()
 
-        pollingJob = scope.launch(Dispatchers.IO) {
-            val state = GLFWGamepadState.calloc()
-            try {
-                while (isActive) {
-                    glfwPollEvents()
+        pollingJob =
+                scope.launch(Dispatchers.IO) {
+                    val state = GLFWGamepadState.calloc()
+                    try {
+                        while (isActive) {
+                            glfwPollEvents()
 
-                    if (selectedGamepadId == -1 || !glfwJoystickIsGamepad(selectedGamepadId)) {
-                        detectActiveGamepad()
-                    }
-
-                    processSystemMouseClick()
-
-                    if (selectedGamepadId != -1) {
-                        if (glfwGetGamepadState(selectedGamepadId, state)) {
-                            if (isSuspended) {
-                                processSuspendedGamepadState(state)
-                            } else {
-                                processGamepadState(state)
+                            if (selectedGamepadId == -1 || !glfwJoystickIsGamepad(selectedGamepadId)
+                            ) {
+                                detectActiveGamepad()
                             }
-                        }
-                    }
 
-                    delay(16) // ~60Hz
+                            processSystemMouseClick()
+
+                            if (selectedGamepadId != -1) {
+                                if (glfwGetGamepadState(selectedGamepadId, state)) {
+                                    if (isSuspended) {
+                                        processSuspendedGamepadState(state)
+                                    } else {
+                                        processGamepadState(state)
+                                    }
+                                }
+                            }
+
+                            delay(16) // ~60Hz
+                        }
+                    } finally {
+                        state.free()
+                    }
                 }
-            } finally {
-                state.free()
-            }
-        }
     }
 
     /**
-     * Apaga el bucle de lectura y libera los recursos de GLFW.
-     * Debe llamarse al cerrarse la ventana de la aplicación.
+     * Apaga el bucle de lectura y libera los recursos de GLFW. Debe llamarse al cerrarse la ventana
+     * de la aplicación.
      *
      * @author Daniel Figueroa Vidal
      * @since 2026-08-09
@@ -313,7 +319,8 @@ class GamepadManager {
     }
 
     /**
-     * Procesa únicamente el botón HOME y (opcionalmente) el ratón cuando el gamepad está suspendido (ej. con un juego abierto).
+     * Procesa únicamente el botón HOME y (opcionalmente) el ratón cuando el gamepad está suspendido
+     * (ej. con un juego abierto).
      *
      * @author Daniel Figueroa Vidal
      * @since 2026-08-15
@@ -321,16 +328,17 @@ class GamepadManager {
     private suspend fun processSuspendedGamepadState(state: GLFWGamepadState) {
         val buttons: ByteBuffer = state.buttons()
         val axes = state.axes()
-        
+
         // 1. Botón central (Guía/PS/Xbox)
         checkButtonPress(buttons, GLFW_GAMEPAD_BUTTON_GUIDE, GamepadEvent.Button.HOME)
 
-        // 2. Combo de seguridad: START + BACK (Select + Start) simultáneamente para volver a la interfaz
+        // 2. Combo de seguridad: START + BACK (Select + Start) simultáneamente para volver a la
+        // interfaz
         val startPressed = buttons.get(GLFW_GAMEPAD_BUTTON_START).toInt() == GLFW_PRESS
         val backPressed = buttons.get(GLFW_GAMEPAD_BUTTON_BACK).toInt() == GLFW_PRESS
         val wasStartPressed = lastButtonsState[GLFW_GAMEPAD_BUTTON_START]
         val wasBackPressed = lastButtonsState[GLFW_GAMEPAD_BUTTON_BACK]
-        
+
         // Se activa cuando ambos están pulsados y al menos uno de ellos acaba de pasar a pulsado
         if (startPressed && backPressed && (!wasStartPressed || !wasBackPressed)) {
             hideOskOverlay()
@@ -361,7 +369,8 @@ class GamepadManager {
         if (xPressed && backPressed && !(wasXPressed && wasBackPressed)) {
             isMouseAllowedWhenSuspended = !isMouseAllowedWhenSuspended
             if (!isMouseAllowedWhenSuspended) {
-                // Mandar a la esquina inferior derecha extrema para que el OS lo atrape en el borde final y quede oculto
+                // Mandar a la esquina inferior derecha extrema para que el OS lo atrape en el borde
+                // final y quede oculto
                 awtRobot?.mouseMove(9999, 9999)
             } else {
                 // Al reactivarlo, mandarlo al centro de la pantalla principal
@@ -397,20 +406,28 @@ class GamepadManager {
      * @author Daniel Figueroa Vidal
      * @since 2026-10-12
      */
-    private fun evaluateOskShortcut(buttons: ByteBuffer, axes: java.nio.FloatBuffer): OskShortcutAction {
+    private fun evaluateOskShortcut(
+            buttons: ByteBuffer,
+            axes: java.nio.FloatBuffer
+    ): OskShortcutAction {
         logOskDiagnostics(buttons, axes)
         return oskShortcuts(
-            OskShortcutState(
-                start = buttons.get(GLFW_GAMEPAD_BUTTON_START).toInt() == GLFW_PRESS,
-                rightTrigger = rightTriggerPress(oskRightTrigger(
-                    glfwGetJoystickGUID(selectedGamepadId),
-                    axes.get(GLFW_GAMEPAD_AXIS_LEFT_TRIGGER),
-                    axes.get(GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER)
-                )),
-                rightBumper = buttons.get(GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER).toInt() == GLFW_PRESS,
-                rightStick = buttons.get(GLFW_GAMEPAD_BUTTON_RIGHT_THUMB).toInt() == GLFW_PRESS
-            ),
-            _isOskOverlayVisible.value
+                OskShortcutState(
+                        start = buttons.get(GLFW_GAMEPAD_BUTTON_START).toInt() == GLFW_PRESS,
+                        rightTrigger =
+                                rightTriggerPress(
+                                        oskRightTrigger(
+                                                glfwGetJoystickGUID(selectedGamepadId),
+                                                axes.get(GLFW_GAMEPAD_AXIS_LEFT_TRIGGER),
+                                                axes.get(GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER)
+                                        )
+                                ),
+                        rightBumper =
+                                buttons.get(GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER).toInt() == GLFW_PRESS,
+                        rightStick =
+                                buttons.get(GLFW_GAMEPAD_BUTTON_RIGHT_THUMB).toInt() == GLFW_PRESS
+                ),
+                _isOskOverlayVisible.value
         )
     }
 
@@ -425,22 +442,23 @@ class GamepadManager {
      * @since 2026-10-12
      */
     private fun evaluateOskTextTrigger(
-        buttons: ByteBuffer,
-        axes: java.nio.FloatBuffer,
-        shortcut: OskShortcutAction
-    ): KeyboardAction? = oskTextTriggers(
-        glfwGetJoystickGUID(selectedGamepadId),
-        axes.get(GLFW_GAMEPAD_AXIS_LEFT_TRIGGER),
-        axes.get(GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER),
-        buttons.get(GLFW_GAMEPAD_BUTTON_START).toInt() == GLFW_PRESS,
-        _isOskOverlayVisible.value && shortcut != OskShortcutAction.TOGGLE
-    )
+            buttons: ByteBuffer,
+            axes: java.nio.FloatBuffer,
+            shortcut: OskShortcutAction
+    ): KeyboardAction? =
+            oskTextTriggers(
+                    glfwGetJoystickGUID(selectedGamepadId),
+                    axes.get(GLFW_GAMEPAD_AXIS_LEFT_TRIGGER),
+                    axes.get(GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER),
+                    buttons.get(GLFW_GAMEPAD_BUTTON_START).toInt() == GLFW_PRESS,
+                    _isOskOverlayVisible.value && shortcut != OskShortcutAction.TOGGLE
+            )
 
     private var lastDiagnostic = ""
 
     /**
-     * Diagnóstico temporal: imprime el mando y los controles activos cuando cambian, para
-     * confirmar qué índices de eje y botón envía realmente el hardware.
+     * Diagnóstico temporal: imprime el mando y los controles activos cuando cambian, para confirmar
+     * qué índices de eje y botón envía realmente el hardware.
      *
      * @param buttons Buffer de botones GLFW.
      * @param axes Buffer de ejes GLFW.
@@ -460,8 +478,8 @@ class GamepadManager {
         if (signature == lastDiagnostic) return
         lastDiagnostic = signature
         System.err.println(
-            "[OSK-DIAG] mando='${glfwGetGamepadName(selectedGamepadId)}' guid=${glfwGetJoystickGUID(selectedGamepadId)} " +
-                "botones=$pressed $axesActive (L2=eje4, R2=eje5, START=6, R3=9, R1=5)"
+                "[OSK-DIAG] mando='${glfwGetGamepadName(selectedGamepadId)}' guid=${glfwGetJoystickGUID(selectedGamepadId)} " +
+                        "botones=$pressed $axesActive (L2=eje4, R2=eje5, START=6, R3=9, R1=5)"
         )
     }
 
@@ -497,8 +515,8 @@ class GamepadManager {
     }
 
     /**
-     * Procesa navegación y botones del teclado flotante, tanto con una aplicación externa
-     * como con GlobalConsole en primer plano.
+     * Procesa navegación y botones del teclado flotante, tanto con una aplicación externa como con
+     * GlobalConsole en primer plano.
      *
      * @param buttons Buffer de botones GLFW.
      * @param axes Buffer de ejes GLFW.
@@ -510,13 +528,15 @@ class GamepadManager {
      * @since 2026-10-12
      */
     private suspend fun processOskInput(
-        buttons: ByteBuffer,
-        axes: java.nio.FloatBuffer,
-        shortcut: OskShortcutAction,
-        textMovement: KeyboardAction?
+            buttons: ByteBuffer,
+            axes: java.nio.FloatBuffer,
+            shortcut: OskShortcutAction,
+            textMovement: KeyboardAction?
     ) {
-        lastButtonsState[GLFW_GAMEPAD_BUTTON_LEFT_BUMPER] = buttons.get(GLFW_GAMEPAD_BUTTON_LEFT_BUMPER).toInt() == GLFW_PRESS
-        lastButtonsState[GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER] = buttons.get(GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER).toInt() == GLFW_PRESS
+        lastButtonsState[GLFW_GAMEPAD_BUTTON_LEFT_BUMPER] =
+                buttons.get(GLFW_GAMEPAD_BUTTON_LEFT_BUMPER).toInt() == GLFW_PRESS
+        lastButtonsState[GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER] =
+                buttons.get(GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER).toInt() == GLFW_PRESS
         val bPressed = buttons.get(GLFW_GAMEPAD_BUTTON_B).toInt() == GLFW_PRESS
         val wasBPressed = lastButtonsState[GLFW_GAMEPAD_BUTTON_B]
         lastButtonsState[GLFW_GAMEPAD_BUTTON_B] = bPressed
@@ -526,44 +546,52 @@ class GamepadManager {
         }
 
         when (textMovement) {
-            KeyboardAction.TEXT_LEFT -> emitEvent(GamepadEvent.ButtonPressed(GamepadEvent.Button.TEXT_LEFT))
-            KeyboardAction.TEXT_RIGHT -> emitEvent(GamepadEvent.ButtonPressed(GamepadEvent.Button.TEXT_RIGHT))
+            KeyboardAction.TEXT_LEFT ->
+                    emitEvent(GamepadEvent.ButtonPressed(GamepadEvent.Button.TEXT_LEFT))
+            KeyboardAction.TEXT_RIGHT ->
+                    emitEvent(GamepadEvent.ButtonPressed(GamepadEvent.Button.TEXT_RIGHT))
             else -> Unit
         }
 
-        val cursorAction = oskExternalCursor(
-            left = buttons.get(GLFW_GAMEPAD_BUTTON_LEFT_BUMPER).toInt() == GLFW_PRESS,
-            right = buttons.get(GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER).toInt() == GLFW_PRESS,
-            active = isSuspended && _isOskOverlayVisible.value
-        )
+        val cursorAction =
+                oskExternalCursor(
+                        left = buttons.get(GLFW_GAMEPAD_BUTTON_LEFT_BUMPER).toInt() == GLFW_PRESS,
+                        right = buttons.get(GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER).toInt() == GLFW_PRESS,
+                        active = isSuspended && _isOskOverlayVisible.value
+                )
         when (cursorAction) {
             OskExternalCursorAction.LEFT -> sendCursorMoveToSystem(KeyEvent.VK_LEFT)
             OskExternalCursorAction.RIGHT -> sendCursorMoveToSystem(KeyEvent.VK_RIGHT)
             OskExternalCursorAction.NONE -> Unit
         }
 
-        val activeDirection = when {
-            buttons.get(GLFW_GAMEPAD_BUTTON_DPAD_UP).toInt() == GLFW_PRESS -> GamepadEvent.Direction.UP
-            buttons.get(GLFW_GAMEPAD_BUTTON_DPAD_DOWN).toInt() == GLFW_PRESS -> GamepadEvent.Direction.DOWN
-            buttons.get(GLFW_GAMEPAD_BUTTON_DPAD_LEFT).toInt() == GLFW_PRESS -> GamepadEvent.Direction.LEFT
-            buttons.get(GLFW_GAMEPAD_BUTTON_DPAD_RIGHT).toInt() == GLFW_PRESS -> GamepadEvent.Direction.RIGHT
-            else -> {
-                val leftX = axes.get(GLFW_GAMEPAD_AXIS_LEFT_X)
-                val leftY = axes.get(GLFW_GAMEPAD_AXIS_LEFT_Y)
+        val activeDirection =
                 when {
-                    leftY < -0.5f -> GamepadEvent.Direction.UP
-                    leftY > 0.5f -> GamepadEvent.Direction.DOWN
-                    leftX < -0.5f -> GamepadEvent.Direction.LEFT
-                    leftX > 0.5f -> GamepadEvent.Direction.RIGHT
-                    else -> null
+                    buttons.get(GLFW_GAMEPAD_BUTTON_DPAD_UP).toInt() == GLFW_PRESS ->
+                            GamepadEvent.Direction.UP
+                    buttons.get(GLFW_GAMEPAD_BUTTON_DPAD_DOWN).toInt() == GLFW_PRESS ->
+                            GamepadEvent.Direction.DOWN
+                    buttons.get(GLFW_GAMEPAD_BUTTON_DPAD_LEFT).toInt() == GLFW_PRESS ->
+                            GamepadEvent.Direction.LEFT
+                    buttons.get(GLFW_GAMEPAD_BUTTON_DPAD_RIGHT).toInt() == GLFW_PRESS ->
+                            GamepadEvent.Direction.RIGHT
+                    else -> {
+                        val leftX = axes.get(GLFW_GAMEPAD_AXIS_LEFT_X)
+                        val leftY = axes.get(GLFW_GAMEPAD_AXIS_LEFT_Y)
+                        when {
+                            leftY < -0.5f -> GamepadEvent.Direction.UP
+                            leftY > 0.5f -> GamepadEvent.Direction.DOWN
+                            leftX < -0.5f -> GamepadEvent.Direction.LEFT
+                            leftX > 0.5f -> GamepadEvent.Direction.RIGHT
+                            else -> null
+                        }
+                    }
                 }
-            }
-        }
 
         val currentTime = System.currentTimeMillis()
         if (activeDirection != null) {
             if (activeDirection != lastPressedDirection ||
-                (currentTime - lastDirectionPressedTime) >= directionRepeatDelayMs
+                            (currentTime - lastDirectionPressedTime) >= directionRepeatDelayMs
             ) {
                 emitEvent(GamepadEvent.DirectionPressed(activeDirection))
                 lastDirectionPressedTime = currentTime
@@ -614,7 +642,11 @@ class GamepadManager {
      * @author Daniel Figueroa Vidal
      * @since 2026-10-12
      */
-    private suspend fun oskButtonPress(buttons: ByteBuffer, glfwButtonId: Int, eventButton: GamepadEvent.Button) {
+    private suspend fun oskButtonPress(
+            buttons: ByteBuffer,
+            glfwButtonId: Int,
+            eventButton: GamepadEvent.Button
+    ) {
         val isPressed = buttons.get(glfwButtonId).toInt() == GLFW_PRESS
         if (isPressed && !lastButtonsState[glfwButtonId]) {
             emitEvent(GamepadEvent.ButtonPressed(eventButton))
@@ -653,8 +685,8 @@ class GamepadManager {
     }
 
     /**
-     * Procesa el estado completo del mando en cada frame:
-     * botones de acción, direcciones de navegación y movimiento del ratón por stick derecho.
+     * Procesa el estado completo del mando en cada frame: botones de acción, direcciones de
+     * navegación y movimiento del ratón por stick derecho.
      *
      * @author Daniel Figueroa Vidal
      * @since 2026-08-09
@@ -723,21 +755,23 @@ class GamepadManager {
             val leftY = axes.get(GLFW_GAMEPAD_AXIS_LEFT_Y)
             val navThreshold = 0.5f
 
-            activeDirection = when {
-                leftY < -navThreshold -> GamepadEvent.Direction.UP
-                leftY > navThreshold -> GamepadEvent.Direction.DOWN
-                leftX < -navThreshold -> GamepadEvent.Direction.LEFT
-                leftX > navThreshold -> GamepadEvent.Direction.RIGHT
-                else -> null
-            }
+            activeDirection =
+                    when {
+                        leftY < -navThreshold -> GamepadEvent.Direction.UP
+                        leftY > navThreshold -> GamepadEvent.Direction.DOWN
+                        leftX < -navThreshold -> GamepadEvent.Direction.LEFT
+                        leftX > navThreshold -> GamepadEvent.Direction.RIGHT
+                        else -> null
+                    }
         }
 
-        // Debouncing de dirección: emite el primer evento inmediatamente y repite después de un retardo
+        // Debouncing de dirección: emite el primer evento inmediatamente y repite después de un
+        // retardo
         val currentTime = System.currentTimeMillis()
         if (activeDirection != null) {
             _inputMode.value = InputMode.GAMEPAD
             if (activeDirection != lastPressedDirection ||
-                (currentTime - lastDirectionPressedTime) >= directionRepeatDelayMs
+                            (currentTime - lastDirectionPressedTime) >= directionRepeatDelayMs
             ) {
                 _events.emit(GamepadEvent.DirectionPressed(activeDirection))
                 lastDirectionPressedTime = currentTime
@@ -749,9 +783,9 @@ class GamepadManager {
     }
 
     /**
-     * Mueve el cursor del sistema usando el stick analógico derecho del mando.
-     * Aplica escalado cuadrático para mayor precisión cerca del centro y
-     * mayor velocidad al empujar el stick hasta el extremo.
+     * Mueve el cursor del sistema usando el stick analógico derecho del mando. Aplica escalado
+     * cuadrático para mayor precisión cerca del centro y mayor velocidad al empujar el stick hasta
+     * el extremo.
      *
      * @param axes Buffer de ejes GLFW del mando.
      * @author Daniel Figueroa Vidal
@@ -771,7 +805,7 @@ class GamepadManager {
         val scaledY = rightY * abs(rightY) * mouseSensitivity
 
         val loc = MouseInfo.getPointerInfo()?.location ?: return
-        
+
         // Calcular los límites de todos los monitores para permitir movimiento global
         var virtualBounds = java.awt.Rectangle()
         for (gs in GraphicsEnvironment.getLocalGraphicsEnvironment().screenDevices) {
@@ -779,16 +813,18 @@ class GamepadManager {
         }
 
         awtRobot?.mouseMove(
-            (loc.x + scaledX).toInt().coerceIn(virtualBounds.x, virtualBounds.x + virtualBounds.width - 1),
-            (loc.y + scaledY).toInt().coerceIn(virtualBounds.y, virtualBounds.y + virtualBounds.height - 1)
+                (loc.x + scaledX)
+                        .toInt()
+                        .coerceIn(virtualBounds.x, virtualBounds.x + virtualBounds.width - 1),
+                (loc.y + scaledY)
+                        .toInt()
+                        .coerceIn(virtualBounds.y, virtualBounds.y + virtualBounds.height - 1)
         )
     }
 
-
-
     /**
-     * Compara el estado del botón actual con el anterior para emitir el evento
-     * solo en el flanco de subida (pressed, not held).
+     * Compara el estado del botón actual con el anterior para emitir el evento solo en el flanco de
+     * subida (pressed, not held).
      *
      * @param buttons Buffer de botones GLFW.
      * @param glfwButtonId Identificador del botón a comprobar.
@@ -797,9 +833,9 @@ class GamepadManager {
      * @since 2026-08-09
      */
     private suspend fun checkButtonPress(
-        buttons: ByteBuffer,
-        glfwButtonId: Int,
-        eventButton: GamepadEvent.Button
+            buttons: ByteBuffer,
+            glfwButtonId: Int,
+            eventButton: GamepadEvent.Button
     ) {
         val isPressed = buttons.get(glfwButtonId).toInt() == GLFW_PRESS
         val wasPressed = lastButtonsState[glfwButtonId]
