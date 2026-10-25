@@ -38,8 +38,8 @@ seleccionas un ejecutable se usa esa ruta con los mismos argumentos del juego.
    Un BIN independiente sigue apareciendo. No hace falta convertir ni borrar pistas.
 
 3. Se lanza con `-fullscreen`. En Linux se usa Flatpak
-   (`org.duckstation.DuckStation`); también admite un AppImage, véase
-   [solución de problemas](06_solucion_de_problemas.md).
+   (`org.duckstation.DuckStation`); también admite un AppImage o binario propio, que eliges en
+   **Ajustes → Ejecutables de emuladores** ([biblioteca y ajustes](03_biblioteca_y_ajustes.md)).
 
 ## 4.4. GameCube y Wii — Dolphin
 
