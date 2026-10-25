@@ -24,3 +24,12 @@ Este directorio contiene la documentación técnica oficial del proyecto GlobalC
 16. **[17_duckstation.md](17_duckstation.md)**: Integración con el emulador DuckStation (PS1).
 17. **[18_azahar_3ds.md](18_azahar_3ds.md)**: Integración con el emulador Azahar (Nintendo 3DS).
 18. **[19_contexto_ia.md](19_contexto_ia.md)**: Archivo de contexto continuo de la IA para mantener la consistencia entre sesiones.
+19. **[20_persistencia_vista.md](20_persistencia_vista.md)**: Persistencia de la configuración de vista (agrupación y posición de launchers).
+20. **[21_metro_personalizable.md](21_metro_personalizable.md)**: Tema oscuro, brillos configurables y usabilidad con mando.
+21. **[22_navegadores_web.md](22_navegadores_web.md)**: Integración de Navegadores Web (Chrome, Firefox, Brave, Edge): detección multiplataforma, ciclo de vida y control por mando.
+22. **[23_juegos_locales.md](23_juegos_locales.md)**: Detección y gestión de juegos locales Linux/Windows, preferencias, ejecución y navegación con mando.
+23. **[24_aplicaciones_locales.md](24_aplicaciones_locales.md)**: Aplicaciones instaladas excluyendo juegos, emuladores y navegadores, con selección, biblioteca y control por mando.
+24. **[25_usabilidad_configuracion.md](25_usabilidad_configuracion.md)**: Y/triángulo para acceder a las acciones y configuración con columnas independientes y pie fijo.
+25. **[guias/README.md](guias/README.md)**: Guías de uso: instalación y carpetas de juegos, mando, biblioteca y ajustes, emuladores, teclado en pantalla y solución de problemas.
+
+26. **[26_revision_emuladores_y_biblioteca.md](26_revision_emuladores_y_biblioteca.md)**: Ejecutables configurables, pistas CUE, carátulas por juego y resultados de revisión.

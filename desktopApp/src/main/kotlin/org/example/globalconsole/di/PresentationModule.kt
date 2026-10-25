@@ -14,9 +14,12 @@ import org.koin.dsl.module
 val presentationModule = module {
     factory {
         HomeViewModel(
+            getViewSettingsUseCase = get(),
+            saveViewSettingsUseCase = get(),
+            getAppearanceSettingsUseCase = get(),
+            saveAppearanceSettingsUseCase = get(),
             getGamesP2UseCase = get(),
             executeGameP2UseCase = get(),
-            deleteGameP2UseCase = get(),
             executeHGLauncherUseCase = get(),
             findHGLauncherUseCase = get(),
             showHGLauncherUseCase = get(),
@@ -54,7 +57,15 @@ val presentationModule = module {
             closeLauncherDuckStationUseCase = get(),
             findDuckStationLauncherUseCase = get(),
             showDuckStationLauncherUseCase = get(),
-            deleteGameDuckStationUseCase = get()
+            getNavigatorsWebUseCase = get(),
+            executeNavUseCase = get(),
+            closeNavUseCase = get(),
+            getLocalGamesUseCase = get(),
+            executeLocalGameUseCase = get(),
+            closeLocalGameUseCase = get(),
+            getLocalAppsUseCase = get(),
+            executeLocalAppUseCase = get(),
+            closeLocalAppUseCase = get()
         )
     }
     factory {
@@ -80,7 +91,21 @@ val presentationModule = module {
             hideAzaharLauncherUseCase = get(),
             findDuckStationLauncherUseCase = get(),
             enableDuckStationLauncherUseCase = get(),
-            hideDuckStationLauncherUseCase = get()
+            hideDuckStationLauncherUseCase = get(),
+            getInstalledNavsUseCase = get(),
+            isEnabledNavUseCase = get(),
+            addNavUseCase = get(),
+            removeNavUseCase = get(),
+            getInstalledLocalGamesUseCase = get(),
+            isEnabledLocalGameUseCase = get(),
+            addLocalGameUseCase = get(),
+            removeLocalGameUseCase = get(),
+            getInstalledLocalAppsUseCase = get(),
+            isEnabledLocalAppUseCase = get(),
+            addLocalAppUseCase = get(),
+            removeLocalAppUseCase = get(),
+            getEmulatorExecutableUseCase = get(),
+            saveEmulatorExecutableUseCase = get()
         )
     }
 }

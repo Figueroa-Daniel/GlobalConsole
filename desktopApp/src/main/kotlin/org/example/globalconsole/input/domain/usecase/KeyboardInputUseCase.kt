@@ -1,0 +1,113 @@
+package org.example.globalconsole.input.domain.usecase
+
+/**
+ * Estado puro de edición y posición del teclado, sin dependencias de Compose.
+ * @property text Texto en edición.
+ * @property upperCase Capa de mayúsculas activa.
+ * @property textCursor Posición de edición en el texto pendiente, en unidades UTF-16.
+ * @property row Fila seleccionada.
+ * @property column Columna seleccionada.
+ * @property preferredColumn Ancla horizontal al cruzar teclas anchas.
+ * @property confirmed Solicitud de confirmar la edición.
+ * @property externalDeletes Borrados solicitados al campo externo por pulsar borrar sin texto en el búfer.
+ * @author Daniel Figueroa Vidal
+ */
+data class KeyboardState(
+    val text: String = "",
+    val textCursor: Int = text.length,
+    val upperCase: Boolean = false,
+    val row: Int = 0,
+    val column: Int = 0,
+    val preferredColumn: Int = 0,
+    val confirmed: Boolean = false,
+    val externalDeletes: Int = 0
+)
+
+/** Acciones independientes del dispositivo. @author Daniel Figueroa Vidal */
+enum class KeyboardAction { UP, DOWN, LEFT, RIGHT, TEXT_LEFT, TEXT_RIGHT, PRESS, DELETE, SHIFT, CONFIRM }
+
+/**
+ * Resuelve la entrada y el desplazamiento seguro entre teclas de diferentes tamaños.
+ * @author Daniel Figueroa Vidal
+ */
+class KeyboardInputUseCase {
+    private val rows = listOf(
+        listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "⌫"),
+        listOf("q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "á", "é"),
+        listOf("a", "s", "d", "f", "g", "h", "j", "k", "l", "ñ", "í", "ó"),
+        listOf("⇧", "z", "x", "c", "v", "b", "n", "m", "ú", "ü", ".", "/"),
+        listOf(",", "ESPACIO", "↵")
+    )
+
+    /**
+     * Devuelve las etiquetas correspondientes a la capa actual.
+     * @param state Estado de edición.
+     * @return Filas visibles.
+     * @throws Nothing No lanza excepciones.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-04
+     */
+    fun layout(state: KeyboardState): List<List<String>> =
+        if (state.upperCase) rows.map { row -> row.map { it.uppercase() } } else rows
+
+    /**
+     * Aplica un evento de forma atómica, manteniendo el foco dentro de la cuadrícula.
+     * @param state Estado anterior válido.
+     * @param action Acción del usuario.
+     * @return Nuevo estado de texto y foco.
+     * @throws Nothing No lanza excepciones para estados válidos.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-04
+     */
+    operator fun invoke(state: KeyboardState, action: KeyboardAction): KeyboardState {
+        return when (action) {
+            KeyboardAction.UP, KeyboardAction.DOWN -> {
+                val row = (state.row + if (action == KeyboardAction.UP) 4 else 1) % 5
+                state.copy(row = row, column = if (row == 4) state.preferredColumn / 4 else state.preferredColumn)
+            }
+            KeyboardAction.LEFT, KeyboardAction.RIGHT -> {
+                val count = rows[state.row].size
+                val col = (state.column + if (action == KeyboardAction.LEFT) count - 1 else 1) % count
+                state.copy(column = col, preferredColumn = if (state.row == 4) col * 4 + 1 else col)
+            }
+            KeyboardAction.TEXT_LEFT -> state.copy(
+                textCursor = if (state.textCursor == 0) 0 else state.text.offsetByCodePoints(state.textCursor, -1)
+            )
+            KeyboardAction.TEXT_RIGHT -> state.copy(
+                textCursor = if (state.textCursor == state.text.length) state.text.length
+                else state.text.offsetByCodePoints(state.textCursor, 1)
+            )
+            KeyboardAction.SHIFT -> state.copy(upperCase = !state.upperCase)
+            KeyboardAction.CONFIRM -> state.copy(confirmed = true)
+            KeyboardAction.DELETE -> if (state.text.isEmpty()) {
+                state.copy(externalDeletes = state.externalDeletes + 1)
+            } else if (state.textCursor == 0) {
+                state
+            } else {
+                val before = state.text.offsetByCodePoints(state.textCursor, -1)
+                state.copy(text = state.text.removeRange(before, state.textCursor), textCursor = before)
+            }
+            KeyboardAction.PRESS -> when (val key = layout(state)[state.row][state.column]) {
+                "⇧" -> invoke(state, KeyboardAction.SHIFT)
+                "↵" -> invoke(state, KeyboardAction.CONFIRM)
+                "⌫" -> invoke(state, KeyboardAction.DELETE)
+                "ESPACIO" -> insertText(state, " ")
+                else -> insertText(state, key)
+            }
+        }
+    }
+
+    /**
+     * Inserta una tecla en el cursor del texto preparado para enviar.
+     * @param state Estado anterior con cursor válido.
+     * @param value Carácter o espacio que debe insertarse.
+     * @return Estado con texto y cursor avanzados sin mover la tecla seleccionada.
+     * @throws Nothing No lanza excepciones para estados válidos.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-12
+     */
+    private fun insertText(state: KeyboardState, value: String): KeyboardState = state.copy(
+        text = state.text.substring(0, state.textCursor) + value + state.text.substring(state.textCursor),
+        textCursor = state.textCursor + value.length
+    )
+}

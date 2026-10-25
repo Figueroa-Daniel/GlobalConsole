@@ -4,6 +4,8 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.example.globalconsole.config.AppConfig
 import org.example.globalconsole.settings.domain.SettingsRepository
+import org.example.globalconsole.settings.domain.ViewSettings
+import org.example.globalconsole.settings.domain.AppearanceSettings
 import java.io.File
 
 /**
@@ -19,13 +21,12 @@ import java.io.File
  * 2. Aplica el cambio únicamente en el campo `emulatorPaths`.
  * 3. Reescribe el objeto completo con todos los demás campos intactos.
  *
+ * @param configFile Archivo compartido o archivo aislado para pruebas.
  * @author Daniel Figueroa Vidal
  * @since 2026-08-10
  * @updated 2026-08-13
  */
-class SettingsRepositoryImpl : SettingsRepository {
-
-    private val configFile = File("config.json")
+class SettingsRepositoryImpl(private val configFile: File = File("config.json")) : SettingsRepository {
 
     private val json = Json {
         prettyPrint = true
@@ -82,6 +83,60 @@ class SettingsRepositoryImpl : SettingsRepository {
      */
     override suspend fun getMouseSensitivity(): Float =
         readConfig().mouseSensitivity
+
+    /**
+     * Persiste la configuración de vista en `config.json`.
+     *
+     * @param groupingMode Nombre del modo de agrupación.
+     * @param launcherPosition Nombre de la posición de los launchers.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-04
+     */
+    override suspend fun saveViewSettings(groupingMode: String, launcherPosition: String) {
+        val current = readConfig()
+        val updated = current.copy(groupingMode = groupingMode, launcherPosition = launcherPosition)
+        configFile.writeText(json.encodeToString(updated))
+    }
+
+    /**
+     * Recupera la configuración de vista desde `config.json`.
+     *
+     * @return La configuración de vista guardada o sus valores por defecto.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-04
+     */
+    override suspend fun getViewSettings(): ViewSettings {
+        val config = readConfig()
+        return ViewSettings(config.groupingMode, config.launcherPosition)
+    }
+
+    /**
+     * Recupera los campos visuales del archivo compartido.
+     * @return Apariencia persistida.
+     * @throws Exception Si falla el acceso al archivo.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-04
+     */
+    override suspend fun getAppearanceSettings(): AppearanceSettings {
+        val config = readConfig()
+        return AppearanceSettings(config.accentColor, config.glowIntensity)
+    }
+
+    /**
+     * Modifica únicamente la apariencia, preservando rutas y agrupación.
+     * @param settings Preferencias validadas por el caso de uso.
+     * @return Unit.
+     * @throws java.io.IOException Si no se puede guardar.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-04
+     */
+    override suspend fun saveAppearanceSettings(settings: AppearanceSettings) {
+        val updated = readConfig().copy(
+            accentColor = settings.accentColor,
+            glowIntensity = settings.glowIntensity
+        )
+        configFile.writeText(json.encodeToString(updated))
+    }
 
     /**
      * Lee y deserializa el archivo `config.json` en [AppConfig].

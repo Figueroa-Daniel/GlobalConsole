@@ -13,6 +13,9 @@ enum class Platforms {
     /** Juego local ejecutable de PC. */
     LOCALGAME,
 
+    /** Aplicación local de escritorio. */
+    LOCALAPP,
+
     /** Launcher local Heroic Games Launcher. */
     HEORIC_GAMES_LAUCHER,
 
@@ -29,5 +32,7 @@ enum class Platforms {
     AZAHAR,
 
     /** Emulador DuckStation para juegos de PlayStation 1. */
-    DUCKSTATION
+    DUCKSTATION,
+    /** Navegador web. */
+    NAVWEB
 }

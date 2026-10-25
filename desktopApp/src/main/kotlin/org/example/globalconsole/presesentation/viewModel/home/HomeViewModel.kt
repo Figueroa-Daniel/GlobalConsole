@@ -1,5 +1,16 @@
 package org.example.globalconsole.presesentation.viewModel.home
 
+import org.example.globalconsole.localApps.domain.usecase.*
+import org.example.globalconsole.localApps.domain.entitys.LocalAppObj
+import org.example.globalconsole.localGames.domain.usecase.*
+import org.example.globalconsole.localGames.domain.entitys.LocalGameObj
+
+import org.example.globalconsole.settings.domain.AppearanceSettings
+import org.example.globalconsole.settings.domain.usecase.GetAppearanceSettingsUseCase
+import org.example.globalconsole.settings.domain.usecase.SaveAppearanceSettingsUseCase
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +25,6 @@ import org.example.globalconsole.HeroicGames.domain.usecase.ShowHGLauncherUseCas
 import org.example.globalconsole.melonDS.domain.usecase.FindMelonDSLauncherUseCase
 import org.example.globalconsole.melonDS.domain.usecase.ShowMelonDSLauncherUseCase
 import org.example.globalconsole.melonDS.domain.usecase.ExecuteLauncherMelonDSUseCase
-import org.example.globalconsole.juegosPcsx2.domain.usecase.DeleteGameP2UseCase
 import org.example.globalconsole.juegosPcsx2.domain.usecase.ExecuteGameP2UseCase
 import org.example.globalconsole.juegosPcsx2.domain.usecase.GetGamesP2UseCase
 import org.example.globalconsole.melonDS.domain.usecase.ExecuteGameMelonDSUseCase
@@ -23,6 +33,12 @@ import org.example.globalconsole.PS3Launcher.domain.usecase.ExecutePS3LauncherUs
 import org.example.globalconsole.PS3Launcher.domain.usecase.FindPS3LauncherUseCase
 import org.example.globalconsole.PS3Launcher.domain.usecase.ShowPS3LauncherUseCase
 import org.example.globalconsole.PS3Launcher.domain.usecase.ClosePS3LauncherUseCase
+import org.example.globalconsole.navigatorWeb.domain.entitys.NavWebObj
+
+enum class AppearanceSettingsError {
+    LOAD_FAILED,
+    SAVE_FAILED
+}
 
 /**
  * ViewModel centralizado de la pantalla principal de GlobalConsole.
@@ -32,10 +48,16 @@ import org.example.globalconsole.PS3Launcher.domain.usecase.ClosePS3LauncherUseC
  *
  * @param getGamesP2UseCase UseCase para obtener la lista de juegos de PCSX2.
  * @param executeGameP2UseCase UseCase para lanzar un juego de PCSX2 en el emulador.
- * @param deleteGameP2UseCase UseCase para eliminar un juego de PCSX2 del sistema.
  * @param executeHGLauncherUseCase UseCase para lanzar Heroic Games Launcher.
  * @param findHGLauncherUseCase UseCase para consultar si Heroic debe aparecer en la biblioteca.
  * @param showHGLauncherUseCase UseCase para obtener los datos de Heroic Games Launcher como entidad de dominio.
+ * @param getViewSettingsUseCase UseCase opcional para recuperar la configuración de vista guardada.
+ * @param getAppearanceSettingsUseCase Lee la apariencia al iniciar, incluso sin biblioteca configurada.
+ * @param saveAppearanceSettingsUseCase Guarda los ajustes visuales.
+ * @param saveViewSettingsUseCase UseCase opcional para persistir la configuración de vista.
+ * @param getLocalAppsUseCase Carga las aplicaciones habilitadas.
+ * @param executeLocalAppUseCase Inicia una aplicación y espera su cierre.
+ * @param closeLocalAppUseCase Cierra el árbol de la aplicación activa.
  *
  * @author Daniel Figueroa Vidal
  * @since 2026-08-05
@@ -43,7 +65,6 @@ import org.example.globalconsole.PS3Launcher.domain.usecase.ClosePS3LauncherUseC
 class HomeViewModel(
     private val getGamesP2UseCase: GetGamesP2UseCase,
     private val executeGameP2UseCase: ExecuteGameP2UseCase? = null,
-    private val deleteGameP2UseCase: DeleteGameP2UseCase? = null,
     private val executeHGLauncherUseCase: ExecuteHGLauncherUseCase? = null,
     private val findHGLauncherUseCase: FindHGLauncherUseCase? = null,
     private val showHGLauncherUseCase: ShowHGLauncherUseCase? = null,
@@ -81,7 +102,19 @@ class HomeViewModel(
     private val closeLauncherDuckStationUseCase: org.example.globalconsole.duckstation.domain.usecase.CloseLauncherDuckStationUseCase? = null,
     private val findDuckStationLauncherUseCase: org.example.globalconsole.duckstation.domain.usecase.FindDuckStationLauncherUseCase? = null,
     private val showDuckStationLauncherUseCase: org.example.globalconsole.duckstation.domain.usecase.ShowDuckStationLauncherUseCase? = null,
-    private val deleteGameDuckStationUseCase: org.example.globalconsole.duckstation.domain.usecase.DeleteGameDuckStationUseCase? = null
+    private val getViewSettingsUseCase: org.example.globalconsole.settings.domain.usecase.GetViewSettingsUseCase? = null,
+    private val saveViewSettingsUseCase: org.example.globalconsole.settings.domain.usecase.SaveViewSettingsUseCase? = null,
+    private val getAppearanceSettingsUseCase: GetAppearanceSettingsUseCase? = null,
+    private val saveAppearanceSettingsUseCase: SaveAppearanceSettingsUseCase? = null,
+    private val getNavigatorsWebUseCase: org.example.globalconsole.navigatorWeb.domain.usecase.GetNavigatorsWebUseCase? = null,
+    private val executeNavUseCase: org.example.globalconsole.navigatorWeb.domain.usecase.ExecuteNavUseCase? = null,
+    private val closeNavUseCase: org.example.globalconsole.navigatorWeb.domain.usecase.CloseNavUseCase? = null,
+    private val getLocalGamesUseCase: GetLocalGamesUseCase? = null,
+    private val executeLocalGameUseCase: ExecuteLocalGameUseCase? = null,
+    private val closeLocalGameUseCase: CloseLocalGameUseCase? = null,
+    private val getLocalAppsUseCase: GetLocalAppsUseCase? = null,
+    private val executeLocalAppUseCase: ExecuteLocalAppUseCase? = null,
+    private val closeLocalAppUseCase: CloseLocalAppUseCase? = null
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
@@ -110,14 +143,85 @@ class HomeViewModel(
     private val _launcherPosition = MutableStateFlow(LauncherPosition.INLINE)
     val launcherPosition: StateFlow<LauncherPosition> = _launcherPosition.asStateFlow()
 
+    private val _appearance = MutableStateFlow(AppearanceSettings())
+    val appearance: StateFlow<AppearanceSettings> = _appearance.asStateFlow()
+    private val _appearanceError = MutableStateFlow<AppearanceSettingsError?>(null)
+    val appearanceError: StateFlow<AppearanceSettingsError?> = _appearanceError.asStateFlow()
+    private val appearanceMutex = Mutex()
+
+    init {
+        viewModelScope.launch {
+            appearanceMutex.withLock {
+                try {
+                    _appearance.value = getAppearanceSettingsUseCase?.invoke() ?: AppearanceSettings()
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    _appearanceError.value = AppearanceSettingsError.LOAD_FAILED
+                }
+            }
+        }
+    }
+
+    /**
+     * Guarda la apariencia y publica el resultado para todas las pantallas.
+     * Serializa cambios rápidos para mantener el orden de escritura.
+     * @param settings Nueva selección visual.
+     * @return Unit.
+     * @throws CancellationException Si se cancela el ViewModel.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-04
+     */
+    fun setAppearance(settings: AppearanceSettings) {
+        _appearance.value = settings
+        viewModelScope.launch {
+            appearanceMutex.withLock {
+                try {
+                    saveAppearanceSettingsUseCase?.invoke(settings)
+                    _appearanceError.value = null
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    _appearanceError.value = AppearanceSettingsError.SAVE_FAILED
+                }
+            }
+        }
+    }
+
+    private var viewSettingsLoaded = false
+
+    /**
+     * Carga una única vez la configuración de vista persistida (agrupación y posición de launchers).
+     * Los valores desconocidos o ausentes se ignoran y se conservan los valores por defecto.
+     *
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-04
+     */
+    private suspend fun loadViewSettingsIfNeeded() {
+        if (viewSettingsLoaded) return
+        viewSettingsLoaded = true
+        val settings = getViewSettingsUseCase?.invoke() ?: return
+        GroupingMode.entries.firstOrNull { it.name == settings.groupingMode }?.let { _groupingMode.value = it }
+        LauncherPosition.entries.firstOrNull { it.name == settings.launcherPosition }?.let { _launcherPosition.value = it }
+    }
+
+    private fun persistViewSettings() {
+        val save = saveViewSettingsUseCase ?: return
+        val grouping = _groupingMode.value.name
+        val position = _launcherPosition.value.name
+        viewModelScope.launch { save(grouping, position) }
+    }
+
     fun setGroupingMode(mode: GroupingMode) {
         _groupingMode.value = mode
         refreshItems()
+        persistViewSettings()
     }
 
     fun setLauncherPosition(position: LauncherPosition) {
         _launcherPosition.value = position
         refreshItems()
+        persistViewSettings()
     }
 
     private fun refreshItems() {
@@ -136,7 +240,7 @@ class HomeViewModel(
         val normalGames = games.filterNot { launchers.contains(it) }
 
         if (position == LauncherPosition.TOP && launchers.isNotEmpty()) {
-            items.add(HomeListItem.Header("Emuladores"))
+            items.add(HomeListItem.Header("SECTION_LAUNCHERS"))
             items.addAll(launchers.sortedBy { it.name }.map { HomeListItem.GameItem(it) })
         }
 
@@ -144,7 +248,7 @@ class HomeViewModel(
             val gamesToRender = if (position == LauncherPosition.TOP) normalGames else games
             if (gamesToRender.isNotEmpty()) {
                 if (position == LauncherPosition.TOP) {
-                    items.add(HomeListItem.Header("Juegos"))
+                    items.add(HomeListItem.Header("SECTION_GAMES"))
                 }
                 items.addAll(gamesToRender.sortedBy { it.name }.map { HomeListItem.GameItem(it) })
             }
@@ -160,9 +264,12 @@ class HomeViewModel(
                 GroupingMode.PLATFORM -> game.platform.name
                 GroupingMode.CONSOLE_SERIES -> {
                     when (game.platform) {
+                        Platforms.LOCALAPP -> "Aplicaciones"
                         Platforms.PCSX2, Platforms.DUCKSTATION, Platforms.PS3 -> "PlayStation"
                         Platforms.MELONDS, Platforms.AZAHAR, Platforms.DOLPHIN -> "Nintendo"
                         Platforms.HEORIC_GAMES_LAUCHER, Platforms.LOCALGAME -> "PC"
+                        Platforms.NAVWEB -> "Web"
+                        else -> "Otros"
                     }
                 }
                 else -> ""
@@ -199,6 +306,7 @@ class HomeViewModel(
         viewModelScope.launch {
             _uiState.value = HomeUiState.Loading
             try {
+                loadViewSettingsIfNeeded()
                 val pcsx2Games = getGamesP2UseCase()
 
                 // Si Heroic Games Launcher está habilitado por el usuario, se añade
@@ -285,7 +393,12 @@ class HomeViewModel(
                     )
                 } ?: emptyList()
 
-                val allGames: List<Game> = (pcsx2Games + heroicEntry + melonDSEntry + dsGames + dolphinEntry + dolphinGames + ps3Entry + azaharEntry + azaharGames + duckStationEntry + duckStationGames).sortedBy { it.name }
+                val navigatorEntries: List<Game> = getNavigatorsWebUseCase?.invoke() ?: emptyList()
+
+                val localGames: List<Game> = getLocalGamesUseCase?.invoke() ?: emptyList()
+                val localApps: List<Game> = getLocalAppsUseCase?.invoke() ?: emptyList()
+
+                val allGames: List<Game> = (pcsx2Games + heroicEntry + melonDSEntry + dsGames + dolphinEntry + dolphinGames + ps3Entry + azaharEntry + azaharGames + duckStationEntry + duckStationGames + navigatorEntries + localGames + localApps).sortedBy { it.name }
 
                 _uiState.value = if (allGames.isEmpty()) {
                     HomeUiState.Empty
@@ -294,7 +407,7 @@ class HomeViewModel(
                     HomeUiState.Success(games = allGames, filteredGames = allGames, items = items)
                 }
             } catch (e: Exception) {
-                _uiState.value = HomeUiState.Error(message = e.message ?: "Error desconocido al cargar juegos")
+                _uiState.value = HomeUiState.Error(message = e.message.orEmpty())
             }
         }
     }
@@ -342,10 +455,26 @@ class HomeViewModel(
             _uiState.value = HomeUiState.GameRunning(game)
 
             val success = when (game.platform) {
+                Platforms.LOCALAPP -> {
+                    try {
+                        (game as? LocalAppObj)?.let { executeLocalAppUseCase?.invoke(it) } ?: false
+                    } catch (e: kotlinx.coroutines.CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        _uiState.value = HomeUiState.Error("No se pudo iniciar ${game.name}: ${e.message}")
+                        return@launch
+                    }
+                }
                 Platforms.PCSX2 -> executeGameP2UseCase?.invoke(game.id) ?: false
                 Platforms.LOCALGAME -> {
-                    // TODO: Implementar lanzamiento de juego local nativo
-                    false
+                    try {
+                        (game as? LocalGameObj)?.let { executeLocalGameUseCase?.invoke(it) } ?: false
+                    } catch (e: kotlinx.coroutines.CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        _uiState.value = HomeUiState.Error("No se pudo iniciar ${game.name}: ${e.message}")
+                        return@launch
+                    }
                 }
                 Platforms.HEORIC_GAMES_LAUCHER -> executeHGLauncherUseCase?.invoke() ?: false
                 Platforms.MELONDS -> {
@@ -363,6 +492,7 @@ class HomeViewModel(
                     }
                 }
                 Platforms.PS3 -> executePS3LauncherUseCase?.invoke() ?: false
+                Platforms.NAVWEB -> (game as? NavWebObj)?.let { executeNavUseCase?.invoke(it) } ?: false
                 Platforms.AZAHAR -> {
                     if (game.id == "azahar-launcher") {
                         executeLauncherAzaharUseCase?.invoke() ?: false
@@ -377,6 +507,11 @@ class HomeViewModel(
                         executeGameDuckStationUseCase?.invoke(game.id) ?: false
                     }
                 }
+            }
+
+            if (game.platform in setOf(Platforms.LOCALGAME, Platforms.LOCALAPP) && !success) {
+                _uiState.value = HomeUiState.Error("No se pudo ejecutar ${game.name} correctamente")
+                return@launch
             }
 
             // Al terminar la ejecución, volvemos a cargar la vista
@@ -394,8 +529,25 @@ class HomeViewModel(
         viewModelScope.launch {
             val game = state.game
             when (game.platform) {
+                Platforms.LOCALAPP -> {
+                    try {
+                        closeLocalAppUseCase?.invoke()
+                    } catch (e: kotlinx.coroutines.CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        System.err.println("No se pudo cerrar la aplicación local: ${e.message}")
+                    }
+                }
                 Platforms.PCSX2 -> closeGameP2UseCase?.invoke()
-                Platforms.LOCALGAME -> {}
+                Platforms.LOCALGAME -> {
+                    try {
+                        closeLocalGameUseCase?.invoke()
+                    } catch (e: kotlinx.coroutines.CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        System.err.println("No se pudo cerrar el juego local: ${e.message}")
+                    }
+                }
                 Platforms.HEORIC_GAMES_LAUCHER -> closeHGLauncherUseCase?.invoke()
                 Platforms.MELONDS -> {
                     if (game.id == "melonds-launcher") {
@@ -412,6 +564,7 @@ class HomeViewModel(
                     }
                 }
                 Platforms.PS3 -> closePS3LauncherUseCase?.invoke()
+                Platforms.NAVWEB -> closeNavUseCase?.invoke()
                 Platforms.AZAHAR -> {
                     if (game.id == "azahar-launcher") {
                         closeLauncherAzaharUseCase?.invoke()
@@ -430,39 +583,4 @@ class HomeViewModel(
         }
     }
 
-    /**
-     * Elimina el juego indicado del sistema de almacenamiento.
-     * La acción delega al UseCase de la plataforma correspondiente.
-     *
-     * @param game Juego a eliminar del sistema.
-     * @return Unit
-     * @author Daniel Figueroa Vidal
-     * @since 2026-08-05
-     */
-    fun onGameDeleted(game: Game) {
-        viewModelScope.launch {
-            when (game.platform) {
-                Platforms.PCSX2 -> deleteGameP2UseCase?.invoke(game.id)
-                Platforms.LOCALGAME -> {
-                    // TODO: Implementar eliminación de juego local nativo
-                }
-                Platforms.HEORIC_GAMES_LAUCHER -> {
-                    // TODO: Implementar eliminación de entrada de Heroic Games
-                }
-                Platforms.MELONDS -> {
-                    // TODO: Implementar eliminación de juego de Melon DS
-                }
-                Platforms.DOLPHIN -> {
-                    // TODO: Implementar eliminación de juego de Dolphin
-                }
-                Platforms.PS3 -> {
-                    // TODO: Implementar eliminación de entrada de PS3
-                }
-                Platforms.AZAHAR -> {
-                    // TODO: Implementar eliminación de juego de Azahar
-                }
-                Platforms.DUCKSTATION -> deleteGameDuckStationUseCase?.invoke(game.id)
-            }
-        }
-    }
 }

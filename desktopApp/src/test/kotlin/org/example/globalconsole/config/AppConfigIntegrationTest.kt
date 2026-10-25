@@ -18,15 +18,15 @@ import kotlin.test.assertTrue
  * Test de integración que verifica que [SettingsRepositoryImpl] y [HGLauncherRepositoryImpl]
  * no se destruyen mutuamente al escribir en el archivo `config.json` compartido.
  *
- * Estos tests operan sobre un archivo temporal en el directorio de trabajo del proceso
- * de test (mismo directorio que el de la aplicación en producción).
+ * Estos tests inyectan un archivo temporal absoluto en los repositorios.
+ * Nunca leen ni borran la configuración personal de la aplicación.
  *
  * @author Daniel Figueroa Vidal
  * @since 2026-08-13
  */
 class AppConfigIntegrationTest {
 
-    private val configFile = File("config.json")
+    private val configFile = java.nio.file.Files.createTempFile("gc-config-integration", ".json").toFile()
     private lateinit var settingsRepo: SettingsRepositoryImpl
     private lateinit var hgLauncherRepo: HGLauncherRepositoryImpl
 
@@ -40,11 +40,12 @@ class AppConfigIntegrationTest {
     @BeforeTest
     fun setUp() {
         configFile.delete()
-        settingsRepo = SettingsRepositoryImpl()
+        settingsRepo = SettingsRepositoryImpl(configFile)
         hgLauncherRepo = HGLauncherRepositoryImpl(
             adapter = object : LauncherHeroicGamesAdapter() {
                 override fun executeLauncher(): Boolean = false
-            }
+            },
+            configFile = configFile
         )
     }
 

@@ -17,7 +17,7 @@ val dataModule = module {
 
     // El adaptador de archivos obtiene la ruta desde el UseCase de configuración
     single { GameP2FileSystemAdapter(getEmulatorPathUseCase = get()) }
-    single { GamePCSX2Adapter() }
+    single { GamePCSX2Adapter(get()) }
 
     // El repositorio de juegos se expone por su interfaz, inyectando los adaptadores requeridos
     single<GameP2Repository> { GameP2RepositoryImpl(get(), get()) }
@@ -29,8 +29,8 @@ val dataModule = module {
     single<HGLauncherRepository> { HGLauncherRepositoryImpl(adapter = get()) }
 
     // Adaptadores de Melon DS
-    single { org.example.globalconsole.melonDS.data.database.GameMelonDSAdapter() }
-    single { org.example.globalconsole.melonDS.data.database.LauncherMelonDSAdapter() }
+    single { org.example.globalconsole.melonDS.data.database.GameMelonDSAdapter(get()) }
+    single { org.example.globalconsole.melonDS.data.database.LauncherMelonDSAdapter(get()) }
     single { org.example.globalconsole.melonDS.data.database.GameDSFileSystemAdapter(getEmulatorPathUseCase = get()) }
 
     // Repositorios de Melon DS
@@ -48,8 +48,8 @@ val dataModule = module {
     }
 
     // Adaptadores de Dolphin
-    single { org.example.globalconsole.dolphin.data.database.GameDolphinAdapter() }
-    single { org.example.globalconsole.dolphin.data.database.LauncherDolphinAdapter() }
+    single { org.example.globalconsole.dolphin.data.database.GameDolphinAdapter(get()) }
+    single { org.example.globalconsole.dolphin.data.database.LauncherDolphinAdapter(get()) }
     single { org.example.globalconsole.dolphin.data.database.GameDolphinFileSystemAdapter(getEmulatorPathUseCase = get()) }
 
     // Repositorios de Dolphin
@@ -67,7 +67,7 @@ val dataModule = module {
     }
 
     // Adaptador de PS3 Launcher
-    single { org.example.globalconsole.PS3Launcher.data.database.LauncherPS3Adapter() }
+    single { org.example.globalconsole.PS3Launcher.data.database.LauncherPS3Adapter(get()) }
 
     // Repositorio de PS3 Launcher
     single<org.example.globalconsole.PS3Launcher.data.repository.PS3LauncherRepository> { 
@@ -75,8 +75,8 @@ val dataModule = module {
     }
 
     // Adaptadores de Azahar (Nintendo 3DS)
-    single { org.example.globalconsole.azahar.data.database.Game3DSAzaharAdapter() }
-    single { org.example.globalconsole.azahar.data.database.LauncherAzaharAdapter() }
+    single { org.example.globalconsole.azahar.data.database.Game3DSAzaharAdapter(get()) }
+    single { org.example.globalconsole.azahar.data.database.LauncherAzaharAdapter(get()) }
     single { org.example.globalconsole.azahar.data.database.Game3DSFileSystemAdapter(getEmulatorPathUseCase = get()) }
 
     // Repositorios de Azahar
@@ -94,8 +94,8 @@ val dataModule = module {
     }
 
     // Adaptadores de DuckStation (PS1)
-    single { org.example.globalconsole.duckstation.data.database.GameDuckStationAdapter() }
-    single { org.example.globalconsole.duckstation.data.database.LauncherDuckStationAdapter() }
+    single { org.example.globalconsole.duckstation.data.database.GameDuckStationAdapter(get()) }
+    single { org.example.globalconsole.duckstation.data.database.LauncherDuckStationAdapter(get()) }
     single { org.example.globalconsole.duckstation.data.database.GameDuckStationFileSystemAdapter(getEmulatorPathUseCase = get()) }
 
     // Repositorios de DuckStation
@@ -110,5 +110,19 @@ val dataModule = module {
             launcherAdapter = get(),
             gameAdapter = get()
         )
+    }
+
+    // Navegadores web: adaptador (detección/ejecución nativa) y repositorio con caché en memoria
+    single { org.example.globalconsole.navigatorWeb.data.database.NavigatorAccesAdapter() }
+    single<org.example.globalconsole.navigatorWeb.data.repository.NavWebRepository> {
+        org.example.globalconsole.navigatorWeb.data.repositoryImpl.NavWebRepositoryImpl(navigatorAccesAdapter = get())
+    }
+    single { org.example.globalconsole.localGames.data.database.LocalGamesAccessAdapter() }
+    single<org.example.globalconsole.localGames.data.repository.LocalGamesRepository> {
+        org.example.globalconsole.localGames.data.repositoryImpl.LocalGamesRepositoryImpl(get())
+    }
+    single { org.example.globalconsole.localApps.data.database.LocalAppsAccessAdapter() }
+    single<org.example.globalconsole.localApps.domain.repository.LocalAppsRepository> {
+        org.example.globalconsole.localApps.data.repositoryImpl.LocalAppsRepositoryImpl(get())
     }
 }

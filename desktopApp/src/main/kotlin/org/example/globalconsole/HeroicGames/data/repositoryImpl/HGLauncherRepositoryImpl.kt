@@ -24,16 +24,17 @@ import java.io.File
  * 2. Aplica el cambio únicamente en el campo `heroicEnabled`.
  * 3. Reescribe el objeto completo con todos los demás campos intactos.
  *
+ * @property configFile Archivo compartido, inyectable para aislar las pruebas.
  * @property adapter Adaptador responsable de la ejecución nativa de Heroic Games Launcher.
  *
  * @author Daniel Figueroa Vidal
  * @since 2026-08-13
  */
 class HGLauncherRepositoryImpl(
-    private val adapter: LauncherHeroicGamesAdapter
+    private val adapter: LauncherHeroicGamesAdapter,
+    private val configFile: File = File("config.json")
 ) : HGLauncherRepository {
 
-    private val configFile = File("config.json")
 
     private val json = Json {
         prettyPrint = true

@@ -3,191 +3,130 @@ package org.example.globalconsole.presesentation.view.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import kotlinx.coroutines.flow.collectLatest
+import globalconsole.shared.generated.resources.*
 import org.example.globalconsole.presesentation.input.GamepadEvent
 import org.example.globalconsole.presesentation.input.GamepadManager
-import org.example.globalconsole.presesentation.input.InputMode
 import org.example.globalconsole.presesentation.viewModel.home.GroupingMode
 import org.example.globalconsole.presesentation.viewModel.home.HomeViewModel
+import org.example.globalconsole.presesentation.viewModel.home.AppearanceSettingsError
 import org.example.globalconsole.presesentation.viewModel.home.LauncherPosition
+import org.example.globalconsole.settings.domain.AppearanceSettings
 
-enum class ViewSettingsFocus {
-    GROUPING_NONE,
-    GROUPING_PLATFORM,
-    GROUPING_SERIES,
-    LAUNCHER_INLINE,
-    LAUNCHER_TOP,
-    CLOSE
-}
-
+/**
+ * Editor de vista y apariencia con filas navegables y vista previa en toda la interfaz.
+ * @param homeViewModel Estado y persistencia de preferencias.
+ * @param gamepadManager Entrada nativa del mando.
+ * @param onDismiss Cierra el diálogo.
+ * @return Unit.
+ * @throws Nothing No lanza excepciones.
+ * @author Daniel Figueroa Vidal
+ * @since 2026-10-04
+ */
 @Composable
-fun ViewSettingsDialog(
-    homeViewModel: HomeViewModel,
-    gamepadManager: GamepadManager,
-    onDismiss: () -> Unit
-) {
-    val currentGrouping by homeViewModel.groupingMode.collectAsState()
-    val currentLauncherPos by homeViewModel.launcherPosition.collectAsState()
+fun ViewSettingsDialog(homeViewModel: HomeViewModel, gamepadManager: GamepadManager, onDismiss: () -> Unit) {
+    val grouping by homeViewModel.groupingMode.collectAsState()
+    val position by homeViewModel.launcherPosition.collectAsState()
+    val appearance by homeViewModel.appearance.collectAsState()
+    val error by homeViewModel.appearanceError.collectAsState()
     val inputMode by gamepadManager.inputMode.collectAsState()
-
-    var focusedElement by remember { mutableStateOf(ViewSettingsFocus.GROUPING_NONE) }
-
+    val palette = LocalMetroPalette.current
+    var focusedRow by remember { mutableStateOf(0) }
+    val requesters = remember { List(5) { BringIntoViewRequester() } }
+    val labels = listOf(
+        stringResource(Res.string.view_setting_grouping),
+        stringResource(Res.string.view_setting_launchers),
+        stringResource(Res.string.view_setting_glow_color),
+        stringResource(Res.string.view_setting_glow_intensity)
+    )
+    val values = listOf(
+        when (grouping) {
+            GroupingMode.NONE -> stringResource(Res.string.grouping_none)
+            GroupingMode.PLATFORM -> stringResource(Res.string.grouping_platform)
+            GroupingMode.CONSOLE_SERIES -> stringResource(Res.string.grouping_console_family)
+        },
+        if (position == LauncherPosition.TOP) stringResource(Res.string.launcher_position_top) else stringResource(Res.string.launcher_position_inline),
+        metroAccentLabel(appearance.accentColor),
+        if (appearance.glowIntensity == 0) stringResource(Res.string.glow_disabled) else "${appearance.glowIntensity}%"
+    )
+    val change by rememberUpdatedState<(Int, Int) -> Unit> { row, delta ->
+        when (row) {
+            0 -> homeViewModel.setGroupingMode(GroupingMode.entries[(grouping.ordinal + delta + GroupingMode.entries.size) % GroupingMode.entries.size])
+            1 -> homeViewModel.setLauncherPosition(if (position == LauncherPosition.TOP) LauncherPosition.INLINE else LauncherPosition.TOP)
+            2 -> {
+                val colors = AppearanceSettings.COLORS
+                homeViewModel.setAppearance(appearance.copy(accentColor = colors[(colors.indexOf(appearance.accentColor) + delta + colors.size) % colors.size]))
+            }
+            3 -> homeViewModel.setAppearance(appearance.copy(glowIntensity = (appearance.glowIntensity + delta * 5).coerceIn(0, 100)))
+        }
+    }
+    val dismiss by rememberUpdatedState(onDismiss)
+    LaunchedEffect(focusedRow) { requesters[focusedRow].bringIntoView() }
     LaunchedEffect(gamepadManager) {
-        gamepadManager.events.collectLatest { event ->
-            if (event is GamepadEvent.DirectionPressed) {
-                focusedElement = when (focusedElement) {
-                    ViewSettingsFocus.GROUPING_NONE -> {
-                        if (event.direction == GamepadEvent.Direction.DOWN) ViewSettingsFocus.GROUPING_PLATFORM
-                        else if (event.direction == GamepadEvent.Direction.RIGHT) ViewSettingsFocus.LAUNCHER_INLINE
-                        else focusedElement
-                    }
-                    ViewSettingsFocus.GROUPING_PLATFORM -> {
-                        if (event.direction == GamepadEvent.Direction.UP) ViewSettingsFocus.GROUPING_NONE
-                        else if (event.direction == GamepadEvent.Direction.DOWN) ViewSettingsFocus.GROUPING_SERIES
-                        else if (event.direction == GamepadEvent.Direction.RIGHT) ViewSettingsFocus.LAUNCHER_INLINE
-                        else focusedElement
-                    }
-                    ViewSettingsFocus.GROUPING_SERIES -> {
-                        if (event.direction == GamepadEvent.Direction.UP) ViewSettingsFocus.GROUPING_PLATFORM
-                        else if (event.direction == GamepadEvent.Direction.DOWN) ViewSettingsFocus.CLOSE
-                        else if (event.direction == GamepadEvent.Direction.RIGHT) ViewSettingsFocus.LAUNCHER_TOP
-                        else focusedElement
-                    }
-                    ViewSettingsFocus.LAUNCHER_INLINE -> {
-                        if (event.direction == GamepadEvent.Direction.DOWN) ViewSettingsFocus.LAUNCHER_TOP
-                        else if (event.direction == GamepadEvent.Direction.LEFT) ViewSettingsFocus.GROUPING_NONE
-                        else focusedElement
-                    }
-                    ViewSettingsFocus.LAUNCHER_TOP -> {
-                        if (event.direction == GamepadEvent.Direction.UP) ViewSettingsFocus.LAUNCHER_INLINE
-                        else if (event.direction == GamepadEvent.Direction.DOWN) ViewSettingsFocus.CLOSE
-                        else if (event.direction == GamepadEvent.Direction.LEFT) ViewSettingsFocus.GROUPING_SERIES
-                        else focusedElement
-                    }
-                    ViewSettingsFocus.CLOSE -> {
-                        if (event.direction == GamepadEvent.Direction.UP) ViewSettingsFocus.GROUPING_SERIES
-                        else focusedElement
-                    }
+        gamepadManager.events.collect { event ->
+            when (event) {
+                is GamepadEvent.DirectionPressed -> when (event.direction) {
+                    GamepadEvent.Direction.UP -> focusedRow = (focusedRow - 1).coerceAtLeast(0)
+                    GamepadEvent.Direction.DOWN -> focusedRow = (focusedRow + 1).coerceAtMost(4)
+                    GamepadEvent.Direction.LEFT -> change(focusedRow, -1)
+                    GamepadEvent.Direction.RIGHT -> change(focusedRow, 1)
                 }
-            } else if (event is GamepadEvent.ButtonPressed) {
-                if (event.button == GamepadEvent.Button.CONFIRM) {
-                    when (focusedElement) {
-                        ViewSettingsFocus.GROUPING_NONE -> homeViewModel.setGroupingMode(GroupingMode.NONE)
-                        ViewSettingsFocus.GROUPING_PLATFORM -> homeViewModel.setGroupingMode(GroupingMode.PLATFORM)
-                        ViewSettingsFocus.GROUPING_SERIES -> homeViewModel.setGroupingMode(GroupingMode.CONSOLE_SERIES)
-                        ViewSettingsFocus.LAUNCHER_INLINE -> homeViewModel.setLauncherPosition(LauncherPosition.INLINE)
-                        ViewSettingsFocus.LAUNCHER_TOP -> homeViewModel.setLauncherPosition(LauncherPosition.TOP)
-                        ViewSettingsFocus.CLOSE -> onDismiss()
-                    }
-                } else if (event.button == GamepadEvent.Button.BACK) {
-                    onDismiss()
+                is GamepadEvent.ButtonPressed -> when (event.button) {
+                    GamepadEvent.Button.OPTIONS -> focusedRow = 4
+                    GamepadEvent.Button.BACK -> dismiss()
+                    GamepadEvent.Button.CONFIRM -> if (focusedRow == 4) dismiss() else change(focusedRow, 1)
+                    else -> Unit
                 }
             }
         }
     }
-
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.85f)),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(
-                modifier = Modifier
-                    .width(600.dp)
-                    .background(Color(0xFF161616))
-                    .border(2.dp, Color(0xFF333333), RectangleShape)
-                    .padding(32.dp)
-            ) {
-                Text(
-                    text = "OPCIONES DE VISTA",
-                    color = Color.White,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Black,
-                    fontFamily = FontFamily.SansSerif,
-                    letterSpacing = 2.sp
-                )
-                Spacer(modifier = Modifier.height(32.dp))
-
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("AGRUPACIÓN", color = Color(0xFF00FFCC), fontFamily = FontFamily.Monospace, fontSize = 14.sp)
-                        Spacer(modifier = Modifier.height(16.dp))
-                        MetroButton(
-                            text = "SIN AGRUPAR",
-                            isFocused = focusedElement == ViewSettingsFocus.GROUPING_NONE,
-                            inputMode = inputMode,
-                            onClick = { homeViewModel.setGroupingMode(GroupingMode.NONE) },
-                            isPrimary = currentGrouping == GroupingMode.NONE
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        MetroButton(
-                            text = "POR PLATAFORMA",
-                            isFocused = focusedElement == ViewSettingsFocus.GROUPING_PLATFORM,
-                            inputMode = inputMode,
-                            onClick = { homeViewModel.setGroupingMode(GroupingMode.PLATFORM) },
-                            isPrimary = currentGrouping == GroupingMode.PLATFORM
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        MetroButton(
-                            text = "POR FAMILIA",
-                            isFocused = focusedElement == ViewSettingsFocus.GROUPING_SERIES,
-                            inputMode = inputMode,
-                            onClick = { homeViewModel.setGroupingMode(GroupingMode.CONSOLE_SERIES) },
-                            isPrimary = currentGrouping == GroupingMode.CONSOLE_SERIES
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.width(32.dp))
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("EMULADORES", color = Color(0xFF00FFCC), fontFamily = FontFamily.Monospace, fontSize = 14.sp)
-                        Spacer(modifier = Modifier.height(16.dp))
-                        MetroButton(
-                            text = "JUNTO A JUEGOS",
-                            isFocused = focusedElement == ViewSettingsFocus.LAUNCHER_INLINE,
-                            inputMode = inputMode,
-                            onClick = { homeViewModel.setLauncherPosition(LauncherPosition.INLINE) },
-                            isPrimary = currentLauncherPos == LauncherPosition.INLINE
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        MetroButton(
-                            text = "ARRIBA DEL TODO",
-                            isFocused = focusedElement == ViewSettingsFocus.LAUNCHER_TOP,
-                            inputMode = inputMode,
-                            onClick = { homeViewModel.setLauncherPosition(LauncherPosition.TOP) },
-                            isPrimary = currentLauncherPos == LauncherPosition.TOP
-                        )
+    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        Box(Modifier.fillMaxSize().background(palette.background.copy(alpha = .92f)), contentAlignment = Alignment.Center) {
+            Column(Modifier.widthIn(max = 760.dp).fillMaxWidth(.94f).heightIn(max = 780.dp).fillMaxHeight(.94f)
+                .metroPanel(palette).padding(24.dp)) {
+                Text(stringResource(Res.string.view_settings_kicker), color = palette.accent, fontSize = 13.sp, letterSpacing = 2.sp)
+                Text(stringResource(Res.string.view_settings_title), color = palette.text, fontSize = 28.sp, fontWeight = FontWeight.Light)
+                Text(stringResource(Res.string.view_settings_description), color = palette.muted, fontSize = 14.sp,
+                    modifier = Modifier.padding(top = 8.dp, bottom = 20.dp))
+                Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    labels.forEachIndexed { index, label ->
+                        Column(Modifier.fillMaxWidth().bringIntoViewRequester(requesters[index])
+                            .background(palette.background.copy(alpha = .65f)).metroFocus(focusedRow == index && inputMode == org.example.globalconsole.presesentation.input.InputMode.GAMEPAD, palette).padding(16.dp)) {
+                            Text("0${index + 1}  /  ${label.uppercase()}", color = palette.muted, fontSize = 12.sp, letterSpacing = 1.sp)
+                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                MetroButton("‹", { focusedRow = index; change(index, -1) }, inputMode = inputMode)
+                                if (index == 2) {
+                                    Box(Modifier.size(24.dp).background(palette.selection).border(1.dp, palette.accent))
+                                }
+                                Text(values[index], color = palette.text, fontSize = 18.sp, modifier = Modifier.weight(1f))
+                                MetroButton("›", { focusedRow = index; change(index, 1) }, inputMode = inputMode)
+                            }
+                        }
                     }
                 }
-
-                Spacer(modifier = Modifier.height(48.dp))
-
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    MetroButton(
-                        text = "CERRAR",
-                        isFocused = focusedElement == ViewSettingsFocus.CLOSE,
-                        inputMode = inputMode,
-                        onClick = onDismiss,
-                        isPrimary = true
-                    )
+                val footerText = when (error) {
+                    AppearanceSettingsError.LOAD_FAILED -> stringResource(Res.string.appearance_load_error)
+                    AppearanceSettingsError.SAVE_FAILED -> stringResource(Res.string.appearance_save_error)
+                    null -> stringResource(Res.string.view_settings_controls)
                 }
+                Text(footerText,
+                    color = if (error != null) androidx.compose.ui.graphics.Color(0xFFFF9A9A) else palette.muted,
+                    fontSize = 13.sp, modifier = Modifier.padding(vertical = 16.dp))
+                MetroButton(stringResource(Res.string.action_done), onDismiss, Modifier.fillMaxWidth().bringIntoViewRequester(requesters[4]),
+                    isFocused = focusedRow == 4, inputMode = inputMode, isPrimary = true)
             }
         }
     }

@@ -21,7 +21,7 @@ Se implementa exclusivamente como un Launcher, es decir, no se encarga de extrae
        ├── Linux  → isInstalledOnLinux() → executeOnLinux()
        │                                   flatpak run net.rpcs3.RPCS3
        │
-       └── Windows → TODO (Pendiente de implementar, no ejecutable directamente por ahora)
+       └── Windows → ejecutable configurado o rpcs3.exe en PATH
        │
        ▼
 [process.waitFor()]  ← Bloquea el hilo hasta que RPCS3 se cierre
@@ -60,7 +60,7 @@ La arquitectura sigue el mismo diseño que `HeroicGames`.
 
 ### 3.1 Capa de Datos
 
-- **`LauncherPS3Adapter`**: Ejecuta nativamente `flatpak run net.rpcs3.RPCS3` en Linux. La ejecución en Windows está marcada como TODO por limitación técnica de ejecución directa.
+- **`LauncherPS3Adapter`**: Ejecuta nativamente `flatpak run net.rpcs3.RPCS3` en Linux. En Windows utiliza el ejecutable configurado o `rpcs3.exe` en PATH. En Linux también admite un ejecutable personalizado.
 - **`PS3LauncherDto`**: DTO con identificador `ps3-launcher`, nombre `RPCS3` y url de ejecución correspondiente.
 - **`PS3LauncherRepository` / `PS3LauncherRepositoryImpl`**: Encargados de gestionar la persistencia en `AppConfig` (`ps3Enabled`) y delegar la ejecución al adapter.
 - **`Mappers.kt`**: Mapea el DTO a entidad de dominio `PS3Launcher`.

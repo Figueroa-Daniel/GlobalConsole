@@ -1,6 +1,7 @@
 package org.example.globalconsole.presesentation.view.components
 
 import androidx.compose.foundation.Image
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
@@ -19,12 +20,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import org.jetbrains.compose.resources.stringResource
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import globalconsole.shared.generated.resources.*
 import org.example.globalconsole.presesentation.input.GamepadEvent
 import org.example.globalconsole.presesentation.input.GamepadManager
 import java.io.File
@@ -45,6 +48,7 @@ import kotlin.math.abs
  * que genera un archivo `cover_cropped.png` en el directorio del juego.
  *
  * @param imagePath Ruta absoluta a la imagen fuente a recortar.
+ * @param outputName Nombre del recorte asociado al juego.
  * @param outputDir Directorio donde se guardará el archivo recortado resultante.
  * @param gamepadManager Gestor del gamepad para leer eventos de botones y ejes en tiempo real.
  * @param onDismiss Acción ejecutada al cancelar el diálogo (botón B).
@@ -59,7 +63,8 @@ fun ImageCropperDialog(
     outputDir: String,
     gamepadManager: GamepadManager?,
     onDismiss: () -> Unit,
-    onCropSaved: (String) -> Unit
+    onCropSaved: (String) -> Unit,
+    outputName: String = "cover_cropped.png"
 ) {
     val scope = rememberCoroutineScope()
 
@@ -69,6 +74,36 @@ fun ImageCropperDialog(
     var scale by remember { mutableStateOf(1f) }
     var previewSize by remember { mutableStateOf(IntSize.Zero) }
     var isSaving by remember { mutableStateOf(false) }
+
+    val inputMode by gamepadManager?.inputMode?.collectAsState()
+        ?: remember { mutableStateOf(org.example.globalconsole.presesentation.input.InputMode.GAMEPAD) }
+    var saveError by remember { mutableStateOf(false) }
+    val save: () -> Unit = {
+        if (!isSaving && previewSize.width > 0) {
+            isSaving = true
+            saveError = false
+            val capturedX = offsetX
+            val capturedY = offsetY
+            val capturedScale = scale
+            val capturedSize = previewSize.width
+            scope.launch {
+                try {
+                    val success = withContext(Dispatchers.IO) {
+                        ImageCropperUtils.cropAndSaveImage(imagePath, capturedX, capturedY, capturedScale, capturedSize, outputDir, outputName)
+                    }
+                    if (success) onCropSaved(File(outputDir, File(outputName).name).absolutePath)
+                    else saveError = true
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    saveError = true
+                } finally {
+                    isSaving = false
+                }
+            }
+        }
+    }
+    val currentSave by rememberUpdatedState(save)
 
     // Botón seleccionado actualmente: 0 = Cancelar, 1 = Confirmar
     var selectedButton by remember { mutableStateOf(1) }
@@ -103,31 +138,15 @@ fun ImageCropperDialog(
         gamepadManager.events.collectLatest { event ->
             when (event) {
                 is GamepadEvent.ButtonPressed -> when (event.button) {
-                    GamepadEvent.Button.BACK -> onDismiss()
+                    GamepadEvent.Button.OPTIONS -> selectedButton = 1
+                    GamepadEvent.Button.BACK -> if (!isSaving) onDismiss()
                     GamepadEvent.Button.CONFIRM -> {
                         if (!isSaving) {
                             if (selectedButton == 0) {
                                 // Botón cancelar seleccionado
                                 onDismiss()
                             } else {
-                                // Botón confirmar seleccionado → recortar y guardar
-                                isSaving = true
-                                scope.launch {
-                                    val success = withContext(Dispatchers.IO) {
-                                        ImageCropperUtils.cropAndSaveImage(
-                                            sourcePath = imagePath,
-                                            offsetX = offsetX,
-                                            offsetY = offsetY,
-                                            scale = scale,
-                                            previewSizePx = previewSize.width.takeIf { it > 0 } ?: 480,
-                                            outputDir = outputDir
-                                        )
-                                    }
-                                    isSaving = false
-                                    if (success) {
-                                        onCropSaved(File(outputDir, "cover_cropped.png").absolutePath)
-                                    }
-                                }
+                                currentSave()
                             }
                         }
                     }
@@ -144,23 +163,24 @@ fun ImageCropperDialog(
     }
 
     Dialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = { if (!isSaving) onDismiss() },
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        Box(
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xE6000000))
         ) {
+            val previewSide = minOf(480.dp, maxWidth - 48.dp, (maxHeight - 230.dp).coerceAtLeast(100.dp))
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize().padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
 
                 // Título estilo Metro
                 Text(
-                    text = "AJUSTAR CARÁTULA",
+                    text = stringResource(Res.string.crop_title),
                     color = Color.White,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Black,
@@ -170,9 +190,9 @@ fun ImageCropperDialog(
 
                 // Instrucciones de control del mando
                 Text(
-                    text = "STICK IZQ. MUEVE · R2 ACERCA · L2 ALEJA",
-                    color = Color(0xFF888888),
-                    fontSize = 11.sp,
+                    text = stringResource(Res.string.crop_controls),
+                    color = LocalMetroPalette.current.muted,
+                    fontSize = 14.sp,
                     fontFamily = FontFamily.Monospace,
                     modifier = Modifier.padding(bottom = 32.dp)
                 )
@@ -180,14 +200,15 @@ fun ImageCropperDialog(
                 // --- Área de previsualización interactiva ---
                 Box(
                     modifier = Modifier
-                        .size(480.dp)
-                        .background(Color(0xFF111111))
+                        .size(previewSide)
+                        .clipToBounds()
+                        .background(LocalMetroPalette.current.surface)
                         .onSizeChanged { previewSize = it }
                 ) {
                     // Imagen con transformación aplicada en tiempo real por gamepad
                     AsyncImage(
                         model = File(imagePath),
-                        contentDescription = "Imagen a recortar",
+                        contentDescription = stringResource(Res.string.crop_image_description),
                         contentScale = ContentScale.Fit,
                         modifier = Modifier
                             .fillMaxSize()
@@ -207,28 +228,29 @@ fun ImageCropperDialog(
 
                 // Indicador de zoom actual
                 Text(
-                    text = "ZOOM: ${"%.1f".format(scale)}x",
-                    color = Color(0xFF555555),
-                    fontSize = 10.sp,
+                    text = if (saveError) stringResource(Res.string.crop_save_error)
+                    else stringResource(Res.string.crop_zoom, scale),
+                    color = LocalMetroPalette.current.muted,
+                    fontSize = 13.sp,
                     fontFamily = FontFamily.Monospace,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
                 // Botones de acción estilo Metro con foco de gamepad
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    GamepadFocusButton(
-                        text = "B  CANCELAR",
+                    MetroButton(
+                        text = stringResource(Res.string.crop_cancel),
                         isFocused = selectedButton == 0,
-                        backgroundColor = if (selectedButton == 0) Color.White else Color(0xFF222222),
-                        textColor = if (selectedButton == 0) Color.Black else Color(0xFF888888),
-                        onClick = onDismiss
+                        onHover = { selectedButton = 0 },
+                        inputMode = inputMode,
+                        onClick = { if (!isSaving) onDismiss() }
                     )
-                    GamepadFocusButton(
-                        text = if (isSaving) "GUARDANDO..." else "A  CONFIRMAR",
+                    MetroButton(
+                        text = if (isSaving) stringResource(Res.string.crop_saving) else stringResource(Res.string.crop_confirm),
                         isFocused = selectedButton == 1,
-                        backgroundColor = if (selectedButton == 1) Color.White else Color(0xFF222222),
-                        textColor = if (selectedButton == 1) Color.Black else Color(0xFF888888),
-                        onClick = {}
+                        onHover = { selectedButton = 1 },
+                        inputMode = inputMode,
+                        onClick = save
                     )
                 }
             }
@@ -275,42 +297,6 @@ private fun BoxScope.CropMask() {
  */
 @Composable
 private fun BoxScope.CropCorner(alignment: Alignment) {
-    Box(modifier = Modifier.size(24.dp, 3.dp).align(alignment).background(Color.White))
-    Box(modifier = Modifier.size(3.dp, 24.dp).align(alignment).background(Color.White))
-}
-
-/**
- * Botón de acción estilo Metro con soporte de foco visual del gamepad.
- * Cuando está enfocado se resalta con fondo blanco y texto negro.
- *
- * @param text Texto a mostrar en el botón.
- * @param isFocused Indica si el botón está actualmente enfocado por el gamepad.
- * @param backgroundColor Color de fondo del botón.
- * @param textColor Color del texto del botón.
- * @param onClick Acción ejecutada al pulsar el botón (uso con ratón, no necesario para gamepad).
- *
- * @author Daniel Figueroa Vidal
- * @since 2026-08-18
- */
-@Composable
-private fun GamepadFocusButton(
-    text: String,
-    isFocused: Boolean,
-    backgroundColor: Color,
-    textColor: Color,
-    onClick: () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .background(backgroundColor, RectangleShape)
-            .padding(horizontal = 32.dp, vertical = 14.dp)
-    ) {
-        Text(
-            text = text,
-            color = textColor,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Black,
-            fontFamily = FontFamily.Monospace
-        )
-    }
+    Box(modifier = Modifier.size(24.dp, 3.dp).align(alignment).background(LocalMetroPalette.current.accent))
+    Box(modifier = Modifier.size(3.dp, 24.dp).align(alignment).background(LocalMetroPalette.current.accent))
 }

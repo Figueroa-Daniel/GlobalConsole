@@ -31,12 +31,12 @@ class Game3DSFileSystemAdapter(
         var id: Int = 0
 
         if (dsFolder.exists() && dsFolder.isDirectory) {
-            dsFolder.walkTopDown().forEach { file ->
+            val games = dsFolder.walkTopDown().filter { it.isFile && it.extension.equals("3ds", true) }.toList()
+            val covers = org.example.globalconsole.generalData.GameCoverFiles(games)
+            games.forEach { file ->
                 if (file.isFile && file.extension.equals("3ds", ignoreCase = true)) {
                     id++
-                    val imagePath = file.parentFile?.listFiles()?.firstOrNull { 
-                        it.isFile && it.extension.lowercase() in listOf("png", "jpg", "jpeg") 
-                    }?.absolutePath
+                    val imagePath = covers.find(file)
                     listGames.add(
                         Game3DSDto(
                             id = "azahar$id",

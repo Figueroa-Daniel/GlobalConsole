@@ -23,6 +23,10 @@ dependencies {
     // Koin - Inyección de dependencias
     implementation(libs.koin.core)
 
+    // JNA - Acceso a APIs del sistema nativo (X11, cursor, etc.)
+    implementation(libs.jna)
+    implementation(libs.jna.platform)
+
     // Coil - Carga de imágenes
     implementation(libs.coil.compose)
     implementation(libs.compose.components.resources)
@@ -53,4 +57,11 @@ compose.desktop {
             packageVersion = "1.0.0"
         }
     }
+}
+
+// Las pruebas heredadas escriben config.json relativo al directorio de trabajo.
+tasks.withType<Test>().configureEach {
+    val isolatedWorkingDirectory = layout.buildDirectory.dir("test-work/$name")
+    workingDir = isolatedWorkingDirectory.get().asFile
+    doFirst { isolatedWorkingDirectory.get().asFile.mkdirs() }
 }

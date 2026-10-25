@@ -35,12 +35,12 @@ class GameP2FileSystemAdapter(
         var id: Int = 0
 
         if (pcsxFolder.exists() && pcsxFolder.isDirectory) {
-            pcsxFolder.walkTopDown().forEach { file ->
+            val games = pcsxFolder.walkTopDown().filter { it.isFile && it.extension.equals("iso", true) }.toList()
+            val covers = org.example.globalconsole.generalData.GameCoverFiles(games)
+            games.forEach { file ->
                 if (file.isFile && file.extension.equals("iso", ignoreCase = true)) {
                     id++
-                    val imagePath = file.parentFile?.listFiles()?.firstOrNull { 
-                        it.isFile && it.extension.lowercase() in listOf("png", "jpg", "jpeg") 
-                    }?.absolutePath
+                    val imagePath = covers.find(file)
                     listGames.add(
                         GameP2Dto(
                             id = "pcsx2$id", 

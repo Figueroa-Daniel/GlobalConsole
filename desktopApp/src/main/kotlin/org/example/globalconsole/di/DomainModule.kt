@@ -12,14 +12,23 @@ import org.example.globalconsole.settings.domain.usecase.GetEmulatorPathUseCase
 import org.example.globalconsole.settings.domain.usecase.GetMouseSensitivityUseCase
 import org.example.globalconsole.settings.domain.usecase.SaveEmulatorPathUseCase
 import org.example.globalconsole.settings.domain.usecase.SaveMouseSensitivityUseCase
+import org.example.globalconsole.settings.domain.usecase.GetViewSettingsUseCase
+import org.example.globalconsole.settings.domain.usecase.SaveViewSettingsUseCase
 import org.koin.dsl.module
 
 val domainModule = module {
+    single { org.example.globalconsole.settings.domain.usecase.BuildEmulatorCommandUseCase(get()) }
+    single { org.example.globalconsole.settings.domain.usecase.GetEmulatorExecutableUseCase(get()) }
+    single { org.example.globalconsole.settings.domain.usecase.SaveEmulatorExecutableUseCase(get()) }
+    factory { org.example.globalconsole.settings.domain.usecase.GetAppearanceSettingsUseCase(get()) }
+    factory { org.example.globalconsole.settings.domain.usecase.SaveAppearanceSettingsUseCase(get()) }
     // UseCases de configuración (rutas de emuladores)
     factory { GetEmulatorPathUseCase(repository = get()) }
     factory { SaveEmulatorPathUseCase(repository = get()) }
     factory { GetMouseSensitivityUseCase(repository = get()) }
     factory { SaveMouseSensitivityUseCase(repository = get()) }
+    factory { GetViewSettingsUseCase(repository = get()) }
+    factory { SaveViewSettingsUseCase(repository = get()) }
 
     // UseCases de PCSX2
     factory { GetGamesP2UseCase(repository = get()) }
@@ -102,4 +111,27 @@ val domainModule = module {
     factory { org.example.globalconsole.duckstation.domain.usecase.ExecuteGameDuckStationUseCase(repository = get()) }
     factory { org.example.globalconsole.duckstation.domain.usecase.DeleteGameDuckStationUseCase(repository = get()) }
     factory { org.example.globalconsole.duckstation.domain.usecase.CloseGameDuckStationUseCase(repository = get()) }
+
+    // UseCases de Navegadores Web
+    factory { org.example.globalconsole.navigatorWeb.domain.usecase.GetInstalledNavsUseCase(repository = get()) }
+    factory { org.example.globalconsole.navigatorWeb.domain.usecase.GetNavigatorsWebUseCase(repository = get()) }
+    factory { org.example.globalconsole.navigatorWeb.domain.usecase.AddNavUseCase(repository = get()) }
+    factory { org.example.globalconsole.navigatorWeb.domain.usecase.RemoveNavUseCase(repository = get()) }
+    factory { org.example.globalconsole.navigatorWeb.domain.usecase.IsEnabledNavUseCase(repository = get()) }
+    factory { org.example.globalconsole.navigatorWeb.domain.usecase.ExecuteNavUseCase(repository = get()) }
+    factory { org.example.globalconsole.navigatorWeb.domain.usecase.CloseNavUseCase(repository = get()) }
+    factory { org.example.globalconsole.localGames.domain.usecase.GetInstalledLocalGamesUseCase(get()) }
+    factory { org.example.globalconsole.localGames.domain.usecase.GetLocalGamesUseCase(get()) }
+    factory { org.example.globalconsole.localGames.domain.usecase.AddLocalGameUseCase(get()) }
+    factory { org.example.globalconsole.localGames.domain.usecase.RemoveLocalGameUseCase(get()) }
+    factory { org.example.globalconsole.localGames.domain.usecase.IsEnabledLocalGameUseCase(get()) }
+    factory { org.example.globalconsole.localGames.domain.usecase.ExecuteLocalGameUseCase(get()) }
+    factory { org.example.globalconsole.localGames.domain.usecase.CloseLocalGameUseCase(get()) }
+    factory { org.example.globalconsole.localApps.domain.usecase.GetInstalledLocalAppsUseCase(get()) }
+    factory { org.example.globalconsole.localApps.domain.usecase.GetLocalAppsUseCase(get()) }
+    factory { org.example.globalconsole.localApps.domain.usecase.AddLocalAppUseCase(get()) }
+    factory { org.example.globalconsole.localApps.domain.usecase.RemoveLocalAppUseCase(get()) }
+    factory { org.example.globalconsole.localApps.domain.usecase.IsEnabledLocalAppUseCase(get()) }
+    factory { org.example.globalconsole.localApps.domain.usecase.ExecuteLocalAppUseCase(get()) }
+    factory { org.example.globalconsole.localApps.domain.usecase.CloseLocalAppUseCase(get()) }
 }

@@ -1,5 +1,9 @@
 package org.example.globalconsole.presesentation.viewModel.settings
 
+import org.example.globalconsole.localApps.domain.usecase.*
+import org.example.globalconsole.localGames.domain.usecase.*
+import org.example.globalconsole.localGames.domain.entitys.LocalGameObj
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,6 +23,25 @@ import org.example.globalconsole.melonDS.domain.usecase.HideMelonDSLauncherUseCa
 import org.example.globalconsole.PS3Launcher.domain.usecase.EnablePS3LauncherUseCase
 import org.example.globalconsole.PS3Launcher.domain.usecase.FindPS3LauncherUseCase
 import org.example.globalconsole.PS3Launcher.domain.usecase.HidePS3LauncherUseCase
+import org.example.globalconsole.generalDomain.entititys.NavigatorsWeb
+import org.example.globalconsole.navigatorWeb.domain.usecase.AddNavUseCase
+import org.example.globalconsole.navigatorWeb.domain.usecase.GetInstalledNavsUseCase
+import org.example.globalconsole.navigatorWeb.domain.usecase.IsEnabledNavUseCase
+import org.example.globalconsole.navigatorWeb.domain.usecase.RemoveNavUseCase
+
+/**
+ * Fila de la configuración de navegadores: un navegador instalado en el sistema.
+ *
+ * @property navigator Tipo de navegador.
+ * @property enabled True si el usuario lo ha habilitado como componente de la biblioteca.
+ *
+ * @author Daniel Figueroa Vidal
+ * @since 2026-10-11
+ */
+data class NavigatorSettingItem(
+    val navigator: NavigatorsWeb,
+    val enabled: Boolean
+)
 
 /**
  * ViewModel del diálogo de configuración de rutas de emuladores y preferencias de launchers.
@@ -35,6 +58,10 @@ import org.example.globalconsole.PS3Launcher.domain.usecase.HidePS3LauncherUseCa
  * @param hideHGLauncherUseCase UseCase para desactivar la visibilidad de Heroic en la biblioteca.
  * @param getMouseSensitivityUseCase UseCase para recuperar la sensibilidad del ratón.
  * @param saveMouseSensitivityUseCase UseCase para persistir la sensibilidad del ratón.
+ * @param getInstalledLocalAppsUseCase Detecta las aplicaciones admitidas.
+ * @param isEnabledLocalAppUseCase Consulta su selección persistida.
+ * @param addLocalAppUseCase Añade una aplicación a la biblioteca.
+ * @param removeLocalAppUseCase Oculta una aplicación sin desinstalarla.
  *
  * @author Daniel Figueroa Vidal
  * @since 2026-08-10
@@ -61,8 +88,156 @@ class SettingsViewModel(
     private val hideAzaharLauncherUseCase: org.example.globalconsole.azahar.domain.usecase.HideAzaharLauncherUseCase? = null,
     private val findDuckStationLauncherUseCase: org.example.globalconsole.duckstation.domain.usecase.FindDuckStationLauncherUseCase? = null,
     private val enableDuckStationLauncherUseCase: org.example.globalconsole.duckstation.domain.usecase.EnableDuckStationLauncherUseCase? = null,
-    private val hideDuckStationLauncherUseCase: org.example.globalconsole.duckstation.domain.usecase.HideDuckStationLauncherUseCase? = null
+    private val hideDuckStationLauncherUseCase: org.example.globalconsole.duckstation.domain.usecase.HideDuckStationLauncherUseCase? = null,
+    private val getInstalledNavsUseCase: GetInstalledNavsUseCase? = null,
+    private val isEnabledNavUseCase: IsEnabledNavUseCase? = null,
+    private val addNavUseCase: AddNavUseCase? = null,
+    private val removeNavUseCase: RemoveNavUseCase? = null,
+    private val getInstalledLocalGamesUseCase: GetInstalledLocalGamesUseCase? = null,
+    private val isEnabledLocalGameUseCase: IsEnabledLocalGameUseCase? = null,
+    private val addLocalGameUseCase: AddLocalGameUseCase? = null,
+    private val removeLocalGameUseCase: RemoveLocalGameUseCase? = null,
+    private val getInstalledLocalAppsUseCase: GetInstalledLocalAppsUseCase? = null,
+    private val isEnabledLocalAppUseCase: IsEnabledLocalAppUseCase? = null,
+    private val addLocalAppUseCase: AddLocalAppUseCase? = null,
+    private val removeLocalAppUseCase: RemoveLocalAppUseCase? = null,
+    private val getEmulatorExecutableUseCase: org.example.globalconsole.settings.domain.usecase.GetEmulatorExecutableUseCase,
+    private val saveEmulatorExecutableUseCase: org.example.globalconsole.settings.domain.usecase.SaveEmulatorExecutableUseCase
 ) : ViewModel() {
+
+    /**
+     * Carga las rutas de ejecutables fuera del hilo de interfaz.
+     * @return Rutas por emulador; vacío indica selección automática.
+     * @throws Exception Si no se puede leer la configuración.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-12
+     */
+    suspend fun loadExecutables(): Map<org.example.globalconsole.settings.domain.EmulatorTarget, String> =
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            org.example.globalconsole.settings.domain.EmulatorTarget.entries.associateWith { getEmulatorExecutableUseCase(it) }
+        }
+
+    /**
+     * Guarda las rutas editadas antes de cerrar el diálogo.
+     * @param paths Rutas seleccionadas por emulador.
+     * @return Unit.
+     * @throws Exception Si alguna ruta o escritura falla.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-12
+     */
+    suspend fun saveExecutables(paths: Map<org.example.globalconsole.settings.domain.EmulatorTarget, String>) {
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            paths.forEach { (target, path) -> saveEmulatorExecutableUseCase(target, path) }
+        }
+    }
+
+    private val _localGames = MutableStateFlow(LocalGamesSettingsState())
+    val localGames: StateFlow<LocalGamesSettingsState> = _localGames.asStateFlow()
+
+    /**
+     * Detecta los juegos instalados y publica sus preferencias en una única lista.
+     * @return Unit.
+     * @throws Nothing Publica los errores de detección en el estado de la vista.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-11
+     */
+    fun loadLocalGames() {
+        if (_localGames.value.busy) return
+        _localGames.value = _localGames.value.copy(busy = true, error = null)
+        viewModelScope.launch {
+            try {
+                val installed = getInstalledLocalGamesUseCase?.invoke().orEmpty()
+                val items = installed.map { LocalGameSettingItem(it, isEnabledLocalGameUseCase?.invoke(it.id) == true) }
+                _localGames.value = LocalGamesSettingsState(items = items)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _localGames.value = _localGames.value.copy(busy = false, error = e.message ?: "No se pudieron detectar los juegos")
+            }
+        }
+    }
+
+    /**
+     * Persiste el cambio antes de actualizar la fila y evita pulsaciones concurrentes.
+     * @param id Identificador del juego instalado.
+     * @param enabled Estado solicitado.
+     * @return Unit.
+     * @throws Nothing Publica los errores de persistencia en el estado de la vista.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-11
+     */
+    fun setLocalGameEnabled(id: String, enabled: Boolean) {
+        if (_localGames.value.busy) return
+        _localGames.value = _localGames.value.copy(busy = true, error = null)
+        viewModelScope.launch {
+            try {
+                if (enabled) addLocalGameUseCase?.invoke(id) else removeLocalGameUseCase?.invoke(id)
+                val saved = isEnabledLocalGameUseCase?.invoke(id) == true
+                check(saved == enabled) { "El juego ya no está disponible. Vuelve a detectar los juegos." }
+                _localGames.value = _localGames.value.copy(
+                    busy = false, items = _localGames.value.items.map { if (it.game.id == id) it.copy(enabled = saved) else it }
+                )
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _localGames.value = _localGames.value.copy(busy = false, error = e.message ?: "No se pudo guardar la selección")
+            }
+        }
+    }
+
+    private val _localApps = MutableStateFlow(LocalAppsSettingsState())
+    val localApps: StateFlow<LocalAppsSettingsState> = _localApps.asStateFlow()
+
+    /**
+     * Detecta las aplicaciones instaladas y publica sus preferencias en una única lista.
+     * @return Unit.
+     * @throws Nothing Publica los errores de detección en el estado de la vista.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-11
+     */
+    fun loadLocalApps() {
+        if (_localApps.value.busy) return
+        _localApps.value = _localApps.value.copy(busy = true, error = null)
+        viewModelScope.launch {
+            try {
+                val installed = getInstalledLocalAppsUseCase?.invoke().orEmpty()
+                val items = installed.map { LocalAppSettingItem(it, isEnabledLocalAppUseCase?.invoke(it.id) == true) }
+                _localApps.value = LocalAppsSettingsState(items = items)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _localApps.value = _localApps.value.copy(busy = false, error = e.message ?: "No se pudieron detectar las aplicaciones")
+            }
+        }
+    }
+
+    /**
+     * Persiste el cambio antes de actualizar la fila y evita pulsaciones concurrentes.
+     * @param id Identificador de la aplicación instalada.
+     * @param enabled Estado solicitado.
+     * @return Unit.
+     * @throws Nothing Publica los errores de persistencia en el estado de la vista.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-11
+     */
+    fun setLocalAppEnabled(id: String, enabled: Boolean) {
+        if (_localApps.value.busy) return
+        _localApps.value = _localApps.value.copy(busy = true, error = null)
+        viewModelScope.launch {
+            try {
+                if (enabled) addLocalAppUseCase?.invoke(id) else removeLocalAppUseCase?.invoke(id)
+                val saved = isEnabledLocalAppUseCase?.invoke(id) == true
+                check(saved == enabled) { "La aplicación ya no está disponible. Vuelve a detectar las aplicaciones." }
+                _localApps.value = _localApps.value.copy(
+                    busy = false, items = _localApps.value.items.map { if (it.app.id == id) it.copy(enabled = saved) else it }
+                )
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _localApps.value = _localApps.value.copy(busy = false, error = e.message ?: "No se pudo guardar la selección")
+            }
+        }
+    }
 
     private val _uiState = MutableStateFlow<SettingsUiState>(SettingsUiState.Idle)
 
@@ -124,6 +299,16 @@ class SettingsViewModel(
 
     private val _duckstationGamesPath = MutableStateFlow("")
     val duckstationGamesPath: StateFlow<String> = _duckstationGamesPath.asStateFlow()
+
+    private val _navigators = MutableStateFlow<List<NavigatorSettingItem>>(emptyList())
+
+    /**
+     * Navegadores instalados en el sistema con su estado de habilitación.
+     *
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-11
+     */
+    val navigators: StateFlow<List<NavigatorSettingItem>> = _navigators.asStateFlow()
 
     private val _mouseSensitivity = MutableStateFlow(14f)
 
@@ -368,6 +553,52 @@ class SettingsViewModel(
                 hideDuckStationLauncherUseCase?.invoke()
             }
             _duckStationEnabled.value = enabled
+        }
+    }
+
+    /**
+     * Carga los navegadores instalados en el sistema y su estado de habilitación, y actualiza [navigators].
+     *
+     * @return Unit
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-11
+     */
+    fun loadNavigators() {
+        viewModelScope.launch {
+            _navigators.value = buildNavigatorItems()
+        }
+    }
+
+    /**
+     * Habilita o deshabilita un navegador como componente de la biblioteca.
+     *      *
+     * @param navigator Navegador a modificar.
+     * @param enabled True para habilitarlo, false para deshabilitarlo.
+     * @return Unit
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-11
+     */
+    fun setNavigatorEnabled(navigator: NavigatorsWeb, enabled: Boolean) {
+        viewModelScope.launch {
+            if (enabled) addNavUseCase?.invoke(navigator) else removeNavUseCase?.invoke(navigator)
+            _navigators.value = buildNavigatorItems()
+        }
+    }
+
+    /**
+     * Construye las filas de configuración combinando instalados y habilitados.
+     *
+     * @return Lista de [NavigatorSettingItem] de los navegadores instalados.
+     * @author Daniel Figueroa Vidal
+     * @since 2026-10-11
+     */
+    private suspend fun buildNavigatorItems(): List<NavigatorSettingItem> {
+        val installed = getInstalledNavsUseCase?.invoke() ?: return emptyList()
+        return installed.map { navigator ->
+            NavigatorSettingItem(
+                navigator = navigator,
+                enabled = isEnabledNavUseCase?.invoke(navigator) == true
+            )
         }
     }
 }

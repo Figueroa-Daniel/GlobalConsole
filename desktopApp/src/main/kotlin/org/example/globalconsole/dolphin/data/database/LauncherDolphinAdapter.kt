@@ -1,70 +1,44 @@
 package org.example.globalconsole.dolphin.data.database
 
-import org.example.globalconsole.settings.ROUTE_DOLPHIN_EXECUTABLE
+import kotlinx.coroutines.CancellationException
+import org.example.globalconsole.settings.data.SettingsRepositoryImpl
+import org.example.globalconsole.settings.domain.EmulatorTarget
+import org.example.globalconsole.settings.domain.usecase.BuildEmulatorCommandUseCase
+import java.io.File
 
 /**
- * Adaptador encargado de controlar la ejecución nativa y ciclo de vida del Launcher de Dolphin.
- *
+ * Ejecuta DOLPHIN con la ruta persistida y conserva el ciclo de vida del proceso.
+ * @property commandUseCase Resuelve ejecutable y argumentos para el sistema actual.
  * @author Daniel Figueroa Vidal
- * @since 2026-08-16
+ * @since 2026-10-12
  */
-class LauncherDolphinAdapter {
-
-    private var currentProcess: Process? = null
+class LauncherDolphinAdapter(
+    private val commandUseCase: BuildEmulatorCommandUseCase = BuildEmulatorCommandUseCase(SettingsRepositoryImpl())
+) {
+    private var activeProcess: Process? = null
 
     /**
-     * Ejecutará el launcher dependiendo del SO (Linux/Windows).
-     *
-     * @return true si se inició el proceso correctamente, false en caso contrario.
+     * Inicia el launcher y espera su finalización sin usar un shell.
+     * @return True si el proceso termina correctamente; false si no puede ejecutarse.
+     * @throws CancellationException Si se cancela la operación.
      * @author Daniel Figueroa Vidal
-     * @since 2026-08-16
+     * @since 2026-10-12
      */
     suspend fun executeLauncher(): Boolean {
-        val os = System.getProperty("os.name").lowercase()
-
-        return if (os.contains("linux")) {
-            executeLauncherForLinuxFlatpak()
-        } else if (os.contains("windows")) {
-            executeLauncherForWindows()
-        } else {
-            println("Unsupported operating system: $os")
-            false
-        }
-    }
-
-    private fun executeLauncherForWindows(): Boolean {
-        val command = listOf(
-            ROUTE_DOLPHIN_EXECUTABLE ?: "Dolphin.exe"
-        )
         return try {
-            val processBuilder = ProcessBuilder(command)
-            processBuilder.inheritIO()
-            currentProcess = processBuilder.start()
-            println("Launched Dolphin Launcher with command: ${command.joinToString(" ")}")
-            true
+            val command = commandUseCase(EmulatorTarget.DOLPHIN, System.getProperty("os.name"))
+            val builder = ProcessBuilder(command).inheritIO()
+            File(command.first()).takeIf { it.isAbsolute }?.parentFile?.let { builder.directory(it) }
+            val process = builder.start()
+            activeProcess = process
+            process.waitFor() == 0
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
-            System.err.println("Error launching Dolphin on Windows: ${e.message}")
-            e.printStackTrace()
+            System.err.println("No se pudo ejecutar DOLPHIN: ${e.message}")
             false
-        }
-    }
-
-    private fun executeLauncherForLinuxFlatpak(): Boolean {
-        val command = listOf(
-            "flatpak",
-            "run",
-            "org.DolphinEmu.dolphin-emu"
-        )
-        return try {
-            val processBuilder = ProcessBuilder(command)
-            processBuilder.inheritIO()
-            currentProcess = processBuilder.start()
-            println("Launched Dolphin Launcher with command: ${command.joinToString(" ")}")
-            true
-        } catch (e: Exception) {
-            System.err.println("Error launching Dolphin Flatpak: ${e.message}")
-            e.printStackTrace()
-            false
+        } finally {
+            activeProcess = null
         }
     }
 
@@ -77,11 +51,11 @@ class LauncherDolphinAdapter {
      */
     suspend fun closeLauncher(): Boolean {
         return try {
-            currentProcess?.let { process ->
+            activeProcess?.let { process ->
                 process.descendants().forEach { it.destroyForcibly() }
                 process.destroyForcibly()
             }
-            currentProcess = null
+            activeProcess = null
 
             // Fallback robusto a nivel de SO para asegurar el cierre (Dolphin a veces sobrevive al destroy)
             val os = System.getProperty("os.name").lowercase()

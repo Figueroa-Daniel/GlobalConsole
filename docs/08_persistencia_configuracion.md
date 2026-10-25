@@ -51,12 +51,20 @@ Todos los repositorios que persisten datos en este archivo utilizan el modelo co
 // config/AppConfig.kt
 @Serializable
 data class AppConfig(
-    val emulatorPaths: Map<String, String> = emptyMap(),  // gestionado por SettingsRepositoryImpl
-    val heroicEnabled: Boolean = false                     // gestionado por HGLauncherRepositoryImpl
+    val emulatorPaths: Map<String, String> = emptyMap(),
+    val heroicEnabled: Boolean = false,
+    val melonDSEnabled: Boolean = false,
+    val dolphinEnabled: Boolean = false,
+    val ps3Enabled: Boolean = false,
+    val azaharEnabled: Boolean = false,
+    val duckStationEnabled: Boolean = false,
+    val mouseSensitivity: Float = 14f,
+    val groupingMode: String = "NONE",
+    val launcherPosition: String = "INLINE"
 )
 ```
 
-Ejemplo del archivo con ambos campos presentes:
+Ejemplo del archivo con múltiples campos presentes:
 
 ```json
 {
@@ -64,7 +72,10 @@ Ejemplo del archivo con ambos campos presentes:
     "pcsx2": "/home/usuario/ISOs"
   },
   "heroicEnabled": true,
-  "mouseSensitivity": 14.0
+  "dolphinEnabled": false,
+  "mouseSensitivity": 14.0,
+  "groupingMode": "PLATFORM",
+  "launcherPosition": "FIRST"
 }
 ```
 
@@ -135,3 +146,13 @@ Se usa `FakeSettingsRepository` (implementación en memoria) para aislar los tes
 
 @author Daniel Figueroa Vidal
 @since 2026-08-10
+
+## 7. Rutas de ejecutables (2026-10-12)
+
+`emulatorPaths` conserva sus claves de carpetas y añade `executable.pcsx2`,
+`executable.melonds`, `executable.dolphin`, `executable.azahar`,
+`executable.duckstation` y `executable.rpcs3`. Una cadena vacía conserva el
+lanzamiento automático. Los casos de uso de ejecutables guardan y leen estas
+claves; el comando se resuelve al lanzar, sin variables globales. Guardar desde
+el diálogo espera la persistencia antes de cerrarlo. Véase
+[revisión de emuladores](26_revision_emuladores_y_biblioteca.md).
