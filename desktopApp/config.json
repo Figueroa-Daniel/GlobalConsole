@@ -9,16 +9,15 @@
     "heroicEnabled": true,
     "melonDSEnabled": true,
     "dolphinEnabled": true,
-    "ps3Enabled": true,
-    "azaharEnabled": true,
-    "duckStationEnabled": true,
     "mouseSensitivity": 20.0,
     "enabledNavigators": [
         "FIREFOX",
-        "CHROME",
-        "BRAVE"
+        "CHROME"
+    ],
+    "enabledLocalGames": [
+        "local:linux:org.supertuxproject.SuperTux.desktop"
     ],
     "groupingMode": "PLATFORM",
-    "accentColor": "NEON_PURPLE",
+    "accentColor": "NAVY",
     "glowIntensity": 75
 }
